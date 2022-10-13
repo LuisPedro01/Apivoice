@@ -15,8 +15,8 @@ export default function Header({name}) {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.username}>{name}</Text>
 
+        <Text style={styles.username}>{name}</Text>
         <TouchableOpacity style={styles.buttonUser}>
           <Feather name="user" size={27} color="#FFF"/>
         </TouchableOpacity>
@@ -34,18 +34,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingStart: 16,
     paddingEnd: 16,
-    paddingBottom: 44
+    paddingBottom: 44,
+    marginTop: 24,
   },
   content: {
     flex: 1,
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   username:{
     fontSize: 18,
     color: '#FFF',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   buttonUser: {
     width: 44,
