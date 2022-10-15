@@ -1,10 +1,22 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 
-export default function components({onPress, text}) {
+export default function CustomButton({onPress, text, type='PRIMARY', bgColor, fgColor}) {
     return (
-        <Pressable onPress={onPress} style={styles.container}>
-            <Text style={styles.text}>{text}</Text>
+        <Pressable 
+            onPress={onPress} 
+            style={[
+                styles.container, 
+                styles[`container_${type}`],
+                bgColor ? {backgroundColor:bgColor} : {},
+            ]}>
+            <Text 
+                style={[styles.text, 
+                styles[`text_${type}`],
+                fgColor ? {color:fgColor} : {},
+            ]}>
+            {text}
+            </Text>
         </Pressable>
     );
 }
@@ -12,15 +24,23 @@ export default function components({onPress, text}) {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#3B71F3',
         width: '100%',
         padding: 15,
         marginVertical: 10,
         alignItems: 'center',
         borderRadius: 5,
     },
+    container_PRIMARY:{
+        backgroundColor: '#3B71F3',
+    },
+    container_TERTIARY:{
+        
+    },
     text: {
         fontWeight: 'bold',
         color: 'white'
+    },
+    text_TERTIARY:{
+        color:'gray'
     }
 })
