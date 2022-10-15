@@ -9,21 +9,28 @@ import {
 import CustomInput from '../components/CustomInput'
 import CustomButton from '../components/CustomButton'
 import SocialSignInButtons from '../components/SocialSignInButtons'
+import { useNavigation } from '@react-navigation/native';
 
 export default function ConfirmEmail() {
 
     const [code, setCode] = useState('');
+
+    const navigation = useNavigation();
  
     const onConfirmPressed = () => {
         console.warn('Confirm');
+        navigation.navigate('Home')
     }
 
     const onSignInPressed = () => {
         console.warn('On sign in');
+        navigation.navigate('Sign In')
     }
 
     const onResendPressed = () => {
         console.warn('Resending');
+        //resend code
+
     }
     return (
         <ScrollView>

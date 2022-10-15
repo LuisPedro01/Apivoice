@@ -8,18 +8,23 @@ import {
 } from 'react-native';
 import CustomInput from '../components/CustomInput'
 import CustomButton from '../components/CustomButton'
+import { useNavigation } from '@react-navigation/native';
 
 export default function NewPassword() {
 
     const [code, setCode] = useState('');
     const [password, setPassword] = useState('')
 
+    const navigation = useNavigation();
+
     const onSubmitPressed = () => {
         console.warn('Submit');
+        navigation.navigate('Home')
     }
 
     const onSignInPressed = () => {
         console.warn('On sign in');
+        navigation.navigate('Sign In')
     }
 
     return (

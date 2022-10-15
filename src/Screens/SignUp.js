@@ -9,6 +9,7 @@ import {
 import CustomInput from '../components/CustomInput'
 import CustomButton from '../components/CustomButton'
 import SocialSignInButtons from '../components/SocialSignInButtons'
+import { useNavigation } from '@react-navigation/native';
 
 export default function SignUp() {
 
@@ -16,17 +17,22 @@ export default function SignUp() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordRepeat, setPasswordRepeat] = useState('');
-    const { height } = useWindowDimensions();
+
+    const navigation = useNavigation();
+
     const onRegisterPressed = () => {
         console.warn('Register');
+        navigation.navigate('Confirm Email')
     }
 
     const onSignInPressed = () => {
         console.warn('On sign in');
+        navigation.navigate('Sign In')
     }
 
     const onTermsOfUsePress = () => {
         console.warn('Terms of use');
+        //go to terms of use page
     }
     return (
         <ScrollView>

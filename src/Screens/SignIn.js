@@ -13,22 +13,29 @@ import Logo from '../../assets/images/logo.png'
 import CustomInput from '../components/CustomInput'
 import CustomButton from '../components/CustomButton'
 import SocialSignInButtons from '../components/SocialSignInButtons'
-
+import { useNavigation } from '@react-navigation/native';
 
 export default function SignIn() {
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const { height } = useWindowDimensions();
+    const navigation = useNavigation();
+
     const onSignInPressed = () => {
         console.warn('Sign In');
+        //validate user
+
+        navigation.navigate('Home');
     }
     const onForgotPassword = () => {
         console.warn('Forgot Password');
+        navigation.navigate('Forgot Password')
     }
 
     const onSignUpPressed = () => {
         console.warn('Create new account');
+        navigation.navigate('Sign Up')
     }
 
     return (

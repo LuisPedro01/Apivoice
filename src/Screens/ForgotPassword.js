@@ -8,17 +8,22 @@ import {
 } from 'react-native';
 import CustomInput from '../components/CustomInput'
 import CustomButton from '../components/CustomButton'
+import { useNavigation } from '@react-navigation/native';
 
 export default function ForgotPassword() {
 
     const [username, setUsername] = useState('');
  
+    const navigation = useNavigation();
+
     const onSendPressed = () => {
         console.warn('Send');
+        navigation.navigate('New Password')
     }
 
     const onSignInPressed = () => {
         console.warn('On sign in');
+        navigation.navigate('Sign In')
     }
 
     return (

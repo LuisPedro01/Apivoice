@@ -1,11 +1,4 @@
-import Home from "./src/Screens/Home";
-import NavBar from "./src/components/Header";
-import Footer from "./src/components/Footer";
-import SignIn from './src/Screens/SignIn'
-import SignUp from './src/Screens/SignUp'
-import ConfirmEmail from "./src/Screens/ConfirmEmail";
-import ForgotPassword from "./src/Screens/ForgotPassword";
-import NewPassword from "./src/Screens/NewPassword";
+import Navigation from "./src/navigation";
 
 import {
   View,
@@ -18,7 +11,7 @@ import {
 export default function App () {
   return(
     <SafeAreaView style={styles.root}>
-      <NewPassword/>     
+      <Navigation/>     
     </SafeAreaView>
   )
 }
