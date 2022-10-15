@@ -3,7 +3,7 @@ import NavBar from "./src/components/Header";
 import Footer from "./src/components/Footer";
 import SignIn from './src/Screens/SignIn'
 import SignUp from './src/Screens/SignUp'
-
+import ConfirmEmail from "./src/Screens/ConfirmEmail";
 
 import {
   View,
@@ -16,7 +16,7 @@ import {
 export default function App () {
   return(
     <SafeAreaView style={styles.root}>
-      <SignUp/>     
+      <ConfirmEmail/>     
     </SafeAreaView>
   )
 }
