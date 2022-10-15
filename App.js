@@ -2,6 +2,8 @@ import Home from "./src/Screens/Home";
 import NavBar from "./src/components/Header";
 import Footer from "./src/components/Footer";
 import SignIn from './src/Screens/SignIn'
+import SignUp from './src/Screens/SignUp'
+
 
 import {
   View,
@@ -14,7 +16,7 @@ import {
 export default function App () {
   return(
     <SafeAreaView style={styles.root}>
-      <SignIn/>     
+      <SignUp/>     
     </SafeAreaView>
   )
 }

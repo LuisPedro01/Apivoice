@@ -12,6 +12,8 @@ import {
 import Logo from '../../assets/images/logo.png'
 import CustomInput from '../components/CustomInput'
 import CustomButton from '../components/CustomButton'
+import SocialSignInButtons from '../components/SocialSignInButtons'
+
 
 export default function SignIn() {
 
@@ -23,14 +25,6 @@ export default function SignIn() {
     }
     const onForgotPassword = () => {
         console.warn('Forgot Password');
-    }
-
-    const onSignInGoogle = () => {
-        console.warn('Sign IN with Google');
-    }
-
-    const onSignInApple = () => {
-        console.warn('Sign IN with Apple');
     }
 
     const onSignUpPressed = () => {
@@ -46,8 +40,9 @@ export default function SignIn() {
                 <CustomInput placeholder='Password' value={password} setValue={setPassword} secureTextEntry />
                 <CustomButton text="Sign In" onPress={onSignInPressed} />
                 <CustomButton text="Forgot Password?" onPress={onForgotPassword} type='TERTIARY' />
-                <CustomButton text="Sign In with Google" onPress={onSignInGoogle} bgColor='#FAE9EA' fgColor='#DD4D44' />
-                <CustomButton text="Sign In with Apple" onPress={onSignInApple} bgColor='#e3e3e3' fgColor='#363636' />
+
+                <SocialSignInButtons/>
+
                 <CustomButton text="Don't have an account? Create one." onPress={onSignUpPressed} type='TERTIARY' />
             </View>
         </ScrollView>
