@@ -48,7 +48,7 @@ export default function SignIn() {
                 <CustomButton text="Forgot Password?" onPress={onForgotPassword} type='TERTIARY' />
                 <CustomButton text="Sign In with Google" onPress={onSignInGoogle} bgColor='#FAE9EA' fgColor='#DD4D44' />
                 <CustomButton text="Sign In with Apple" onPress={onSignInApple} bgColor='#e3e3e3' fgColor='#363636' />
-                <CustomButton text="Don't hav an account? Create one." onPress={onSignUpPressed} type='TERTIARY' />
+                <CustomButton text="Don't have an account? Create one." onPress={onSignUpPressed} type='TERTIARY' />
             </View>
         </ScrollView>
     );
