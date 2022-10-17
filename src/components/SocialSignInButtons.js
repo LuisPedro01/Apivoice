@@ -4,10 +4,14 @@ import CustomButton from '../components/CustomButton'
 
 export default function SocialSignInButtons() {
     const onSignInGoogle = () => {
+
+        //validate user in google
         console.warn('Sign IN with Google');
     }
 
     const onSignInApple = () => {
+
+        //validate user in apple
         console.warn('Sign IN with Apple');
     }
     return (

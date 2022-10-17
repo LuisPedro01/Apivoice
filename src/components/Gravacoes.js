@@ -7,8 +7,16 @@ import {
 } from 'react-native';
 
 export default function Gravacoes({data}) {
+
+    const onGravacoesPress = () => {
+        //play gravaçao
+        console.warn('Gravaçao');
+    }
+
+
+
  return (
-   <TouchableOpacity style={styles.container}>
+   <TouchableOpacity style={styles.container} onPress={onGravacoesPress}>
     <Text style={styles.data}>{data.date}</Text>
     <View style={styles.content}>
         <Text style={styles.label}>{data.label}</Text>        
