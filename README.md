@@ -3,8 +3,8 @@
 tema (React Native voice, etc).
 
 # Problemas/Obstaculos
--> Falta de rede no campo
--> Evitar consumo de dados móveis
+-> Falta de rede no campo<br/>
+-> Evitar consumo de dados móveis<br/>
 -> Evitar sobrecarregamento do telemovel do apicultor com dados da aplicação, procurar uma 
 abordagem sincronizada, através de um repositório local e remoto (fazer download para o repositorio
 local, dos dados que pretendemos obter)
