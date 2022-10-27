@@ -16,15 +16,12 @@ export default function Gravacoes({data}) {
         console.warn('Gravaçao do dia ', data.date);
     }
 
-    const [recording, setRecording] = useState();
-    const [recordings, setRecordings] = useState([]);
-    const [message, setMessage] = useState("");
-
+    /*
     async function startRecording() {
         try{
             const permission = await requestPermissionsAsync();
 
-            if (permission.status == "garanted"){
+            if (permission.status === "garanted"){
                 await Audio.setAudioModeAsync({
                     allowsRecordingIOS: true,
                     playInSilentModeIOS: true
@@ -76,18 +73,18 @@ export default function Gravacoes({data}) {
         })
     }
 
+    const [recording, setRecording] = useState();
+    const [recordings, setRecordings] = useState([]);
+    const [message, setMessage] = useState("");
+*/
+
  return (
-   <TouchableOpacity style={styles.container} onPress={onGravacoesPress}>
-    <Text>{message}</Text>
+   <TouchableOpacity style={styles.container} >
     <Text style={styles.data}>{data.date}</Text>
     <View style={styles.content}>
         <Text style={styles.label}>{data.label}</Text>        
     </View>
-    <Button
-        title={recording ? 'Stop Recording' :'Start recording'}
-        onPress={recording ? stopRecording : startRecording}
-    />
-    {getRecordingLines}
+
    </TouchableOpacity>
   );
 }

@@ -25,7 +25,9 @@ export default function SignIn() {
         console.warn('Sign In');
         //validate user
 
-        navigation.navigate('Home');
+        navigation.navigate('Home',{
+            username: username
+        });
     }
     const onForgotPassword = () => {
         console.warn('Forgot Password');

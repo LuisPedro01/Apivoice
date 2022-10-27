@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, FlatList } from "react-native";
 import Header from '../components/Header'
 import ListaColmeias from '../components/ListasColmeias'
 import Gravacoes from '../components/Gravacoes'
+import { useRoute } from '@react-navigation/native';
 
 const ListGrav = [
   {
@@ -19,10 +20,11 @@ const ListGrav = [
 
 
 export default function Home() {
+  const route= useRoute();
   return (
      <View style={styles.container}>
 
-      <Header name="Nome 1"/>
+      <Header name={route.params.username}/>
 
       <ListaColmeias colmeia="Colmeia 1"/>
 
