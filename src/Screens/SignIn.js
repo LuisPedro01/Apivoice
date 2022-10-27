@@ -12,7 +12,6 @@ import {
 import Logo from '../../assets/images/logo.png'
 import CustomInput from '../components/CustomInput'
 import CustomButton from '../components/CustomButton'
-import SocialSignInButtons from '../components/SocialSignInButtons'
 import { useNavigation } from '@react-navigation/native';
 
 export default function SignIn() {
@@ -48,7 +47,6 @@ export default function SignIn() {
                 <CustomButton text="Sign In" onPress={onSignInPressed} />
                 <CustomButton text="Forgot Password?" onPress={onForgotPassword} type='TERTIARY' />
 
-                <SocialSignInButtons/>
 
                 <CustomButton text="Don't have an account? Create one." onPress={onSignUpPressed} type='TERTIARY' />
             </View>

@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import CustomInput from '../components/CustomInput'
 import CustomButton from '../components/CustomButton'
-import SocialSignInButtons from '../components/SocialSignInButtons'
 import { useNavigation } from '@react-navigation/native';
 
 export default function ConfirmEmail() {

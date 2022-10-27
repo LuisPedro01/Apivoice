@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import CustomInput from '../components/CustomInput'
 import CustomButton from '../components/CustomButton'
-import SocialSignInButtons from '../components/SocialSignInButtons'
 import { useNavigation } from '@react-navigation/native';
 
 export default function SignUp() {
@@ -45,7 +44,6 @@ export default function SignUp() {
                 <CustomButton text="Register" onPress={onRegisterPressed} />
                 <Text style={styles.text}>By registering, you confirm that you accept our <Text style={styles.link} onPress={onTermsOfUsePress}>Terms of Use</Text> and <Text style={styles.link} onPress={onTermsOfUsePress}>Privacy Policy</Text></Text>
 
-                <SocialSignInButtons/>
 
                 <CustomButton text="Have an acoount? Sign in" onPress={onSignInPressed} type='TERTIARY' />
             </View>
