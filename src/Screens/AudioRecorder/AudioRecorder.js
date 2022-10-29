@@ -65,7 +65,7 @@ const AudioRecorder = () => {
           </Text>
           <Button
             style={styles.button}
-            onPress={() => recordingLine.sound.playAsync()}
+            onPress={() => recordingLine.sound.replayAsync()}
             title="Play"
           />
         </View>
