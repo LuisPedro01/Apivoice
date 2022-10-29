@@ -5,6 +5,8 @@ import {
   requestPermissionsAsync,
   setAudioModeAsync,
 } from "expo-av/build/Audio";
+import Header from "../../components/Header";
+import CustomButton from "../../components/CustomButton";
 
 const AudioRecorder = () => {
   const [recording, setRecording] = useState();
@@ -60,6 +62,7 @@ const AudioRecorder = () => {
     return recordings.map((recordingLine, index) => {
       return (
         <View key={index} style={styles.row}>
+
           <Text style={styles.fill}>
             Recording {index + 1} - {recordingLine.duration}
           </Text>
@@ -75,8 +78,10 @@ const AudioRecorder = () => {
 
   return (
     <View style={styles.container}>
-      <Button
-        title={recording ? "Stop Recording" : "Start Recording"}
+        <Header name="Gravar"/>
+      <CustomButton
+        type='AUDIO'
+        text={recording ? "Stop Recording" : "Start Recording"}
         onPress={recording ? stopRecording : startRecording}
       />
       {getRecordingLines()}
@@ -85,10 +90,8 @@ const AudioRecorder = () => {
 };
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: '"#fff"',
+    flex:1,
+    backgroundColor: '#fafafa',
   },
   row: {
     flexDirection: "row",
@@ -100,8 +103,11 @@ const styles = StyleSheet.create({
     margin: 16,
   },
   button: {
-    margin: 16,
+    margin: 160,
   },
+  start: {
+    
+  }
 });
 
 export default AudioRecorder;

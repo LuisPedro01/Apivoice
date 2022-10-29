@@ -37,8 +37,17 @@ const styles = StyleSheet.create({
         borderColor: '#3B71F3',
         borderWidth: 2
     },
-    container_TERTIARY:{
-        
+    container_AUDIO:{
+        width: '50%',
+        backgroundColor: '#3B71F3',
+        marginLeft: '25%',
+        marginTop: '15%'
+    },
+    container_HOME:{
+        width: '50%',
+        backgroundColor: '#3B71F3',
+        marginLeft: '25%',
+        marginBottom: '10%'
     },
     text: {
         fontWeight: 'bold',
@@ -49,5 +58,8 @@ const styles = StyleSheet.create({
     },
     text_SECONDARY:{
         color:'#3B71F3',
+    },
+    text_AUDIO:{
+        color: 'white'
     }
 })

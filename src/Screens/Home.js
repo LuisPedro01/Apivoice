@@ -46,7 +46,7 @@ export default function Home() {
         renderItem={( {item} ) => <Gravacoes data={item}/>}
       />
 
-      <CustomButton text="Audio Recorder" onPress={buttonPress}/>
+      <CustomButton text="Audio Recorder" onPress={buttonPress} type='HOME'/>
     </View>
   )
 }

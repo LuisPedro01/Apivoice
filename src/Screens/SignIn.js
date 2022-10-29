@@ -67,8 +67,6 @@ export default function SignIn() {
                 <CustomInput placeholder='Password' value={password} setValue={setPassword} secureTextEntry />
                 <CustomButton text="Sign In" onPress={onSignInPressed} />
                 <CustomButton text="Forgot Password?" onPress={onForgotPassword} type='TERTIARY' />
-
-
                 <CustomButton text="Don't have an account? Create one." onPress={onSignUpPressed} type='TERTIARY' />
             </View>
         </ScrollView>
