@@ -1,5 +1,4 @@
 import Navigation from "./src/navigation";
-
 import {
   View,
   Text,

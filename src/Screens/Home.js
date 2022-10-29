@@ -1,9 +1,11 @@
 import React from 'react'
-import { StyleSheet, Text, View, FlatList } from "react-native";
+import { StyleSheet, Text, View, FlatList, Button } from "react-native";
 import Header from '../components/Header'
 import ListaColmeias from '../components/ListasColmeias'
 import Gravacoes from '../components/Gravacoes'
 import { useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import CustomButton from '../components/CustomButton';
 
 const ListGrav = [
   {
@@ -21,6 +23,11 @@ const ListGrav = [
 
 export default function Home() {
   const route= useRoute();
+  const navigation = useNavigation();
+
+  const buttonPress = () => {
+    navigation.navigate('Audio Recorder')
+  }
 
   return (
      <View style={styles.container}>
@@ -38,6 +45,8 @@ export default function Home() {
         showsVerticalScrollIndicator= {false}
         renderItem={( {item} ) => <Gravacoes data={item}/>}
       />
+
+      <CustomButton text="Audio Recorder" onPress={buttonPress}/>
     </View>
   )
 }

@@ -9,7 +9,8 @@ import ConfirmEmail from "../Screens/ConfirmEmail";
 import ForgotPassword from "../Screens/ForgotPassword";
 import NewPassword from "../Screens/NewPassword";
 import Home from "../Screens/Home";
-
+import AudioPlay from '../Screens/AudioPlay/AudioPlay';
+import AudioRecorder from '../Screens/AudioRecorder/AudioRecorder';
 
 
 const Stack = createNativeStackNavigator();
@@ -24,7 +25,8 @@ export default function Navigation() {
             <Stack.Screen name="Forgot Password" component={ForgotPassword} />
             <Stack.Screen name="New Password" component={NewPassword} />
             <Stack.Screen name="Home" component={Home} />
-
+            <Stack.Screen name="Audio Play" component={AudioPlay} />
+            <Stack.Screen name="Audio Recorder" component={AudioRecorder} />
             
         </Stack.Navigator> 
     </NavigationContainer>
