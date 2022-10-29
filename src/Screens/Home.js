@@ -21,6 +21,7 @@ const ListGrav = [
 
 export default function Home() {
   const route= useRoute();
+
   return (
      <View style={styles.container}>
 
