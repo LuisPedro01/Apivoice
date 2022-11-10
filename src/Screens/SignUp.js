@@ -4,8 +4,10 @@ import {
     Text,
     StyleSheet,
     ScrollView,
+    Image,
     useWindowDimensions
 } from 'react-native';
+import Logo from '../../assets/images/logo.png'
 import CustomInput from '../components/CustomInput'
 import CustomButton from '../components/CustomButton'
 import { useNavigation } from '@react-navigation/native';
@@ -18,6 +20,7 @@ export default function SignUp() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigation = useNavigation();
+    const { height } = useWindowDimensions();
 
     async function onRegisterPressed () {
         console.warn('Register');
@@ -52,18 +55,29 @@ export default function SignUp() {
         console.warn('Terms of use');
         //go to terms of use page
     }
+
+    const onSignInFacebook = () => {
+        console.warn('Facebook')
+    } 
+
+    const onSignInGoogle = () => {
+        console.warn('Google')
+    }
     return (
         <ScrollView>
             <View style={styles.root}>
-                <Text style={styles.title}>Create an account</Text>
+                <Image source={Logo} style={[styles.logo, { height: height * 0.3 }]} resizeMode="contain" />
+                <Text style={styles.name}>Sign Up</Text>
+                <View style={{flexDirection: 'row'}}>
+                    <CustomButton text='Facebook' onPress={onSignInFacebook} type='TERTIARY'/>
+                    <CustomButton text='Google' onPress={onSignInGoogle} type='TERTIARY'/>
+                </View>
+                <Text style={{marginBottom: 20}}>Or, Sign Up with...</Text>
                 <CustomInput placeholder='Username' value={username} setValue={setUsername}/>
                 <CustomInput placeholder='Email' value={email} setValue={setEmail} />
                 <CustomInput placeholder='Password' value={password} setValue={setPassword} secureTextEntry />
                 <CustomButton text="Register" onPress={onRegisterPressed} />
-                <Text style={styles.text}>By registering, you confirm that you accept our <Text style={styles.link} onPress={onTermsOfUsePress}>Terms of Use</Text> and <Text style={styles.link} onPress={onTermsOfUsePress}>Privacy Policy</Text></Text>
-
-
-                <CustomButton text="Have an acoount? Sign in" onPress={onSignInPressed} type='TERTIARY' />
+                <Text style={styles.text}>Possui conta? <Text style={styles.link} onPress={onSignInPressed}>Log in</Text></Text>
             </View>
         </ScrollView>
     );
@@ -74,11 +88,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
     },
-    title: {
-        fontSize: 24,
+    name: {
+        color: 'rgb(179, 122, 0)',
         fontWeight: 'bold',
-        color: '#051C60',
-        margin: 10,
+        fontSize: 24,        
+    },
+    logo: {
+        width: '40%',
+        maxHeight: 200,
+        maxWidth: 300,
+        marginTop: 20,     
     },
     text: {
         color: 'gray',

@@ -65,7 +65,7 @@ export default function SignIn() {
         <ScrollView>
             <View style={styles.root}>
                 <Image source={Logo} style={[styles.logo, { height: height * 0.3 }]} resizeMode="contain" />
-                <Text style={styles.name}>Sign Up</Text>
+                <Text style={styles.name}>Speek2Bees</Text>
                 <View style={{flexDirection: 'row'}}>
                     <CustomButton text='Facebook' onPress={onSignInFacebook} type='TERTIARY'/>
                     <CustomButton text='Google' onPress={onSignInGoogle} type='TERTIARY'/>
