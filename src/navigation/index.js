@@ -5,7 +5,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import SignIn from '../Screens/SignIn'
 import SignUp from '../Screens/SignUp'
-import ForgotPassword from "../Screens/ForgotPassword";
 import NewPassword from "../Screens/NewPassword";
 import Home from "../Screens/Home";
 import AudioPlay from '../Screens/AudioPlay/AudioPlay';
@@ -20,7 +19,6 @@ export default function Navigation() {
        <Stack.Navigator screenOptions={{headerShown: false}}>
             <Stack.Screen name="Sign In" component={SignIn} />
             <Stack.Screen name="Sign Up" component={SignUp} />
-            <Stack.Screen name="Forgot Password" component={ForgotPassword} />
             <Stack.Screen name="New Password" component={NewPassword} />
             <Stack.Screen name="Home" component={Home} />
             <Stack.Screen name="Audio Play" component={AudioPlay} />

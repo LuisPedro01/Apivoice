@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
         padding: 15,
         marginVertical: 10,
         alignItems: 'center',
-        borderRadius: 5,
+        borderRadius: 10,
     },
     container_PRIMARY:{
         backgroundColor: '#3B71F3',
@@ -36,6 +36,13 @@ const styles = StyleSheet.create({
     container_SECONDARY:{
         borderColor: '#3B71F3',
         borderWidth: 2
+    },
+    container_TERTIARY:{
+        width: '45%',
+        backgroundColor: '#F5F9FE',
+        margin: 15,
+        marginTop: 40,
+        marginBottom: 30,
     },
     container_AUDIO:{
         width: '50%',

@@ -21,6 +21,7 @@ export default function Gravacoes({data}) {
   );
 }
 
+
 const styles = StyleSheet.create({
     container:{
         flex:1,

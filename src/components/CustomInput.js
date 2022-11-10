@@ -18,16 +18,15 @@ export default function CustomInput({ value, setValue, placeholder, secureTextEn
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: 'white',
+        backgroundColor: '#F5F9FE',
         width: '100%',
-        height: 35,
-        borderColor: '#e8e8e8',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingHorizontal: 10,
+        height: 60,
+        borderRadius: 10,
+        paddingHorizontal: 20,
+        paddingVertical: 15,
         marginVertical: 10,
     },
     input: {
-
+        
     }
 })

@@ -48,26 +48,33 @@ export default function SignIn() {
             });
 
     }
-    const onForgotPassword = () => {
-        console.warn('Forgot Password');
-        navigation.navigate('Forgot Password')
-    }
-
+   
     const onSignUpPressed = () => {
         console.warn('Create new account');
         navigation.navigate('Sign Up')
     }
 
+    const onSignInFacebook = () => {
+        console.warn('Facebook')
+    } 
+
+    const onSignInGoogle = () => {
+        console.warn('Google')
+    }
     return (
         <ScrollView>
             <View style={styles.root}>
                 <Image source={Logo} style={[styles.logo, { height: height * 0.3 }]} resizeMode="contain" />
-                <Text style={styles.name}>Speek2Bees</Text>
+                <Text style={styles.name}>Sign Up</Text>
+                <View style={{flexDirection: 'row'}}>
+                    <CustomButton text='Facebook' onPress={onSignInFacebook} type='TERTIARY'/>
+                    <CustomButton text='Google' onPress={onSignInGoogle} type='TERTIARY'/>
+                </View>
+                <Text style={{marginBottom: 20}}>Or, login with...</Text>
                 <CustomInput placeholder='Email' value={email} setValue={setEmail} />
                 <CustomInput placeholder='Password' value={password} setValue={setPassword} secureTextEntry />
                 <CustomButton text="Sign In" onPress={onSignInPressed} />
-                <CustomButton text="Forgot Password?" onPress={onForgotPassword} type='TERTIARY' />
-                <CustomButton text="Don't have an account? Create one." onPress={onSignUpPressed} type='TERTIARY' />
+                <Text style={styles.text}>Não possui conta? <Text style={styles.link} onPress={onSignUpPressed}>Crie uma!</Text></Text>
             </View>
         </ScrollView>
     );
@@ -82,12 +89,21 @@ const styles = StyleSheet.create({
         width: '40%',
         maxHeight: 200,
         maxWidth: 300,
-        marginTop: 20
+        marginTop: 20,     
     },
     name: {
         color: 'rgb(179, 122, 0)',
         fontWeight: 'bold',
         fontSize: 24,
-        paddingBottom: 16
-    }
+        
+    },
+    text: {
+        color: 'gray',
+        marginVertical: 10,
+        
+    },
+    link: {
+        color: '#FDB075'
+    },
+    
 })
