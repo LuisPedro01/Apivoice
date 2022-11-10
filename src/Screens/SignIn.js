@@ -15,6 +15,8 @@ import CustomButton from '../components/CustomButton'
 import { useNavigation } from '@react-navigation/native';
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../services/firebase'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+
 
 export default function SignIn() {
 
@@ -70,10 +72,11 @@ export default function SignIn() {
                     <CustomButton text='Facebook' onPress={onSignInFacebook} type='TERTIARY'/>
                     <CustomButton text='Google' onPress={onSignInGoogle} type='TERTIARY'/>
                 </View>
+                
                 <Text style={{marginBottom: 20}}>Or, login with...</Text>
                 <CustomInput placeholder='Email' value={email} setValue={setEmail} />
                 <CustomInput placeholder='Password' value={password} setValue={setPassword} secureTextEntry />
-                <CustomButton text="Sign In" onPress={onSignInPressed} />
+                <CustomButton text="Log In" onPress={onSignInPressed} />
                 <Text style={styles.text}>Não possui conta? <Text style={styles.link} onPress={onSignUpPressed}>Crie uma!</Text></Text>
             </View>
         </ScrollView>
@@ -86,7 +89,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     logo: {
-        width: '40%',
+        width: '30%',
         maxHeight: 200,
         maxWidth: 300,
         marginTop: 20,     

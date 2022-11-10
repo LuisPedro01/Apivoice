@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
         fontSize: 24,        
     },
     logo: {
-        width: '40%',
+        width: '30%',
         maxHeight: 200,
         maxWidth: 300,
         marginTop: 20,     
