@@ -8,28 +8,30 @@ import {
 } from "react-native";
 
 import { Feather } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient';
 
 const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
 
 export default function Header({name}) {
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={['#FFDAAE', 'white']}>
+      <View style={styles.container}>
       <View style={styles.content}>
 
         <Text style={styles.username}>{name}</Text>
         <TouchableOpacity style={styles.buttonUser}>
-          <Feather name="user" size={27} color="#FFF"/>
+          <Feather name="user" size={27} color="black"/>
         </TouchableOpacity>
 
       </View>
     </View>
+    </LinearGradient>
   )
 }
 
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#8000ff',
     paddingTop: StatusBarHeight,
     flexDirection: 'row',
     paddingStart: 16,
@@ -45,15 +47,14 @@ const styles = StyleSheet.create({
   },
   username:{
     fontSize: 18,
-    color: '#FFF',
+    color: 'black',
     fontWeight: 'bold',
   },
   buttonUser: {
     width: 44,
     height: 44,
-    backgroundColor: 'rgba(255,255,255, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 44/2,
-  }
+    borderRadius: 44/2,   
+  },
 })

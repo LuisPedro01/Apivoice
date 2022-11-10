@@ -34,7 +34,7 @@ export default function Home() {
 
       <Header name={route.params.username}/>
 
-      <ListaColmeias colmeia="Colmeia 1"/>
+      
 
       <Text style={styles.grav}>Últimas gravações</Text>
 
