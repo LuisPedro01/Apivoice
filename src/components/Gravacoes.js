@@ -8,15 +8,17 @@ import {
     Button
 } from 'react-native';
 import { Audio } from 'expo-av';
+import CustomButton from './CustomButton';
 
-export default function Gravacoes({data}) {
+export default function Colmeias({data}) {
+
+    const onColmeiaPress = () => {
+        console.warn('Colmeia');
+      };
     
  return (
    <TouchableOpacity style={styles.container} >
-    <Text style={styles.data}>{data.date}</Text>
-    <View style={styles.content}>
-        <Text style={styles.label}>{data.label}</Text>        
-    </View>
+        <CustomButton text={data.label} type='COLMEIA' onPress={onColmeiaPress}/>
    </TouchableOpacity>
   );
 }
@@ -25,9 +27,6 @@ export default function Gravacoes({data}) {
 const styles = StyleSheet.create({
     container:{
         flex:1,
-        marginBottom: 24,
-        borderBottomWidth: 0.5,
-        borderBottomColor: '#DADADA'
     },
     content:{
         flexDirection: 'row',
@@ -53,7 +52,6 @@ const styles = StyleSheet.create({
         margin: 16
     },
     button: {
-        margin: 16,
-        
+        margin: 16,        
     }
 })

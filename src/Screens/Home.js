@@ -1,72 +1,81 @@
-import React from 'react'
+import React from "react";
 import { StyleSheet, Text, View, FlatList, Button } from "react-native";
-import Header from '../components/Header'
-import ListaColmeias from '../components/ListasColmeias'
-import Gravacoes from '../components/Gravacoes'
-import { useRoute } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
-import CustomButton from '../components/CustomButton';
+import Header from "../components/Header";
+import ListaColmeias from "../components/ListasColmeias";
+import Gravacoes from "../components/Gravacoes";
+import { useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
+import CustomButton from "../components/CustomButton";
 
 const ListGrav = [
   {
     id: 1,
-    label: 'Gravação da colmeia 1',
-    date: '13/10/2022',
+    label: "Colmeia 1",
   },
   {
     id: 2,
-    label: 'Gravação da colmeia 2',
-    date: '22/10/2022',
+    label: "Colmeia 2",
   },
-]
-
+];
 
 export default function Home() {
-  const route= useRoute();
+  const route = useRoute();
   const navigation = useNavigation();
 
   const buttonPress = () => {
-    navigation.navigate('Audio Recorder')
+    navigation.navigate("Audio Recorder");
+  };
+
+  const onNovaColmeiaPress = () => {
+    //direcionar para nova pagina de adicionar colmeia
+    console.warn('Nova colmeia')
   }
 
   return (
-     <View style={styles.container}>
+    <View style={styles.container}>
+      <Header name={route.params.username} />
 
-      <Header name={route.params.username}/>
+      <CustomButton text="Colmeias" type="COLMEIAS" />
 
-      
-
-      <Text style={styles.grav}>Últimas gravações</Text>
+      <View
+        style={{
+          borderBottomColor: '#939393',
+          borderBottomWidth: 0.5,
+          margin: 20,
+          marginBottom: 0,
+          marginTop: 10
+        }}
+      />
 
       <FlatList
         style={styles.list}
         data={ListGrav}
-        keyExtractor={ (item) => String(item.id)}
-        showsVerticalScrollIndicator= {false}
-        renderItem={( {item} ) => <Gravacoes data={item}/>}
+        keyExtractor={(item) => String(item.id)}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => <Gravacoes data={item} />}
       />
 
-      <CustomButton text="Audio Recorder" onPress={buttonPress} type='HOME'/>
+      <CustomButton text="Adicionar nova colmeia" type="NOVACOLMEIA" onPress={onNovaColmeiaPress}/>
+      <CustomButton text="Audio Recorder" onPress={buttonPress} type="HOME" />
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex:1,
-    backgroundColor: '#fafafa',
+    flex: 1,
+    backgroundColor: "white",
   },
-  grav:{
+  grav: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 14,
     marginRight: 14,
-    marginTop: 14
+    marginTop: 14,
   },
-  list:{
+  list: {
     marginLeft: 14,
     marginRight: 14,
-    marginTop: 20
-  }
-})
-
+    marginTop: 20,
+  },
+});
