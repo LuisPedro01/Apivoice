@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
 
-export default function Header({name}) {
+export default function Header({name,type}) {
   return (
     <LinearGradient colors={['#FFDAAE', 'white']}>
       <View style={styles.container}>
@@ -20,7 +20,7 @@ export default function Header({name}) {
 
         <Text style={styles.username}>{name}</Text>
         <TouchableOpacity style={styles.buttonUser}>
-          <Feather name="user" size={27} color="black"/>
+          <Feather name={`${type}`} size={27} color="black"/>
         </TouchableOpacity>
 
       </View>
@@ -28,7 +28,7 @@ export default function Header({name}) {
     </LinearGradient>
   )
 }
-
+//user
 
 const styles = StyleSheet.create({
   container: {

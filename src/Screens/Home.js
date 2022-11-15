@@ -27,13 +27,13 @@ export default function Home() {
   };
 
   const onNovaColmeiaPress = () => {
-    //direcionar para nova pagina de adicionar colmeia
+    navigation.navigate("Nova Colmeia");
     console.warn('Nova colmeia')
   }
 
   return (
     <View style={styles.container}>
-      <Header name={route.params.username} />
+      <Header name={route.params.username} type="user"/>
 
       <CustomButton text="Colmeias" type="COLMEIAS" />
 
