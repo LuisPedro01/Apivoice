@@ -12,7 +12,7 @@ import CustomButton from './CustomButton';
 import { useNavigation } from "@react-navigation/native";
 
 
-export default function Colmeias({data}) {
+export default function ColmeiasGrav({data}) {
 
     const navigation = useNavigation();
     const onColmeiaPress = () => {
@@ -21,7 +21,7 @@ export default function Colmeias({data}) {
     
  return (
    <TouchableOpacity style={styles.container} >
-        <CustomButton text={data.label} type='COLMEIA' onPress={onColmeiaPress}/>
+        <CustomButton text={data.nome} type='COLMEIA' onPress={onColmeiaPress}/>
    </TouchableOpacity>
   );
 }

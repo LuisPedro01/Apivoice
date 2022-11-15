@@ -1,45 +1,50 @@
-import React from "react";
+import React,  { useState }  from "react";
 import { StyleSheet, Text, View, FlatList, Button } from "react-native";
 import Header from "../components/Header";
-import ListaColmeias from "../components/ListasColmeias";
 import Gravacoes from "../components/Gravacoes";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
+import CustomInput from "../components/CustomInput";
+import ColmeiasGrav from "../components/ColmeiasGrav";
 
-const ListCol = [
-  {
-    id: 1,
-    label: "Colmeia 1",
-  },
-  {
-    id: 2,
-    label: "Colmeia 2",
-  },
-];
+const ListGrav = [
+    {
+        id:1,
+        nome: "Gravação 1",
+        data: "15/11/2022"
+    },
+    {
+        id:2,
+        nome: "Gravação 2",
+        data: "15/11/2022"
+    },
+    {
+        id:3,
+        nome: "Gravação 3",
+        data: "15/11/2022"
+    },
+]
 
-export default function Home() {
+
+export default function NovaColmeia() {
   const route = useRoute();
   const navigation = useNavigation();
 
-  const buttonPress = () => {
-    navigation.navigate("Audio Recorder");
-  };
-
-  const onNovaColmeiaPress = () => {
-    navigation.navigate("Nova Colmeia");
-    console.warn('Nova colmeia')
+  const onAudioPress = () => {
+    console.warn('Audio');
   }
 
-  const onColmeiaPress = () => {
-    navigation.navigate("Colmeia");
+  const NovaGravacaoPress = () => {
+    navigation.navigate("Audio Recorder")
   }
 
+  
   return (
     <View style={styles.container}>
-      <Header name={route.params.username} type="user"/>
+      <Header name={"Gravações"} type="music"/>
 
-      <CustomButton text="Colmeias" type="COLMEIAS" />
+      <CustomButton text="Colmeia X" type="COLMEIAS" />
 
       <View
         style={{
@@ -53,13 +58,13 @@ export default function Home() {
 
       <FlatList
         style={styles.list}
-        data={ListCol}
+        data={ListGrav}
         keyExtractor={(item) => String(item.id)}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => <Gravacoes data={item}/>}
+        renderItem={({ item }) => <ColmeiasGrav data={item} />}
       />
-
-      <CustomButton text="Adicionar nova colmeia" type="NOVACOLMEIA" onPress={onNovaColmeiaPress}/>
+      
+      <CustomButton text={"Adicionar nova gravação"} type="NOVACOLMEIA" onPress={NovaGravacaoPress}/>
     </View>
   );
 }

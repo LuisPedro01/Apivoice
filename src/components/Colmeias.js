@@ -8,15 +8,14 @@ import {
     Button
 } from 'react-native';
 import { Audio } from 'expo-av';
-import CustomButton from './CustomButton';
 import { useNavigation } from "@react-navigation/native";
-
+import CustomButton from './CustomButton';
 
 export default function Colmeias({data}) {
 
     const navigation = useNavigation();
     const onColmeiaPress = () => {
-        navigation.navigate("Colmeia");
+        navigation.navigate("Colmeia")
       };
     
  return (

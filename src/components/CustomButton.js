@@ -67,12 +67,15 @@ const styles = StyleSheet.create({
         marginLeft: 20,        
         borderRadius:15,
         backgroundColor: '#3B71F3',
+        marginBottom: 40
     },
     container_AUDIO:{
-        width: '50%',
+        width: '90%',
+        padding: 15,
+        marginLeft: 20,        
+        borderRadius:15,
         backgroundColor: '#3B71F3',
-        marginLeft: '25%',
-        marginTop: '15%'
+        marginTop:100
     },
     container_HOME:{
         width: '50%',

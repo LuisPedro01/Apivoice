@@ -62,7 +62,6 @@ const AudioRecorder = () => {
     return recordings.map((recordingLine, index) => {
       return (
         <View key={index} style={styles.row}>
-
           <Text style={styles.fill}>
             Recording {index + 1} - {recordingLine.duration}
           </Text>
@@ -78,20 +77,36 @@ const AudioRecorder = () => {
 
   return (
     <View style={styles.container}>
-        <Header name="Gravar"/>
-      <CustomButton
-        type='AUDIO'
-        text={recording ? "Stop Recording" : "Start Recording"}
-        onPress={recording ? stopRecording : startRecording}
+      <Header name="Nova Gravação" type="upload" />
+
+      <CustomButton text="Colmeia X" type="COLMEIAS" />
+
+      <View
+        style={{
+          borderBottomColor: "#939393",
+          borderBottomWidth: 0.5,
+          margin: 20,
+          marginBottom: 0,
+          marginTop: 10,
+        }}
       />
-      {getRecordingLines()}
+
+      <View style={{marginBottom:330}}>
+        {getRecordingLines()}
+      </View>
+      <CustomButton
+        type="AUDIO"
+        text={recording ? "Parar de gravar" : "Começar a gravar"}
+        onPress={recording ? stopRecording : startRecording}
+        
+      />
     </View>
   );
 };
 const styles = StyleSheet.create({
   container: {
-    flex:1,
-    backgroundColor: '#fafafa',
+    flex: 1,
+    backgroundColor: "white",
   },
   row: {
     flexDirection: "row",
@@ -105,9 +120,7 @@ const styles = StyleSheet.create({
   button: {
     margin: 160,
   },
-  start: {
-    
-  }
+  start: {},
 });
 
 export default AudioRecorder;
