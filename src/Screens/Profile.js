@@ -32,7 +32,7 @@ export default function Profile() {
         }}
       />
 
-      <CustomInput placeholder='Nome' value={nome} setValue={setNome} style={styles.list} />
+      <CustomInput placeholder='Nome' value={nome} setValue={setNome} />
       <CustomInput placeholder='Password' value={password} setValue={setPassword} secureTextEntry />
 
     </View>
