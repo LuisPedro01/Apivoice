@@ -22,9 +22,11 @@ export default function Home() {
   const route = useRoute();
   const navigation = useNavigation();
 
-  const buttonPress = () => {
-    navigation.navigate("Audio Recorder");
-  };
+  const onUserPress = () => {
+    navigation.navigate('Perfil')
+    console.warn('Profile');
+  }
+
 
   const onNovaColmeiaPress = () => {
     navigation.navigate("Nova Colmeia");
@@ -37,7 +39,7 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <Header name={route.params.username} type="user"/>
+      <Header name={route.params.username} type="user" onPress={onUserPress}/>
 
       <CustomButton text="Colmeias" type="COLMEIAS" />
 

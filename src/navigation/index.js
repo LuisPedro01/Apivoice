@@ -11,6 +11,7 @@ import AudioPlay from '../Screens/AudioPlay/AudioPlay';
 import AudioRecorder from '../Screens/AudioRecorder/AudioRecorder';
 import NovaColmeia from '../Screens/NovaColmeia';
 import Colmeia from '../Screens/Colmeia';
+import Perfil from '../Screens/Profile'
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +27,7 @@ export default function Navigation() {
             <Stack.Screen name="Audio Recorder" component={AudioRecorder} />
             <Stack.Screen name="Nova Colmeia" component={NovaColmeia} />
             <Stack.Screen name="Colmeia" component={Colmeia} />
+            <Stack.Screen name="Perfil" component={Perfil} />
             
         </Stack.Navigator> 
     </NavigationContainer>
