@@ -17,7 +17,7 @@ export default function Home() {
   const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
-  const colRef = firebase.firestore().collection("colmeias teste");
+  const colRef = firebase.firestore().collection("colmeias");
 
   useEffect(() => {
     colRef.onSnapshot((querySnapshot) => {
@@ -35,40 +35,7 @@ export default function Home() {
   }, []);
 
   //CRUD Functions
-  const Create = () => {
-    // Criar documentos na base de dados
-    const myCol = doc(db, "colmeias teste", "TESTE");
-    const colData = {
-      nome: "Colmeia teste",
-      localizacao: "localizacao teste",
-    };
-
-    setDoc(myCol, colData)
-      .then(() => {
-        alert("Document created");
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
-  };
-
-  const Read = () => {
-    // Ler documentos na base de dados
-    // You can read any document by changing the collection and document path here
-    const myCol = doc(db, "colmeias teste", "TESTE");
-    getDoc(myCol)
-      .then((snapshot) => {
-        if (snapshot.exists) {
-          setUserDoc(snapshot.data());
-        } else {
-          alert("No document found");
-        }
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
-  };
-
+ 
   const Update = () => {};
 
   const Delete = () => {};
@@ -121,7 +88,6 @@ export default function Home() {
         type="NOVACOLMEIA"
         onPress={onNovaColmeiaPress}
       />
-      <CustomButton text="teste" onPress={Create} />
     </View>
   );
 }

@@ -6,7 +6,9 @@ import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
-
+import { db } from "../services/firebase";
+import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
+import { uid } from "uid";
 
 export default function NovaColmeia() {
   const route = useRoute();
@@ -14,13 +16,23 @@ export default function NovaColmeia() {
   const [nome, setNome] = useState('');
   const [localizaçao, setLocalizaçao] = useState('');
 
-  const onNovaColmeiaPress = () => {
-    //Codigo firebase
+   const Create = () => {
+    // Criar documentos na base de dados
+    const myCol = collection(db, "colmeias");
+    const colData = {
+      nome: nome,
+      localizacao: localizaçao,
+    };
 
-
-    console.warn('Nova colmeia')
-  }
-
+    addDoc(myCol, colData)
+      .then(() => {
+        alert("Colmeia criada!");
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+      
+  };
   return (
     <View style={styles.container}>
       <Header name={"Nova Colmeia"} type="plus-circle"/>
@@ -29,7 +41,7 @@ export default function NovaColmeia() {
         <CustomInput placeholder='Nome' value={nome} setValue={setNome} />
         <CustomInput placeholder="Localização" value={localizaçao} setValue={setLocalizaçao}/> 
       </View>
-      <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={onNovaColmeiaPress}/>
+      <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={Create}/>
     </View>
   );
 }
