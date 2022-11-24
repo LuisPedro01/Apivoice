@@ -46,13 +46,12 @@ export default function SignIn() {
                 if (errorCode === 'auth/weak-password')
                     alert('Password fraca!')
                 if (errorCode === 'auth/user-not-found')
-                    alert('Voce não possui uma conta')
+                    alert('Voce não possui uma conta, faça o registo')
             });
 
     }
    
     const onSignUpPressed = () => {
-        console.warn('Create new account');
         navigation.navigate('Sign Up')
     }
 

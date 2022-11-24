@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
 
-export default function Header({name,type, onPress}) {
+export default function Header({name,type,onPress}) {
   return (
     <LinearGradient colors={['#FFDAAE', 'white']}>
       <View style={styles.container}>
