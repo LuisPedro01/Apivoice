@@ -17,11 +17,11 @@ export default function Colmeias({data}) {
     const navigation = useNavigation();
     const onColmeiaPress = () => {
         navigation.navigate("Colmeia");
-      };
+    };
     
  return (
    <TouchableOpacity style={styles.container} >
-        <CustomButton text={data.label} type='COLMEIA' onPress={onColmeiaPress}/>
+        <CustomButton text={data.nome} type='COLMEIA' onPress={onColmeiaPress}/>
    </TouchableOpacity>
   );
 }

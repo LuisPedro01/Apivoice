@@ -12,7 +12,9 @@ import CustomInput from '../components/CustomInput'
 import CustomButton from '../components/CustomButton'
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../services/firebase';
+import { auth, db } from '../services/firebase';
+import { set, ref } from 'firebase/database';
+import { uid } from 'uid';
 
 export default function SignUp() {
 
@@ -23,11 +25,10 @@ export default function SignUp() {
     const { height } = useWindowDimensions();
 
     async function onRegisterPressed () {
-        console.warn('Register');
-        //REGISTO
+        //REGISTO        
         await createUserWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
-                console.log('criado com sucesso' +userCredential.user.uid)
+                console.log('criado com sucesso ' + userCredential.user.uid)
                 const user = userCredential.user;
                 navigation.navigate('Sign In', {
                     username: username

@@ -1,13 +1,10 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, FlatList, Button } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Header from "../components/Header";
-import ListaColmeias from "../components/ListasColmeias";
-import Gravacoes from "../components/Gravacoes";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import CustomInput from '../components/CustomInput'
-
 
 
 export default function Profile() {

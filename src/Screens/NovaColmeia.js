@@ -12,10 +12,12 @@ export default function NovaColmeia() {
   const route = useRoute();
   const navigation = useNavigation();
   const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
+  const [localizaçao, setLocalizaçao] = useState('');
 
   const onNovaColmeiaPress = () => {
-    //direcionar para nova pagina de adicionar colmeia
+    //Codigo firebase
+
+
     console.warn('Nova colmeia')
   }
 
@@ -25,7 +27,7 @@ export default function NovaColmeia() {
 
       <View style={{marginBottom:330}}>  
         <CustomInput placeholder='Nome' value={nome} setValue={setNome} />
-        <CustomInput placeholder="Email" value={email} setValue={setEmail}/> 
+        <CustomInput placeholder="Localização" value={localizaçao} setValue={setLocalizaçao}/> 
       </View>
       <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={onNovaColmeiaPress}/>
     </View>
