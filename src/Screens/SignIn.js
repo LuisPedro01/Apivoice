@@ -30,9 +30,7 @@ export default function SignIn() {
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 const user = userCredential.user;
-                navigation.navigate('Home', {
-                    username: email
-                });
+                navigation.navigate('Home');
             }).catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;

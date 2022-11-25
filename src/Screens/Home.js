@@ -12,15 +12,17 @@ import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import { db } from "../services/firebase";
 import { uid } from "uid";
-import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc, setDoc, getDocs } from "firebase/firestore";
 import { firebase } from "../services/firebase";
+import { onValue, ref } from "firebase/database";
 
 export default function Home() {
   const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
-  const colRef = firebase.firestore().collection("colmeias");
+  const [nomeDoc, setNomeDoc] = useState([])
   const [text, setText] = useState("");
+  const colRef = firebase.firestore().collection("colmeias");
 
   useEffect(() => {
     colRef.onSnapshot((querySnapshot) => {
@@ -71,7 +73,8 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <Header name={route.params.username} type="user" onPress={onUserPress} />
+
+      <Header name="nome" type="user" onPress={onUserPress} />
 
       <CustomButton text="Colmeias" type="COLMEIAS" />
 
