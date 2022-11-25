@@ -15,6 +15,8 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../services/firebase";
 import { set, ref } from "firebase/database";
 import { uid } from "uid";
+import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
+import { firebase } from "../services/firebase";
 
 export default function SignUp() {
   const [username, setUsername] = useState("");
@@ -23,56 +25,31 @@ export default function SignUp() {
   const navigation = useNavigation();
   const { height } = useWindowDimensions();
 
-  const CreateName = () => {
-    // Criar nomes na base de dados
-    const myCol = collection(db, "Nomes");
-    const colData = {
-      nome: username,
-    };
-
-    addDoc(myCol, colData)
-      .then(() => {})
-      .catch((error) => {
-        alert(error.message);
-      });
-  };
-
   async function onRegisterPressed() {
-      //REGISTO
-      await createUserWithEmailAndPassword(auth, email, password)
+    //REGISTO
+    await createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-          console.log("criado com sucesso " + userCredential.user.uid);
-          const user = userCredential.user;
-          navigation.navigate("Sign In", {
-              username: username,
-            });
+        const ref = doc(db, "Nomes",  userCredential.user.uid)
+        const docRef = setDoc(ref, {username, email})
+        .then((re) => {
+          alert("User criado com sucesso, proceda ao log in.")
+          navigation.navigate("Sign In")
         })
-        .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            if (errorCode === "auth/email-already-in-use")
-            alert("Este mail já está ser usado!");
-            if (errorCode === "auth/invalid-email") alert("Email inválido!");
-            if (errorCode === "auth/Operation-not-allowed")
-            alert("Operação inválida!");
-            if (errorCode === "auth/weak-password")
-            alert(
-                "Password fraca! Password deve conter pelo menos 6 caracteres."
-                );
-            });
-            // Criar nomes na base de dados
-            const myCol = collection(db, "Nomes");
-            const colData = {
-              username: username,
-            };
-        
-            addDoc(myCol, colData)
-              .then(() => {
-                alert("Prefil criado!");
-              })
-              .catch((error) => {
-                alert(error.message);
-              });
+        .catch((e) => {
+          console.log(e.message)
+        })
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        if (errorCode === "auth/email-already-in-use")
+          alert("Este mail já está ser usado!");
+        if (errorCode === "auth/invalid-email") alert("Email inválido!");
+        if (errorCode === "auth/Operation-not-allowed")
+          alert("Operação inválida!");
+        if (errorCode === "auth/weak-password")
+          alert("Password fraca! Password deve conter pelo menos 6 caracteres.");
+      });
   }
 
   const onSignInPressed = () => {

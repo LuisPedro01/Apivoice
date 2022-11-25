@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from 'firebase/auth'
 import { getDatabase } from 'firebase/database'
-import { getFirestore } from "firebase/firestore";
+import { Firestore, getFirestore } from "firebase/firestore";
 import firebase from 'firebase/compat/app'
 import 'firebase/compat/auth'
 import 'firebase/compat/firestore'
@@ -31,3 +31,27 @@ export const auth = getAuth(app);
 
 // Initializa Database
 export const db = getFirestore(app);
+
+
+export const createUserDocument = async (user, additionalData) => {
+  if (!user) return;
+
+  const userRef = firebase.firestore.doc(`Nomes/${user.uid}`)
+
+  const snapshot = await userRef.get();
+
+  if(!snapshot.exists){
+    const {email} = user;
+    const {nome} = additionalData
+
+    try{
+      userRef.set({
+        displayName,
+        email,
+        createdAt: new Date()
+      })
+    }catch(error){
+      console.log('Erro ao criar um novo user', error)
+    }
+  }
+}
