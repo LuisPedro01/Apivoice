@@ -15,6 +15,7 @@ export default function NovaColmeia() {
   const navigation = useNavigation();
   const [nome, setNome] = useState('');
   const [localizaçao, setLocalizaçao] = useState('');
+  const [text, setText] = useState("")
 
    const Create = () => {
     // Criar documentos na base de dados
@@ -27,6 +28,7 @@ export default function NovaColmeia() {
     addDoc(myCol, colData)
       .then(() => {
         alert("Colmeia criada!");
+        setText("")
       })
       .catch((error) => {
         alert(error.message);

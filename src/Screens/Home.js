@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
 import Header from "../components/Header";
-import ListaColmeias from "../components/ListasColmeias";
-import Gravacoes from "../components/Gravacoes";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import { db } from "../services/firebase";
 import { uid } from "uid";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
 import { firebase } from "../services/firebase";
-import Pressable from "react-native/Libraries/Components/Pressable/Pressable";
-import { getLastNotificationResponseAsync } from "expo-notifications";
 
 export default function Home() {
   const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
   const colRef = firebase.firestore().collection("colmeias");
+  const [text, setText] = useState("");
 
   useEffect(() => {
     colRef.onSnapshot((querySnapshot) => {
@@ -35,10 +38,24 @@ export default function Home() {
   }, []);
 
   //CRUD Functions
- 
-  const Update = () => {};
+  const Update = (value, merge) => {
+    const myDoc = collection(db, "colmeias");
 
-  const Delete = () => {};
+    setDoc(myDoc, value, { merge: merge });
+  };
+
+  const Delete = () => {
+    const myCol = collection(db, "colmeias");
+
+    deleteDoc(myCol)
+      .then(() => {
+        alert("Colmeia apagada com sucesso!");
+        setText("");
+      })
+      .catch((error) => {
+        alert(error.messsage);
+      });
+  };
 
   const onUserPress = () => {
     navigation.navigate("Perfil");
@@ -50,7 +67,7 @@ export default function Home() {
 
   const onColmeiaPress = () => {
     navigation.navigate("Colmeia");
-};
+  };
 
   return (
     <View style={styles.container}>
@@ -88,6 +105,7 @@ export default function Home() {
         type="NOVACOLMEIA"
         onPress={onNovaColmeiaPress}
       />
+
     </View>
   );
 }

@@ -1,70 +1,111 @@
-import React,  { useState }  from "react";
-import { StyleSheet, Text, View, FlatList, Button } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
 import Header from "../components/Header";
-import Gravacoes from "../components/Gravacoes";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
 import ColmeiasGrav from "../components/ColmeiasGrav";
-
-const ListGrav = [
-    {
-        id:1,
-        nome: "Gravação 1",
-        data: "15/11/2022"
-    },
-    {
-        id:2,
-        nome: "Gravação 2",
-        data: "15/11/2022"
-    },
-    {
-        id:3,
-        nome: "Gravação 3",
-        data: "15/11/2022"
-    },
-]
-
+import { addDoc, collection, doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { firebase, db } from "../services/firebase";
 
 export default function NovaColmeia() {
   const route = useRoute();
   const navigation = useNavigation();
+  const [Grav, setGrav] = useState([]);
+  const graRef = firebase.firestore().collection("gravações");
+  const [texto, setTexto] = useState("");
+  const [nome, setNome] = useState("");
+  const [text, setText] = useState("");
 
-  const onAudioPress = () => {
-    console.warn('Audio');
-  }
+  useEffect(() => {
+    graRef.onSnapshot((querySnapshot) => {
+      const Grav = [];
+      querySnapshot.forEach((doc) => {
+        const { texto, nome } = doc.data();
+        Grav.push({
+          id: doc.id,
+          texto,
+          nome,
+        });
+      });
+      setGrav(Grav);
+    });
+  }, []);
+
+  const Create = () => {
+    // Criar gravaçoes na base de dados
+    const myCol = collection(db, "gravações");
+    const colData = {
+      texto: texto,
+      nome: nome,
+    };
+
+    addDoc(myCol, colData)
+      .then(() => {
+        alert("Gravação criada!");
+        setText("");
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+  };
+
+  const Delete = () => {
+    const myCol = collection(db, "gravações");
+
+    deleteDoc(myCol)
+    .then(() => {
+      alert("Gravação apagada com sucesso!")
+      setText("")
+    })
+    .catch((error) => {
+      alert(error.messsage)
+    })
+  };
 
   const NovaGravacaoPress = () => {
-    navigation.navigate("Audio Recorder")
-  }
+    navigation.navigate("Audio Recorder");
+  };
 
-  
   return (
-    <View style={styles.container}>
-      <Header name={"Gravações"} type="music"/>
+    <View style={styles.container}> 
+      <Header name={"Gravações"} type="music" />
 
-      <CustomButton text="Colmeia X" type="COLMEIAS" />
+      <CustomButton text={""} type="COLMEIAS" />
 
       <View
         style={{
-          borderBottomColor: '#939393',
+          borderBottomColor: "#939393",
           borderBottomWidth: 0.5,
           margin: 20,
           marginBottom: 0,
-          marginTop: 10
+          marginTop: 10,
         }}
       />
 
       <FlatList
         style={styles.list}
-        data={ListGrav}
-        keyExtractor={(item) => String(item.id)}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => <ColmeiasGrav data={item} />}
+        data={Grav}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.container}>
+            <ColmeiasGrav data={item}/>
+          </TouchableOpacity>
+        )}
       />
-      
-      <CustomButton text={"Adicionar nova gravação"} type="NOVACOLMEIA" onPress={NovaGravacaoPress}/>
+
+      <CustomButton
+        text={"Adicionar nova gravação"}
+        type="NOVACOLMEIA"
+        onPress={NovaGravacaoPress}
+      />
     </View>
   );
 }
