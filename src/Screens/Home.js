@@ -39,6 +39,15 @@ export default function Home() {
     });
   }, []);
 
+  const handleDelete = async (id) => {
+    try{
+      await deleteDoc(doc(db, "colmeias", id))
+      setNomeDoc(nomeDoc.filter((item) => item.id !== id))
+    }catch(err){
+      console.log(err)
+    }
+  }
+
   //CRUD Functions
   const Update = (value, merge) => {
     const myDoc = collection(db, "colmeias");

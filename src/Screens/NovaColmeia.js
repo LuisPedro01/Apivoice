@@ -18,11 +18,12 @@ export default function NovaColmeia() {
   const [text, setText] = useState("")
 
    const Create = () => {
-    // Criar documentos na base de dados
+    // Criar colmeias na base de dados
     const myCol = collection(db, "colmeias");
     const colData = {
       nome: nome,
       localizacao: localizaçao,
+      createdAt: Date()
     };
 
     addDoc(myCol, colData)
