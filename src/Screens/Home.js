@@ -15,14 +15,16 @@ import { uid } from "uid";
 import { deleteDoc, doc, getDoc, setDoc, getDocs } from "firebase/firestore";
 import { firebase } from "../services/firebase";
 import { onValue, ref } from "firebase/database";
+import { FirebaseError } from "firebase/app";
 
-export default function Home() {
+export default function Home(item) {
   const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
   const [nomeDoc, setNomeDoc] = useState([])
   const [text, setText] = useState("");
   const colRef = firebase.firestore().collection("colmeias");
+  const [name, setName] = useState("")
 
   useEffect(() => {
     colRef.onSnapshot((querySnapshot) => {
@@ -39,34 +41,27 @@ export default function Home() {
     });
   }, []);
 
+  useEffect(() => {
+    firebase.firestore().collection("Nomes")
+      .doc(firebase.auth().currentUser.uid).get()
+      .then((snapshot) => {
+        if (snapshot.exists) {
+          setName(snapshot.data())
+        }
+        else {
+          console.log('User does not exists')
+        }
+      })
+  }, [])
+
   const handleDelete = async (id) => {
-    try{
+    try {
       await deleteDoc(doc(db, "colmeias", id))
       setNomeDoc(nomeDoc.filter((item) => item.id !== id))
-    }catch(err){
+    } catch (err) {
       console.log(err)
     }
   }
-
-  //CRUD Functions
-  const Update = (value, merge) => {
-    const myDoc = collection(db, "colmeias");
-
-    setDoc(myDoc, value, { merge: merge });
-  };
-
-  const Delete = () => {
-    const myCol = collection(db, "colmeias");
-
-    deleteDoc(myCol)
-      .then(() => {
-        alert("Colmeia apagada com sucesso!");
-        setText("");
-      })
-      .catch((error) => {
-        alert(error.messsage);
-      });
-  };
 
   const onUserPress = () => {
     navigation.navigate("Perfil");
@@ -76,16 +71,12 @@ export default function Home() {
     navigation.navigate("Nova Colmeia");
   };
 
-  const onColmeiaPress = () => {
-    navigation.navigate("Colmeia");
-  };
-
   return (
     <View style={styles.container}>
 
-      <Header name="nome" type="user" onPress={onUserPress} />
+      <Header name={name.username} type="user" onPress={onUserPress} />
 
-      <CustomButton text="Colmeias" type="COLMEIAS" />
+      <CustomButton text="Lista de colmeias" type="COLMEIAS" />
 
       <View
         style={{
@@ -98,6 +89,7 @@ export default function Home() {
       />
 
       <FlatList
+        keyExtractor={item=> item.id}
         style={styles.list}
         showsVerticalScrollIndicator={false}
         data={userDoc}
@@ -106,7 +98,9 @@ export default function Home() {
             <CustomButton
               text={item.nome}
               type="COLMEIA"
-              onPress={onColmeiaPress}
+              onPress={()=> navigation.navigate("Colmeia", {
+                nomeCol: item
+              })}
             />
           </TouchableOpacity>
         )}

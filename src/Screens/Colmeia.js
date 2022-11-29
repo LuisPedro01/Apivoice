@@ -15,8 +15,7 @@ import ColmeiasGrav from "../components/ColmeiasGrav";
 import { addDoc, collection, doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { firebase, db } from "../services/firebase";
 
-export default function NovaColmeia() {
-  const route = useRoute();
+export default function NovaColmeia({route}) {
   const navigation = useNavigation();
   const [Grav, setGrav] = useState([]);
   const graRef = firebase.firestore().collection("gravações");
@@ -78,7 +77,7 @@ export default function NovaColmeia() {
     <View style={styles.container}> 
       <Header name={"Gravações"} type="music" />
 
-      <CustomButton text={""} type="COLMEIAS" />
+      <CustomButton text={route.params.nomeCol.nome} type="COLMEIAS" />
 
       <View
         style={{
@@ -89,7 +88,7 @@ export default function NovaColmeia() {
           marginTop: 10,
         }}
       />
-
+ 
       <FlatList
         style={styles.list}
         showsVerticalScrollIndicator={false}

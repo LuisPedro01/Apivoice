@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import CustomInput from '../components/CustomInput'
+import { firebase } from "../services/firebase";
 
 
 export default function Profile() {
@@ -12,12 +13,27 @@ export default function Profile() {
   const navigation = useNavigation();
   const [nome, setNome] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('')
+
+  useEffect(() => {
+    firebase.firestore().collection("Nomes")
+      .doc(firebase.auth().currentUser.uid).get()
+      .then((snapshot) => {
+        if (snapshot.exists) {
+          setName(snapshot.data())
+        }
+        else {
+          console.log('User does not exists')
+        }
+      })
+  }, [])
+
 
   return (
     <View style={styles.container}>
-      <Header name={"Nome"} type="user"/>
+      <Header name="Perfil" type="user"/>
 
-      <CustomButton text="Nome" type="COLMEIAS" />
+      <CustomButton text={name.username} type="COLMEIAS" />
 
       <View
         style={{
@@ -31,6 +47,12 @@ export default function Profile() {
 
       <CustomInput placeholder='Nome' value={nome} setValue={setNome} />
       <CustomInput placeholder='Password' value={password} setValue={setPassword} secureTextEntry />
+
+      <CustomButton
+        text="Update profile"
+        type="NOVACOLMEIA"
+        
+      />
 
     </View>
   );
