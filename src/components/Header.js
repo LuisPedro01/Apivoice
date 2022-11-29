@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
     paddingStart: 16,
     paddingEnd: 16,
     paddingBottom: 44,
-    marginTop: 24,
   },
   content: {
     flex: 1,
