@@ -49,9 +49,8 @@ export default function Profile() {
       <CustomInput placeholder='Password' value={password} setValue={setPassword} secureTextEntry />
 
       <CustomButton
-        text="Update profile"
-        type="NOVACOLMEIA"
-        
+        text="Alterar perfil"
+        type="NOVACOLMEIA"        
       />
 
     </View>

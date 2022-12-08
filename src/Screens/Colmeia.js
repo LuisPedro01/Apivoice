@@ -5,6 +5,7 @@ import {
   View,
   FlatList,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
@@ -48,7 +49,7 @@ export default function NovaColmeia({route}) {
 
     addDoc(myCol, colData)
       .then(() => {
-        alert("Gravação criada!");
+        Alert.alert("Gravação criada!","Gravação criada com sucesso!");
         setText("");
       })
       .catch((error) => {
@@ -61,7 +62,7 @@ export default function NovaColmeia({route}) {
 
     deleteDoc(myCol)
     .then(() => {
-      alert("Gravação apagada com sucesso!")
+      Alert.alert("Gravação apagada!","Gravação apagada com sucesso!")
       setText("")
     })
     .catch((error) => {
