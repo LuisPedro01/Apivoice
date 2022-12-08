@@ -59,8 +59,6 @@ export default function Home(item) {
     getDadosNomes();
   }, []);
 
-
-
   const onUserPress = () => {
     navigation.navigate("Perfil");
   };

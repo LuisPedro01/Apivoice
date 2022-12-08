@@ -20,9 +20,6 @@ export default function NovaColmeia({route}) {
   const navigation = useNavigation();
   const [Grav, setGrav] = useState([]);
   const graRef = firebase.firestore().collection("gravações");
-  const [texto, setTexto] = useState("");
-  const [nome, setNome] = useState("");
-  const [text, setText] = useState("");
 
   const getGrava = () => {
     graRef.onSnapshot((querySnapshot) => {
@@ -43,26 +40,7 @@ export default function NovaColmeia({route}) {
     getGrava();
   }, []);
 
-  // const deleteCol = async (id) => {
-  //   await firebase.firestore().collection("colmeias")
-  //   .doc(id)
-  //   .delete();
-
-  //   console.log(id);
-  //   return id;
-  // } 
-
-  const Elimin = () => {
-    firebase.firestore().collection("colmeias")
-    .doc(firebase.auth().currentUser.uid)
-    .delete()
-    .then(() => {
-        console.log("Colmeia eliminada!")
-    })
-    .catch((error) => console.log(error))
-  }
-
-  const deletecol = () => {
+  const deleteCol = () => {
     firebase.firestore().collection("colmeias")
     .doc(route.params.nomeCol.id)
     .delete() 
@@ -83,7 +61,9 @@ export default function NovaColmeia({route}) {
 
       <CustomButton text={route.params.nomeCol.nome + " - " + route.params.nomeCol.localizacao} type="COLMEIAS" />
 
-      <CustomButton text="Eliminar Colmeia" type="SECONDARY" onPress={() => {deletecol()}}/>
+      <View style={styles.buttons}>
+        <CustomButton text="Eliminar Colmeia" type="SECONDARY" onPress={() => {deleteCol()}}/>
+      </View>
 
       <View
         style={{
@@ -132,4 +112,8 @@ const styles = StyleSheet.create({
     marginRight: 14,
     marginTop: 20,
   },
+  buttons:{
+    flexDirection: 'row',
+    alignSelf: "center"
+  }
 });

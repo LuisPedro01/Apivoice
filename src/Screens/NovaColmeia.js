@@ -29,7 +29,7 @@ export default function NovaColmeia() {
     addDoc(myCol, colData)
       .then(() => {
         Alert.alert("Colmeia criada!", "Nova colmeia criada com sucesso!");
-        setText("")
+        navigation.navigate("Home");
       })
       .catch((error) => {
         alert(error.message);
