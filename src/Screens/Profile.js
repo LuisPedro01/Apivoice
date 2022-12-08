@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import CustomInput from '../components/CustomInput'
 import { firebase } from "../services/firebase";
+import { DocumentSnapshot } from "firebase/firestore";
 
 
 export default function Profile() {
@@ -14,7 +15,37 @@ export default function Profile() {
   const [nome, setNome] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('')
+  const [userData, setUserData] = useState(null)
 
+  const getUser = async() => {
+    const currentUser = await firebase.firestore().collection("Nomes")
+    .doc(user.uid)
+    .get()
+    .then((documentSnapshot) => {
+      if(documentSnapshot.exists){
+        console.log('User Data', documentSnapshot.data())
+        setUserData(documentSnapshot.data());
+      }
+    })
+  }
+
+  const handleUpdate = () => {
+    firebase.firestore().collection("Nomes")
+    .doc(user.uid)
+    .update({
+      nome: userData.nome,
+      email: userData.email
+    })
+    .then(() => {
+      console.log('User Updated!');
+      Alert.alert("Perfil atualizado!","O seu perfil foi atualizado com sucesso!");
+    })
+  }
+
+  useEffect(() => {
+    getUser();
+  }, [])
+  
   useEffect(() => {
     firebase.firestore().collection("Nomes")
       .doc(firebase.auth().currentUser.uid).get()
