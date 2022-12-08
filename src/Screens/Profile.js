@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, TextInput, View } from "react-native";
 import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
@@ -12,14 +12,12 @@ import { DocumentSnapshot } from "firebase/firestore";
 export default function Profile() {
   const route = useRoute();
   const navigation = useNavigation();
-  const [nome, setNome] = useState('');
-  const [password, setPassword] = useState('');
   const [name, setName] = useState('')
   const [userData, setUserData] = useState(null)
 
-  const getUser = async() => {
-    const currentUser = await firebase.firestore().collection("Nomes")
-    .doc(user.uid)
+  const getUser = () => {
+    firebase.firestore().collection("Nomes")
+    .doc(firebase.auth().currentUser.uid)
     .get()
     .then((documentSnapshot) => {
       if(documentSnapshot.exists){
@@ -29,37 +27,40 @@ export default function Profile() {
     })
   }
 
-  const handleUpdate = () => {
+  const getNameUser = () => {
     firebase.firestore().collection("Nomes")
-    .doc(user.uid)
+    .doc(firebase.auth().currentUser.uid)
+    .get()
+    .then((snapshot) => {
+      if (snapshot.exists) {
+        setName(snapshot.data())
+      }
+      else {
+        console.log('User does not exists')
+      }
+    })
+  }
+
+  const userUpdate = () => {
+    firebase.firestore().collection("Nomes")
+    .doc(firebase.auth().currentUser.uid)
     .update({
-      nome: userData.nome,
-      email: userData.email
+      username: userData.username,
+      cidade: userData.cidade
     })
     .then(() => {
       console.log('User Updated!');
       Alert.alert("Perfil atualizado!","O seu perfil foi atualizado com sucesso!");
+    }).catch((error) => {
+      alert(error.message)
     })
   }
 
   useEffect(() => {
     getUser();
+    getNameUser();
   }, [])
   
-  useEffect(() => {
-    firebase.firestore().collection("Nomes")
-      .doc(firebase.auth().currentUser.uid).get()
-      .then((snapshot) => {
-        if (snapshot.exists) {
-          setName(snapshot.data())
-        }
-        else {
-          console.log('User does not exists')
-        }
-      })
-  }, [])
-
-
   return (
     <View style={styles.container}>
       <Header name="Perfil" type="user"/>
@@ -76,12 +77,13 @@ export default function Profile() {
         }}
       />
 
-      <CustomInput placeholder='Nome' value={nome} setValue={setNome} />
-      <CustomInput placeholder='Password' value={password} setValue={setPassword} secureTextEntry />
+      <TextInput style={styles.input} placeholder='Nome' value={userData ? userData.username : ''} onChangeText={(txt) => setUserData({...userData, username: txt})}/>
+      <TextInput style={styles.input} placeholder='Cidade' value={userData ? userData.cidade : ''} onChangeText={(txt) => setUserData({...userData, cidade: txt})}/>
 
       <CustomButton
         text="Alterar perfil"
-        type="NOVACOLMEIA"        
+        type="NOVACOLMEIA" 
+        onPress={() => userUpdate()}       
       />
 
     </View>
@@ -105,4 +107,13 @@ const styles = StyleSheet.create({
     marginRight: 14,
     marginTop: 20,
   },
+  input: {
+    backgroundColor: '#F5F9FE',
+    width: '100%',
+    height: 60,
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    marginVertical: 10,
+  }
 });
