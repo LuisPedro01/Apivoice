@@ -6,6 +6,7 @@ import {
   ScrollView,
   Image,
   useWindowDimensions,
+  Alert,
 } from "react-native";
 import Logo from "../../assets/images/logo.png";
 import CustomInput from "../components/CustomInput";
@@ -32,7 +33,7 @@ export default function SignUp() {
         const ref = doc(db, "Nomes",  userCredential.user.uid)
         const docRef = setDoc(ref, {username, email})
         .then((re) => {
-          alert("User criado com sucesso, proceda ao log in.")
+          Alert.alert("User criado!","User criado com sucesso, proceda ao log in.")
           navigation.navigate("Sign In")
         })
         .catch((e) => {
