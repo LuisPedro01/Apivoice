@@ -36,8 +36,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#3B71F3',
     },
     container_SECONDARY:{
+        width: '45%',
+        padding: 10,
         borderColor: '#3B71F3',
-        borderWidth: 2
+        borderWidth: 2,
+        alignSelf: 'center'
     },
     container_TERTIARY:{
         width: '45%',

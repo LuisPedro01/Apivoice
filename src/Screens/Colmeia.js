@@ -24,7 +24,7 @@ export default function NovaColmeia({route}) {
   const [nome, setNome] = useState("");
   const [text, setText] = useState("");
 
-  useEffect(() => {
+  const getGrava = () => {
     graRef.onSnapshot((querySnapshot) => {
       const Grav = [];
       querySnapshot.forEach((doc) => {
@@ -37,38 +37,41 @@ export default function NovaColmeia({route}) {
       });
       setGrav(Grav);
     });
+  }
+
+  useEffect(() => {
+    getGrava();
   }, []);
 
-  const Create = () => {
-    // Criar gravaçoes na base de dados
-    const myCol = collection(db, "gravações");
-    const colData = {
-      texto: texto,
-      nome: nome,
-    };
+  // const deleteCol = async (id) => {
+  //   await firebase.firestore().collection("colmeias")
+  //   .doc(id)
+  //   .delete();
 
-    addDoc(myCol, colData)
-      .then(() => {
-        Alert.alert("Gravação criada!","Gravação criada com sucesso!");
-        setText("");
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
-  };
+  //   console.log(id);
+  //   return id;
+  // } 
 
-  const Delete = () => {
-    const myCol = collection(db, "gravações");
-
-    deleteDoc(myCol)
+  const Elimin = () => {
+    firebase.firestore().collection("colmeias")
+    .doc(firebase.auth().currentUser.uid)
+    .delete()
     .then(() => {
-      Alert.alert("Gravação apagada!","Gravação apagada com sucesso!")
-      setText("")
+        console.log("Colmeia eliminada!")
     })
-    .catch((error) => {
-      alert(error.messsage)
+    .catch((error) => console.log(error))
+  }
+
+  const deletecol = () => {
+    firebase.firestore().collection("colmeias")
+    .doc(route.params.nomeCol.id)
+    .delete() 
+    .then(()=>{
+      Alert.alert("Colemia apagada!","Colmeia apagada com sucesso!")
+      navigation.navigate("Home");
     })
-  };
+    .catch((error) => console.log(error))
+  }
 
   const NovaGravacaoPress = () => {
     navigation.navigate("Audio Recorder");
@@ -79,6 +82,8 @@ export default function NovaColmeia({route}) {
       <Header name={"Gravações"} type="music" />
 
       <CustomButton text={route.params.nomeCol.nome + " - " + route.params.nomeCol.localizacao} type="COLMEIAS" />
+
+      <CustomButton text="Eliminar Colmeia" type="SECONDARY" onPress={() => {deletecol()}}/>
 
       <View
         style={{

@@ -21,7 +21,6 @@ export default function Profile() {
     .get()
     .then((documentSnapshot) => {
       if(documentSnapshot.exists){
-        console.log('User Data', documentSnapshot.data())
         setUserData(documentSnapshot.data());
       }
     })
@@ -78,7 +77,7 @@ export default function Profile() {
       />
 
       <TextInput style={styles.input} placeholder='Nome' value={userData ? userData.username : ''} onChangeText={(txt) => setUserData({...userData, username: txt})}/>
-      <TextInput style={styles.input} placeholder='Cidade' value={userData ? userData.cidade : ''} onChangeText={(txt) => setUserData({...userData, cidade: txt})}/>
+      <TextInput style={styles.input} placeholder='Localidade' value={userData ? userData.cidade : ''} onChangeText={(txt) => setUserData({...userData, cidade: txt})}/>
 
       <CustomButton
         text="Alterar perfil"

@@ -26,7 +26,7 @@ export default function Home(item) {
   const colRef = firebase.firestore().collection("colmeias");
   const [name, setName] = useState("")
 
-  useEffect(() => {
+  const getDadosCol = () => {
     colRef.onSnapshot((querySnapshot) => {
       const userDoc = [];
       querySnapshot.forEach((doc) => {
@@ -39,29 +39,27 @@ export default function Home(item) {
       });
       setUserDoc(userDoc);
     });
+  }
+
+  const getDadosNomes = () => {
+    firebase.firestore().collection("Nomes")
+    .doc(firebase.auth().currentUser.uid).get()
+    .then((snapshot) => {
+      if (snapshot.exists) {
+        setName(snapshot.data())
+      }
+      else {
+        console.log('User does not exists')
+      }
+    })
+  }
+  
+  useEffect(() => {
+    getDadosCol();
+    getDadosNomes();
   }, []);
 
-  useEffect(() => {
-    firebase.firestore().collection("Nomes")
-      .doc(firebase.auth().currentUser.uid).get()
-      .then((snapshot) => {
-        if (snapshot.exists) {
-          setName(snapshot.data())
-        }
-        else {
-          console.log('User does not exists')
-        }
-      })
-  }, [])
 
-  const handleDelete = async (id) => {
-    try {
-      await deleteDoc(doc(db, "colmeias", id))
-      setNomeDoc(nomeDoc.filter((item) => item.id !== id))
-    } catch (err) {
-      console.log(err)
-    }
-  }
 
   const onUserPress = () => {
     navigation.navigate("Perfil");

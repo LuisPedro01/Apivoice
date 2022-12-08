@@ -1,5 +1,5 @@
 import React,  { useState }  from "react";
-import { StyleSheet, Text, View, FlatList, Button } from "react-native";
+import { StyleSheet, Text, View, FlatList, Button, Alert } from "react-native";
 import Header from "../components/Header";
 import Gravacoes from "../components/Gravacoes";
 import { useRoute } from "@react-navigation/native";
@@ -28,7 +28,7 @@ export default function NovaColmeia() {
 
     addDoc(myCol, colData)
       .then(() => {
-        alert("Colmeia criada!");
+        Alert.alert("Colmeia criada!", "Nova colmeia criada com sucesso!");
         setText("")
       })
       .catch((error) => {
