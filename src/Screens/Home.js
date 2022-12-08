@@ -21,8 +21,6 @@ export default function Home(item) {
   const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
-  const [nomeDoc, setNomeDoc] = useState([])
-  const [text, setText] = useState("");
   const colRef = firebase.firestore().collection("colmeias");
   const [name, setName] = useState("")
 
