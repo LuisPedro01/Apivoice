@@ -50,6 +50,7 @@ export default function Profile() {
     .then(() => {
       console.log('User Updated!');
       Alert.alert("Perfil atualizado!","O seu perfil foi atualizado com sucesso!");
+      navigation.navigate("Home");
     }).catch((error) => {
       alert(error.message)
     })
