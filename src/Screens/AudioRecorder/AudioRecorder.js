@@ -20,6 +20,8 @@ const AudioRecorder = () => {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
+        playThroughEarpieceAndroid: true,
+        shouldDuckAndroid: true
       });
 
       console.log("Starting recording..");
@@ -120,7 +122,6 @@ const styles = StyleSheet.create({
   button: {
     margin: 160,
   },
-  start: {},
 });
 
 export default AudioRecorder;

@@ -11,7 +11,7 @@ import AudioPlay from '../Screens/AudioPlay/AudioPlay';
 import AudioRecorder from '../Screens/AudioRecorder/AudioRecorder';
 import NovaColmeia from '../Screens/NovaColmeia';
 import Colmeia from '../Screens/Colmeia';
-import Perfil from '../Screens/Profile'
+import Perfil from '../Screens/Profile';
 
 const Stack = createNativeStackNavigator();
 
