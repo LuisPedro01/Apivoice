@@ -8,7 +8,7 @@ import SignUp from '../Screens/SignUp'
 import NewPassword from "../Screens/NewPassword";
 import Home from "../Screens/Home";
 import AudioPlay from '../Screens/AudioPlay/AudioPlay';
-import AudioRecorder from '../Screens/AudioRecorder/AudioRecorder';
+import AudioRecorder from '../Screens/AudioRecorder';
 import NovaColmeia from '../Screens/NovaColmeia';
 import Colmeia from '../Screens/Colmeia';
 import Perfil from '../Screens/Profile';
