@@ -7,14 +7,13 @@ import {
 } from "expo-av/build/Audio";
 import Header from "../components/Header";
 import CustomButton from "../components/CustomButton";
-import {firebase} from '../services/firebase'
-
+import { firebase } from "../services/firebase";
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 const AudioRecorder = () => {
   const [recording, setRecording] = useState(false);
   const [recordings, setRecordings] = useState([]);
-  const [message, setMessage] = useState("");
-  
+  const [song, setSong] = useState();
 
   async function startRecording1() {
     try {
@@ -22,6 +21,7 @@ const AudioRecorder = () => {
       await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
+        playsInSilentModeIOS: true
       });
 
       console.log("Starting recording..");
@@ -44,7 +44,7 @@ const AudioRecorder = () => {
 
     let updatedRecordings = [...recordings];
     const { sound, status } = await recording.createNewLoadedSoundAsync();
-    
+
     updatedRecordings.push({
       sound: sound,
       duration: getDurationFormated(status.durationMillis),
@@ -52,13 +52,38 @@ const AudioRecorder = () => {
     });
     setRecordings(updatedRecordings);
 
-    firebase.storage()
-    .ref(`audios/${recording.nome}`)
-    .put(recording)
-    .then(()=>{
-      console.log("upload feito com sucesso!")
-    })
-    .catch((error) => console.log(error))
+     const file = new Blob([sound], {
+       type: "audio/mpeg",
+     });
+
+     try {
+       //Create the file reference
+       const storage = getStorage();
+       const storageRef = ref(storage, `audio/${sound._key}`);
+
+       // Upload Blob file to Firebase
+       uploadBytes(storageRef, file, 'blob').then(
+         (snapshot) => {
+           console.log("Uploaded a song to firebase storage!");
+         }
+       );
+
+       setSong(sound);
+     } catch (error) {
+       console.log(error);
+     }
+
+      // firebase
+      //   .storage()
+      //   .ref(`audios/${recording.nome}`)
+      //   .put(recording)
+      //   .then(() => {
+      //     console.log("upload feito com sucesso!");
+      //   })
+      //   .catch((error) => console.log(error));
+
+
+
   }
 
   function getDurationFormated(millis) {
@@ -86,50 +111,6 @@ const AudioRecorder = () => {
     });
   }
 
-  // ********************************
-  //teste
-  // ********************************
-
-  const [audio, setAudio] = useState(null);
-
-  const startRecording = async () => {
-    try{
-      console.log("Requesting permissions..");
-      await Audio.requestPermissionsAsync();
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-        playThroughEarpieceAndroid: true,
-        shouldDuckAndroid: true
-      });
-    }catch(error){
-      console.error("Failed to start recording", err);
-    }
-    setRecording(true);
-
-    const recording = new Audio.Recording();
-    await recording.prepareToRecordAsync();
-    await recording.startAsync();
-
-    setAudio(recording);
-  }
-
-  const stopRecording = async () => {
-    setRecording(false);
-
-    await audio.stopAndUnloadAsync();
-
-    firebase.storage()
-    .ref(`audios/${audio.nome}`)
-    .put(audio)
-    .then(()=>{
-      console.log("upload feito com sucesso!")
-    })
-    .catch((error) => console.log(error))
-  }
-  
-
-
   return (
     <View style={styles.container}>
       <Header name="Nova Gravação" type="upload" />
@@ -146,14 +127,11 @@ const AudioRecorder = () => {
         }}
       />
 
-      <View style={{marginBottom:330}}>
-        {getRecordingLines()}
-      </View>
+      <View style={{ marginBottom: 330 }}>{getRecordingLines()}</View>
       <CustomButton
         type="AUDIO"
         text={recording ? "Parar de gravar" : "Começar a gravar"}
         onPress={recording ? stopRecording1 : startRecording1}
-        
       />
     </View>
   );

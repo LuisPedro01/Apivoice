@@ -7,6 +7,7 @@ import firebase from 'firebase/compat/app'
 import 'firebase/compat/auth'
 import 'firebase/compat/firestore'
 import 'firebase/compat/storage'
+import {getStorage, ref} from "firebase/storage"
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -32,6 +33,9 @@ export const auth = getAuth(app);
 
 // Initializa Database
 export const db = getFirestore(app);
+
+// Initialize storage
+export const storage = getStorage(app)
 
 
 export const createUserDocument = async (user, additionalData) => {
