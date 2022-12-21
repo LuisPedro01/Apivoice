@@ -13,56 +13,86 @@ import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
 import ColmeiasGrav from "../components/ColmeiasGrav";
-import { addDoc, collection, doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { firebase, db } from "../services/firebase";
+import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 
-export default function NovaColmeia({route}) {
+export default function NovaColmeia({ route }) {
   const navigation = useNavigation();
   const [Grav, setGrav] = useState([]);
-  const graRef = firebase.firestore().collection("gravações");
-
-  const getGrava = () => {
-    graRef.onSnapshot((querySnapshot) => {
-      const Grav = [];
-      querySnapshot.forEach((doc) => {
-        const { texto, nome } = doc.data();
-        Grav.push({
-          id: doc.id,
-          texto,
-          nome,
-        });
-      });
-      setGrav(Grav);
-    });
-  }
+  const storage = getStorage();
+  const audioRef = ref(storage, `audio/`);
 
   useEffect(() => {
-    getGrava();
+    listGrav();
+    console.log(Grav);
   }, []);
 
   const deleteCol = () => {
-    firebase.firestore().collection("colmeias")
-    .doc(route.params.nomeCol.id)
-    .delete() 
-    .then(()=>{
-      Alert.alert("Colemia apagada!","Colmeia apagada com sucesso!")
-      navigation.navigate("Home");
-    })
-    .catch((error) => console.log(error))
-  }
+    firebase
+      .firestore()
+      .collection("colmeias")
+      .doc(route.params.nomeCol.id)
+      .delete()
+      .then(() => {
+        Alert.alert("Colemia apagada!", "Colmeia apagada com sucesso!");
+        navigation.navigate("Home");
+      })
+      .catch((error) => console.log(error));
+  };
+
+  const listGrav = () => {
+    var listRef = ref(storage, "audio/");
+    // Find all the prefixes and items.
+    listAll(listRef)
+      .then((res) => {
+        res.items.forEach((itemRef) => {
+          // All the items under listRef.
+          getDownloadURL(itemRef).then((url) => {
+            setGrav((prev) => [...prev, url]);
+          });
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    // [END storage_list_all]
+  };
 
   const NovaGravacaoPress = () => {
     navigation.navigate("Audio Recorder");
   };
 
+  const onPlayPress = () => {
+    console.log("A reproduzir audio");
+  };
+
   return (
-    <View style={styles.container}> 
+    <View style={styles.container}>
       <Header name={"Gravações"} type="music" />
 
-      <CustomButton text={route.params.nomeCol.nome + " - " + route.params.nomeCol.localizacao} type="COLMEIAS" />
+      <CustomButton
+        text={
+          route.params.nomeCol.nome + " - " + route.params.nomeCol.localizacao
+        }
+        type="COLMEIAS"
+      />
 
       <View style={styles.buttons}>
-        <CustomButton text="Eliminar Colmeia" type="SECONDARY" onPress={() => {deleteCol()}}/>
+        <CustomButton
+          text="Eliminar Colmeia"
+          type="SECONDARY"
+          onPress={() => {
+            deleteCol();
+          }}
+        />
       </View>
 
       <View
@@ -74,14 +104,18 @@ export default function NovaColmeia({route}) {
           marginTop: 10,
         }}
       />
- 
+
       <FlatList
         style={styles.list}
         showsVerticalScrollIndicator={false}
         data={Grav}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.container}>
-            <ColmeiasGrav data={item}/>
+            <CustomButton
+             text={item.nome}
+             type="COLMEIA"
+             onPress={onPlayPress} 
+            />           
           </TouchableOpacity>
         )}
       />
@@ -112,8 +146,8 @@ const styles = StyleSheet.create({
     marginRight: 14,
     marginTop: 20,
   },
-  buttons:{
-    flexDirection: 'row',
-    alignSelf: "center"
-  }
+  buttons: {
+    flexDirection: "row",
+    alignSelf: "center",
+  },
 });
