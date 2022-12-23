@@ -21,7 +21,7 @@ export default function Apiario(item) {
   const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
-  const ApiRef = firebase.firestore().collection("apiario");
+  const ApiRef = firebase.firestore().collection("apiario", "colmeia");
   const [name, setName] = useState("")
 
   const getDadosApi = () => {
@@ -101,7 +101,7 @@ export default function Apiario(item) {
       />
 
       <CustomButton
-        text="Adicionar novo apiario"
+        text="Novo apiario"
         type="NOVACOLMEIA"
         onPress={onNovoApiarioPress}
       />

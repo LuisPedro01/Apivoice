@@ -101,7 +101,7 @@ export default function Home(item, {route}) {
       />
 
       <CustomButton
-        text="Adicionar nova colmeia"
+        text="Nova colmeia"
         type="NOVACOLMEIA"
         onPress={onNovaColmeiaPress}
       />

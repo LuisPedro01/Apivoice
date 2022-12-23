@@ -57,7 +57,7 @@ export default function Profile() {
           "Perfil atualizado!",
           "O seu perfil foi atualizado com sucesso!"
         );
-        navigation.navigate("Home");
+        navigation.navigate("Apiario");
       })
       .catch((error) => {
         alert(error.message);

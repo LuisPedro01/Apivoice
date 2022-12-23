@@ -105,7 +105,7 @@ export default function NovaColmeia({ route }) {
       />
 
       <CustomButton
-        text={"Adicionar nova gravação"}
+        text={"Nova gravação"}
         type="NOVACOLMEIA"
         onPress={NovaGravacaoPress}
       />
