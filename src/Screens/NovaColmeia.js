@@ -40,7 +40,7 @@ export default function NovaColmeia() {
     <View style={styles.container}>
       <Header name={"Nova Colmeia"} type="plus-circle"/>
 
-      <View style={{marginBottom:330}}>  
+      <View style={styles.list}>  
         <CustomInput placeholder='Nome' value={nome} setValue={setNome} />
         <CustomInput placeholder="Localização" value={localizaçao} setValue={setLocalizaçao}/> 
       </View>

@@ -73,7 +73,7 @@ export default function Profile() {
     <View style={styles.container}>
       <Header name="Perfil" type="user" />
 
-      <CustomButton text={name.username} type="COLMEIAS" />
+      <CustomButton text={name.username + ' - ' + name.cidade} type="COLMEIAS" />
 
       <View
         style={{
