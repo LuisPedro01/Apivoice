@@ -7,7 +7,8 @@ import {
     SafeAreaView,
     Image,
     useWindowDimensions,
-    ScrollView
+    ScrollView,
+    Alert
 } from 'react-native';
 import Logo from '../../assets/images/logo.png'
 import CustomInput from '../components/CustomInput'
@@ -30,21 +31,21 @@ export default function SignIn() {
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 const user = userCredential.user;
-                navigation.navigate('Home');
+                navigation.navigate('Apiario');
             }).catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
                 console.log(error)
                 if (errorCode === 'auth/email-already-in-use')
-                    alert('Este mail já está ser usado!')
+                    Alert.alert('Erro!','Este mail já está ser usado!')
                 if (errorCode === 'auth/invalid-email')
-                    alert('Email inválido!')
+                    Alert.alert('Erro!','Email inválido!')
                 if (errorCode === 'auth/Operation-not-allowed')
-                    alert('Operação inválida!')
+                    Alert.alert('Erro!','Operação inválida!')
                 if (errorCode === 'auth/weak-password')
-                    alert('Password fraca!')
+                    Alert.alert('Erro!','Password fraca!')
                 if (errorCode === 'auth/user-not-found')
-                    alert('Voce não possui uma conta, faça o registo')
+                    Alert.alert('Erro!','Voce não possui uma conta, faça o registo')
             });
 
     }

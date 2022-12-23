@@ -17,15 +17,15 @@ import { firebase } from "../services/firebase";
 import { onValue, ref } from "firebase/database";
 import { FirebaseError } from "firebase/app";
 
-export default function Home(item, {route}) {
-  //const route = useRoute();
+export default function Apiario(item) {
+  const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
-  const colRef = firebase.firestore().collection("colmeias");
+  const ApiRef = firebase.firestore().collection("apiario");
   const [name, setName] = useState("")
 
-  const getDadosCol = () => {
-    colRef.onSnapshot((querySnapshot) => {
+  const getDadosApi = () => {
+    ApiRef.onSnapshot((querySnapshot) => {
       const userDoc = [];
       querySnapshot.forEach((doc) => {
         const { localizacao, nome } = doc.data();
@@ -53,7 +53,7 @@ export default function Home(item, {route}) {
   }
   
   useEffect(() => {
-    getDadosCol();
+    getDadosApi();
     getDadosNomes();
   }, []);
 
@@ -61,8 +61,8 @@ export default function Home(item, {route}) {
     navigation.navigate("Perfil");
   };
 
-  const onNovaColmeiaPress = () => {
-    navigation.navigate("Nova Colmeia");
+  const onNovoApiarioPress = () => {
+    navigation.navigate("Novo Apiario");
   };
 
   return (
@@ -70,7 +70,7 @@ export default function Home(item, {route}) {
 
       <Header name={name.username} type="user" onPress={onUserPress} />
 
-      <CustomButton text={"Lista de colmeias"} type="COLMEIAS" />
+      <CustomButton text="Lista de apiários" type="COLMEIAS" />
 
       <View
         style={{
@@ -92,8 +92,8 @@ export default function Home(item, {route}) {
             <CustomButton
               text={item.nome}
               type="COLMEIA"
-              onPress={()=> navigation.navigate("Colmeia", {
-                nomeCol: item
+              onPress={()=> navigation.navigate("Home", {
+                nomeApi: item
               })}
             />
           </TouchableOpacity>
@@ -101,9 +101,9 @@ export default function Home(item, {route}) {
       />
 
       <CustomButton
-        text="Adicionar nova colmeia"
+        text="Adicionar novo apiario"
         type="NOVACOLMEIA"
-        onPress={onNovaColmeiaPress}
+        onPress={onNovoApiarioPress}
       />
 
     </View>
