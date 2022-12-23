@@ -1,5 +1,5 @@
 import React, { Component, useState } from "react";
-import { View, Text, StyleSheet, Button, Alert } from "react-native";
+import { View, Text, StyleSheet, Button, Alert, FlatList, TouchableOpacity } from "react-native";
 import { Audio } from "expo-av";
 import {
   requestPermissionsAsync,
@@ -91,7 +91,7 @@ const AudioRecorder = () => {
       return (
         <View key={index} style={styles.row}>
           <Text style={styles.fill}>
-            Recording {index + 1} - {recordingLine.duration}
+            {nome} - {recordingLine.duration}
           </Text>
           <Button
             style={styles.button}
@@ -123,10 +123,10 @@ const AudioRecorder = () => {
         <CustomInput placeholder="Nome" value={nome} setValue={setNome} />
       </View>
 
-      <View>{getRecordingLines()}</View>
+      <View style={styles.list}>{getRecordingLines()}</View> 
 
       <CustomButton
-        type="AUDIO"
+        type="NOVACOLMEIA"
         text={recording ? "Parar de gravar" : "Começar a gravar"}
         onPress={recording ? stopRecording1 : startRecording1}
       />
