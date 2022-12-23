@@ -8,33 +8,23 @@ import {
   Alert,
 } from "react-native";
 import Header from "../components/Header";
-import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
-import CustomInput from "../components/CustomInput";
-import ColmeiasGrav from "../components/ColmeiasGrav";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  setDoc,
-  deleteDoc,
-} from "firebase/firestore";
 import { firebase, db } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 
 export default function NovaColmeia({ route }) {
   const navigation = useNavigation();
-  const [Grav, setGrav] = useState([]);
+  const [Grav, setGrav] = useState('');
   const storage = getStorage();
-  const audioRef = ref(storage, `audio/`);
+  var listRef = ref(storage, "audio/");
+  const [data, setData] = useState([]);
 
   useEffect(() => {
     listGrav();
-    console.log(Grav);
   }, []);
 
+  
   const deleteCol = () => {
     firebase
       .firestore()
@@ -49,21 +39,15 @@ export default function NovaColmeia({ route }) {
   };
 
   const listGrav = () => {
-    var listRef = ref(storage, "audio/");
-    // Find all the prefixes and items.
     listAll(listRef)
       .then((res) => {
-        res.items.forEach((itemRef) => {
-          // All the items under listRef.
-          getDownloadURL(itemRef).then((url) => {
-            setGrav((prev) => [...prev, url]);
-          });
+        res.items.forEach((item) => {
+          setGrav((arr) => [...arr, item.name]);
         });
       })
       .catch((error) => {
         console.log(error);
       });
-    // [END storage_list_all]
   };
 
   const NovaGravacaoPress = () => {
@@ -112,10 +96,10 @@ export default function NovaColmeia({ route }) {
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.container}>
             <CustomButton
-             text={item.nome}
+             text={item}
              type="COLMEIA"
              onPress={onPlayPress} 
-            />           
+            />      
           </TouchableOpacity>
         )}
       />

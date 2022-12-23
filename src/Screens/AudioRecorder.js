@@ -1,5 +1,5 @@
 import React, { Component, useState } from "react";
-import { View, Text, StyleSheet, Button } from "react-native";
+import { View, Text, StyleSheet, Button, Alert } from "react-native";
 import { Audio } from "expo-av";
 import {
   requestPermissionsAsync,
@@ -9,11 +9,15 @@ import Header from "../components/Header";
 import CustomButton from "../components/CustomButton";
 import { firebase } from "../services/firebase";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
+import CustomInput from "../components/CustomInput";
+import { useNavigation } from "@react-navigation/native";
 
 const AudioRecorder = () => {
+  const navigation = useNavigation();
   const [recording, setRecording] = useState(false);
   const [recordings, setRecordings] = useState([]);
   const [song, setSong] = useState();
+  const [nome, setNome] = useState("");
 
   async function startRecording1() {
     try {
@@ -21,7 +25,7 @@ const AudioRecorder = () => {
       await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
-        playsInSilentModeIOS: true
+        playsInSilentModeIOS: true,
       });
 
       console.log("Starting recording..");
@@ -52,38 +56,26 @@ const AudioRecorder = () => {
     });
     setRecordings(updatedRecordings);
 
-     const file = new Blob([sound], {
-       type: "audio/mpeg",
-     });
+    const file = new Blob([sound], {
+      type: "audio/mpeg",
+    });
 
-     try {
-       //Create the file reference
-       const storage = getStorage();
-       const storageRef = ref(storage, `audio/${sound._key}`);
+    try {
+      //Create the file reference
+      const storage = getStorage();
+      const storageRef = ref(storage, `audio/${nome}`);
 
-       // Upload Blob file to Firebase
-       uploadBytes(storageRef, file, 'blob').then(
-         (snapshot) => {
-           console.log("Uploaded a song to firebase storage!");
-         }
-       );
+      // Upload Blob file to Firebase
+      uploadBytes(storageRef, file, "blob")
+      .then((snapshot) => {
+        console.log("Uploaded a song to firebase storage!");
+        Alert.alert("Gravação criada!", "Gravação gravada com sucesso!")
+      });
 
-       setSong(sound);
-     } catch (error) {
-       console.log(error);
-     }
-
-      // firebase
-      //   .storage()
-      //   .ref(`audios/${recording.nome}`)
-      //   .put(recording)
-      //   .then(() => {
-      //     console.log("upload feito com sucesso!");
-      //   })
-      //   .catch((error) => console.log(error));
-
-
-
+      setSong(sound);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   function getDurationFormated(millis) {
@@ -127,7 +119,12 @@ const AudioRecorder = () => {
         }}
       />
 
-      <View style={{ marginBottom: 330 }}>{getRecordingLines()}</View>
+      <View style={styles.list}>
+        <CustomInput placeholder="Nome" value={nome} setValue={setNome} />
+      </View>
+
+      <View>{getRecordingLines()}</View>
+
       <CustomButton
         type="AUDIO"
         text={recording ? "Parar de gravar" : "Começar a gravar"}
@@ -152,6 +149,11 @@ const styles = StyleSheet.create({
   },
   button: {
     margin: 160,
+  },
+  list: {
+    marginLeft: 14,
+    marginRight: 14,
+    marginTop: 20,
   },
 });
 
