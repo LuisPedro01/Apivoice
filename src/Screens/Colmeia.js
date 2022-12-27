@@ -33,7 +33,7 @@ export default function NovaColmeia({ route }) {
       .delete()
       .then(() => {
         Alert.alert("Colemia apagada!", "Colmeia apagada com sucesso!");
-        navigation.navigate("Home");
+        navigation.navigate("Apiario");
       })
       .catch((error) => console.log(error));
   };
