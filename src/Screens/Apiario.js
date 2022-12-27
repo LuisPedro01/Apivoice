@@ -21,7 +21,7 @@ export default function Apiario(item) {
   const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
-  const ApiRef = firebase.firestore().collection("apiario", "colmeia");
+  const ApiRef = firebase.firestore().collection("apiario");
   const [name, setName] = useState("")
 
   const getDadosApi = () => {

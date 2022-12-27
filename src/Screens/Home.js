@@ -17,12 +17,12 @@ import { firebase } from "../services/firebase";
 import { onValue, ref } from "firebase/database";
 import { FirebaseError } from "firebase/app";
 
-export default function Home(item, {route}) {
+export default function Home(item, { route }) {
   //const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
   const colRef = firebase.firestore().collection("colmeias");
-  const [name, setName] = useState("")
+  const [name, setName] = useState("");
 
   const getDadosCol = () => {
     colRef.onSnapshot((querySnapshot) => {
@@ -37,21 +37,23 @@ export default function Home(item, {route}) {
       });
       setUserDoc(userDoc);
     });
-  }
+  };
 
   const getDadosNomes = () => {
-    firebase.firestore().collection("Nomes")
-    .doc(firebase.auth().currentUser.uid).get()
-    .then((snapshot) => {
-      if (snapshot.exists) {
-        setName(snapshot.data())
-      }
-      else {
-        console.log('User does not exists')
-      }
-    })
-  }
-  
+    firebase
+      .firestore()
+      .collection("Nomes")
+      .doc(firebase.auth().currentUser.uid)
+      .get()
+      .then((snapshot) => {
+        if (snapshot.exists) {
+          setName(snapshot.data());
+        } else {
+          console.log("User does not exists");
+        }
+      });
+  };
+
   useEffect(() => {
     getDadosCol();
     getDadosNomes();
@@ -65,10 +67,33 @@ export default function Home(item, {route}) {
     navigation.navigate("Nova Colmeia");
   };
 
+  const deleteApi = () => {
+    firebase
+      .firestore()
+      .collection("apiario")
+      .doc(route.params.nomeApi.id)
+      .delete()
+      .then(() => {
+        Alert.alert("Apiário apagado!", "Apiário apagado com sucesso!");
+        navigation.navigate("Apiario");
+      })
+      .catch((error) => console.log(error));
+  };
+
   return (
     <View style={styles.container}>
-
       <Header name={name.username} type="user" onPress={onUserPress} />
+      <View style={styles.buttons}>
+        <CustomButton text="apiario x" type="HOME" />
+        
+        <CustomButton
+          text="Eliminar apiário"
+          type="SECONDARY"
+          onPress={() => {
+            deleteApi();
+          }}
+        />
+      </View>
 
       <CustomButton text={"Lista de colmeias"} type="COLMEIAS" />
 
@@ -83,7 +108,7 @@ export default function Home(item, {route}) {
       />
 
       <FlatList
-        keyExtractor={item=> item.id}
+        keyExtractor={(item) => item.id}
         style={styles.list}
         showsVerticalScrollIndicator={false}
         data={userDoc}
@@ -92,9 +117,11 @@ export default function Home(item, {route}) {
             <CustomButton
               text={item.nome}
               type="COLMEIA"
-              onPress={()=> navigation.navigate("Colmeia", {
-                nomeCol: item
-              })}
+              onPress={() =>
+                navigation.navigate("Colmeia", {
+                  nomeCol: item,
+                })
+              }
             />
           </TouchableOpacity>
         )}
@@ -105,7 +132,6 @@ export default function Home(item, {route}) {
         type="NOVACOLMEIA"
         onPress={onNovaColmeiaPress}
       />
-
     </View>
   );
 }
@@ -126,5 +152,9 @@ const styles = StyleSheet.create({
     marginLeft: 14,
     marginRight: 14,
     marginTop: 20,
+  },
+  buttons: {
+    flexDirection: "row",
+    alignSelf: "center",
   },
 });

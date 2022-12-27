@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     },
     container_SECONDARY:{
         width: '35%',
-        padding: 8,
+        padding: 10,
         borderColor: '#3B71F3',
         borderWidth: 2,
     },
@@ -80,10 +80,11 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     container_HOME:{
-        width: '50%',
-        backgroundColor: '#3B71F3',
-        marginLeft: '25%',
-        marginBottom: '10%'
+        width: '35%',
+        padding: 10,
+        marginLeft: 10,        
+        borderRadius: 10,
+        backgroundColor: '#F5F9FE', 
     },
     text: {
         fontWeight: 'bold',
@@ -104,5 +105,8 @@ const styles = StyleSheet.create({
     text_COLMEIA:{
         color:'#939393',
         marginLeft: 5,
+    },
+    text_HOME:{
+        color:'#4F4F4F'
     }
 })
