@@ -5,6 +5,7 @@ import {
   View,
   FlatList,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
@@ -17,7 +18,7 @@ import { firebase } from "../services/firebase";
 import { onValue, ref } from "firebase/database";
 import { FirebaseError } from "firebase/app";
 
-export default function Home(item, { route }) {
+export default function Home({item,route}) {
   //const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
@@ -84,7 +85,7 @@ export default function Home(item, { route }) {
     <View style={styles.container}>
       <Header name={name.username} type="user" onPress={onUserPress} />
       <View style={styles.buttons}>
-        <CustomButton text="apiario x" type="HOME" />
+        <CustomButton text={route.params.nomeApi.nome} type="HOME" />
         
         <CustomButton
           text="Eliminar apiário"
