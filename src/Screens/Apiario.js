@@ -90,7 +90,7 @@ export default function Apiario(item) {
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.container}>
             <CustomButton
-              text={item.nome}
+              text={item.nome + ' - ' + item.localizacao}
               type="COLMEIA"
               onPress={()=> navigation.navigate("Home", {
                 nomeApi: item
