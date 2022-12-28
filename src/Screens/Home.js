@@ -58,7 +58,6 @@ export default function Home({ item, route }) {
   useEffect(() => {
     getDadosNomes();
     getDados();
-    console.log(route.params.nomeApi)
   }, []);
 
   const onUserPress = () => {

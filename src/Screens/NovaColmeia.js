@@ -38,7 +38,7 @@ export default function NovaColmeia({route}) {
   };
 
   const CreateCol = () => {
-    const subCollection = firebase.firestore().collection('apiarios').doc(route.params.nomeCol).collection('colmeia')
+    const subCollection = firebase.firestore().collection('apiarios').doc(route.params.nomeCol.id).collection('colmeia')
     subCollection
     .add({
       nomeColmeia: nome,
