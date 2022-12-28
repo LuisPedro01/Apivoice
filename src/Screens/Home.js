@@ -19,7 +19,6 @@ export default function Home({ item, route }) {
   const colRef = firebase.firestore().collection("colmeias");
   const [name, setName] = useState("");
 
-
   const getDados = () => {
     firebase
       .firestore()
@@ -70,7 +69,7 @@ export default function Home({ item, route }) {
   const deleteApi = () => {
     firebase
       .firestore()
-      .collection("apiario")
+      .collection("apiarios")
       .doc(route.params.nomeApi.id)
       .delete()
       .then(() => {
