@@ -10,12 +10,12 @@ import { db, firebase } from "../services/firebase";
 import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import { uid } from "uid";
 
-export default function NovaColmeia() {
-  const route = useRoute();
+export default function NovaColmeia({route}) {
   const navigation = useNavigation();
   const [nome, setNome] = useState('');
   const [localizaçao, setLocalizaçao] = useState('');
   const [text, setText] = useState("")
+  //console.log(route.params.nomeCol)
 
    const Create = () => {
     // Criar colmeias na base de dados
@@ -36,6 +36,25 @@ export default function NovaColmeia() {
       });
       
   };
+
+  const CreateCol = () => {
+    const subCollection = firebase.firestore().collection('apiarios').doc(route.params.nomeCol).collection('colmeia')
+    subCollection
+    .add({
+      nomeColmeia: nome,
+      localizacao: localizaçao,
+      createdAt: Date()
+    })
+    .then(() => {
+      Alert.alert("Colmeia criada!", "Nova colmeia criada com sucesso!");
+      navigation.navigate("Apiario");
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+  }
+
+
   return (
     <View style={styles.container}>
       <Header name={"Nova Colmeia"} type="plus-circle"/>
@@ -44,7 +63,7 @@ export default function NovaColmeia() {
         <CustomInput placeholder='Nome' value={nome} setValue={setNome} />
         <CustomInput placeholder="Localização" value={localizaçao} setValue={setLocalizaçao}/> 
       </View>
-      <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={Create}/>
+      <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={CreateCol}/>
     </View>
   );
 }

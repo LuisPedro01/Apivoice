@@ -13,7 +13,7 @@ import CustomButton from "../components/CustomButton";
 import { firebase, db } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 
-export default function NovaColmeia({ route }) {
+export default function NovaColmeia({ item, route }) {
   const navigation = useNavigation();
   const [Grav, setGrav] = useState('');
   const storage = getStorage();
@@ -64,7 +64,7 @@ export default function NovaColmeia({ route }) {
 
       <CustomButton
         text={
-          route.params.nomeCol.nome + " - " + route.params.nomeCol.localizacao
+          route.params.nomeCol.nomeColmeia + " - " + route.params.nomeCol.localizacao
         }
         type="COLMEIAS"
       />

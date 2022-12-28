@@ -152,7 +152,10 @@ export default function Home({ item, route }) {
       <CustomButton
         text="Nova colmeia"
         type="NOVACOLMEIA"
-        onPress={onNovaColmeiaPress}
+        onPress={() =>
+          navigation.navigate("Nova Colmeia", {
+            nomeCol: route.params.nomeApi.id,
+          })}
       />
     </View>
   );
