@@ -22,13 +22,14 @@ export default function NovaColmeia({ item, route }) {
 
   useEffect(() => {
     listGrav();
+    console.log(route.params.nomeCol)
   }, []);
 
   
   const deleteCol = () => {
     firebase
       .firestore()
-      .collection("colmeias")
+      .collection("apiario")
       .doc(route.params.nomeCol.id)
       .delete()
       .then(() => {

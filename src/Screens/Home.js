@@ -11,34 +11,14 @@ import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
-import { db } from "../services/firebase";
-import { uid } from "uid";
-import { deleteDoc, doc, getDoc, setDoc, getDocs } from "firebase/firestore";
 import { firebase } from "../services/firebase";
-import { onValue, ref } from "firebase/database";
-import { FirebaseError } from "firebase/app";
 
 export default function Home({ item, route }) {
-  //const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
   const colRef = firebase.firestore().collection("colmeias");
   const [name, setName] = useState("");
 
-  const getDadosCol = () => {
-    colRef.onSnapshot((querySnapshot) => {
-      const userDoc = [];
-      querySnapshot.forEach((doc) => {
-        const { localizacao, nome } = doc.data();
-        userDoc.push({
-          id: doc.id,
-          localizacao,
-          nome,
-        });
-      });
-      setUserDoc(userDoc);
-    });
-  };
 
   const getDados = () => {
     firebase
@@ -50,10 +30,11 @@ export default function Home({ item, route }) {
       .then((querySnapshot) => {
         const userDoc = [];
         querySnapshot.forEach((doc) => {
-          const { nomeColmeia } = doc.data();
+          const { nomeColmeia, localizacao } = doc.data();
           userDoc.push({
             id: doc.id,
             nomeColmeia,
+            localizacao
           });
         });
         setUserDoc(userDoc);
@@ -76,18 +57,15 @@ export default function Home({ item, route }) {
   };
 
   useEffect(() => {
-    //getDadosCol();
     getDadosNomes();
     getDados();
+    console.log(route.params.nomeApi)
   }, []);
 
   const onUserPress = () => {
     navigation.navigate("Perfil");
   };
 
-  const onNovaColmeiaPress = () => {
-    navigation.navigate("Nova Colmeia");
-  };
 
   const deleteApi = () => {
     firebase
@@ -137,11 +115,11 @@ export default function Home({ item, route }) {
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.container}>
             <CustomButton
-              text={item.nomeColmeia}
+              text={item.nomeColmeia} 
               type="COLMEIA"
               onPress={() =>
                 navigation.navigate("Colmeia", {
-                  nomeCol: item,
+                  nomeCol: item
                 })
               }
             />
@@ -154,7 +132,7 @@ export default function Home({ item, route }) {
         type="NOVACOLMEIA"
         onPress={() =>
           navigation.navigate("Nova Colmeia", {
-            nomeCol: route.params.nomeApi.id,
+            nomeCol: route.params.nomeApi
           })}
       />
     </View>
