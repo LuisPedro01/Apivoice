@@ -18,7 +18,7 @@ import { firebase } from "../services/firebase";
 import { onValue, ref } from "firebase/database";
 import { FirebaseError } from "firebase/app";
 
-export default function Home({item,route}) {
+export default function Home({ item, route }) {
   //const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
@@ -40,6 +40,26 @@ export default function Home({item,route}) {
     });
   };
 
+  const getDados = () => {
+    firebase
+      .firestore()
+      .collection("apiarios")
+      .doc(route.params.nomeApi.id)
+      .collection("colmeia")
+      .get()
+      .then((querySnapshot) => {
+        const userDoc = [];
+        querySnapshot.forEach((doc) => {
+          const { nomeColmeia } = doc.data();
+          userDoc.push({
+            id: doc.id,
+            nomeColmeia,
+          });
+        });
+        setUserDoc(userDoc);
+      });
+  };
+
   const getDadosNomes = () => {
     firebase
       .firestore()
@@ -56,8 +76,9 @@ export default function Home({item,route}) {
   };
 
   useEffect(() => {
-    getDadosCol();
+    //getDadosCol();
     getDadosNomes();
+    getDados();
   }, []);
 
   const onUserPress = () => {
@@ -86,7 +107,7 @@ export default function Home({item,route}) {
       <Header name={name.username} type="user" onPress={onUserPress} />
       <View style={styles.buttons}>
         <CustomButton text={route.params.nomeApi.nome} type="HOME" />
-        
+
         <CustomButton
           text="Eliminar apiário"
           type="SECONDARY"
@@ -116,7 +137,7 @@ export default function Home({item,route}) {
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.container}>
             <CustomButton
-              text={item.nome}
+              text={item.nomeColmeia}
               type="COLMEIA"
               onPress={() =>
                 navigation.navigate("Colmeia", {

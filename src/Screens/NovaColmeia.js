@@ -6,7 +6,7 @@ import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
-import { db } from "../services/firebase";
+import { db, firebase } from "../services/firebase";
 import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import { uid } from "uid";
 

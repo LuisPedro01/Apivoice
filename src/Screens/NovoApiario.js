@@ -18,8 +18,8 @@ export default function NovoApiario() {
   const [text, setText] = useState("")
 
    const Create = () => {
-    // Criar colmeias na base de dados
-    const myCol = collection(db, "apiario");
+    // Criar apiarios na base de dados
+    const myCol = collection(db, "apiarios");
     const colData = {
       nome: nome,
       localizacao: localizaçao,
