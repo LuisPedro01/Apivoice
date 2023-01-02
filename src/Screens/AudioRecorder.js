@@ -1,4 +1,4 @@
-import React, { Component, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Button, Alert, FlatList, TouchableOpacity } from "react-native";
 import { Audio } from "expo-av";
 import {
@@ -12,7 +12,7 @@ import { getStorage, ref, uploadBytes } from "firebase/storage";
 import CustomInput from "../components/CustomInput";
 import { useNavigation } from "@react-navigation/native";
 
-const AudioRecorder = () => {
+const AudioRecorder = ({route}) => {
   const navigation = useNavigation();
   const [recording, setRecording] = useState(false);
   const [recordings, setRecordings] = useState([]);
@@ -63,7 +63,7 @@ const AudioRecorder = () => {
     try {
       //Create the file reference
       const storage = getStorage();
-      const storageRef = ref(storage, `audio/${nome}`);
+      const storageRef = ref(storage, `audio ${route.params.nomeCol.nomeColmeia}/${nome}`);
 
       // Upload Blob file to Firebase
       uploadBytes(storageRef, file, "blob")
@@ -101,13 +101,13 @@ const AudioRecorder = () => {
         </View>
       );
     });
-  }
+  } 
 
   return (
     <View style={styles.container}>
       <Header name="Nova Gravação" type="upload" />
 
-      <CustomButton text="Colmeia X" type="COLMEIAS" />
+      <CustomButton text={route.params.nomeCol.nomeColmeia} type="COLMEIAS" />
 
       <View
         style={{

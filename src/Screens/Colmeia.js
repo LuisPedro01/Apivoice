@@ -18,7 +18,7 @@ export default function NovaColmeia({ item, route }) {
   const navigation = useNavigation();
   const [Grav, setGrav] = useState("");
   const storage = getStorage();
-  var listRef = ref(storage, "audio/");
+  var listRef = ref(storage, `audio ${route.params.nomeCol.nomeColmeia}/`);
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -56,7 +56,9 @@ export default function NovaColmeia({ item, route }) {
   };
 
   const NovaGravacaoPress = () => {
-    navigation.navigate("Audio Recorder");
+    navigation.navigate("Audio Recorder", {
+      nomeCol: route.params.nomeCol
+    });
   };
 
   const onPlayPress = () => {
