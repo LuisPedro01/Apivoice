@@ -12,10 +12,11 @@ import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import { firebase, db } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
+import { collection, deleteDoc, getDocs } from "firebase/firestore";
 
 export default function NovaColmeia({ item, route }) {
   const navigation = useNavigation();
-  const [Grav, setGrav] = useState('');
+  const [Grav, setGrav] = useState("");
   const storage = getStorage();
   var listRef = ref(storage, "audio/");
   const [data, setData] = useState([]);
@@ -24,23 +25,22 @@ export default function NovaColmeia({ item, route }) {
     listGrav();
   }, []);
 
-  const deleteColmeia = () =>{
-    const subCollection = firebase.firestore().collection('apiarios').doc(route.params.nomeCol.id).collection('colmeia')
-    subCollection
-    
-  }
-  
-  const deleteCol = () => {
-    const colRef=firebase
+  const deleteColmeia = () => {
+    const subCollection = firebase
       .firestore()
-      .collection(`apiarios/${route.params.nomeCol}/colmeia`)
+      .collection("apiarios")
+      .doc(route.params.nomeApi.id)
+      .collection("colmeia");
+    subCollection
       .doc(route.params.nomeCol.id)
       .delete()
       .then(() => {
         Alert.alert("Colemia apagada!", "Colmeia apagada com sucesso!");
         navigation.navigate("Apiario");
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        console.error("Error deleting document: ", error);
+      });
   };
 
   const listGrav = () => {
@@ -69,7 +69,9 @@ export default function NovaColmeia({ item, route }) {
 
       <CustomButton
         text={
-          route.params.nomeCol.nomeColmeia + " - " + route.params.nomeCol.localizacao
+          route.params.nomeCol.nomeColmeia +
+          " - " +
+          route.params.nomeCol.localizacao
         }
         type="COLMEIAS"
       />
@@ -78,9 +80,7 @@ export default function NovaColmeia({ item, route }) {
         <CustomButton
           text="Eliminar Colmeia"
           type="SECONDARY"
-          onPress={() => {
-            deleteCol();
-          }}
+          onPress={deleteColmeia}
         />
       </View>
 
@@ -100,11 +100,7 @@ export default function NovaColmeia({ item, route }) {
         data={Grav}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.container}>
-            <CustomButton
-             text={item}
-             type="COLMEIA"
-             onPress={onPlayPress} 
-            />      
+            <CustomButton text={item} type="COLMEIA" onPress={onPlayPress} />
           </TouchableOpacity>
         )}
       />

@@ -117,7 +117,8 @@ export default function Home({ item, route }) {
               type="COLMEIA"
               onPress={() =>
                 navigation.navigate("Colmeia", {
-                  nomeCol: item
+                  nomeCol: item,
+                  nomeApi: route.params.nomeApi
                 })
               }
             />
