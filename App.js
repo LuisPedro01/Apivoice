@@ -4,10 +4,23 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView
+  SafeAreaView, 
+  NativeModules
 } from 'react-native';
 
 export default function App () {
+
+  const PythonBridge = NativeModules;
+
+  PythonBridge("./src/python/comandos.py", (error, result) => {
+    if(error){
+      console.error(error);
+    }
+    else{
+      console.log(result)
+    }
+  });
+
   return(
     <SafeAreaView style={styles.root}>
       <Navigation/>     
