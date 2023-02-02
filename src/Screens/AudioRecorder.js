@@ -1,5 +1,13 @@
-import React, { Component, useState } from "react";
-import { View, Text, StyleSheet, Button, Alert, FlatList, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Button,
+  Alert,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
 import { Audio } from "expo-av";
 import {
   requestPermissionsAsync,
@@ -12,7 +20,7 @@ import { getStorage, ref, uploadBytes } from "firebase/storage";
 import CustomInput from "../components/CustomInput";
 import { useNavigation } from "@react-navigation/native";
 
-const AudioRecorder = () => {
+const AudioRecorder = ({ route }) => {
   const navigation = useNavigation();
   const [recording, setRecording] = useState(false);
   const [recordings, setRecordings] = useState([]);
@@ -57,19 +65,21 @@ const AudioRecorder = () => {
     setRecordings(updatedRecordings);
 
     const file = new Blob([sound], {
-      type: "audio/mpeg",
+      type: "audio/mp3",
     });
 
     try {
       //Create the file reference
       const storage = getStorage();
-      const storageRef = ref(storage, `audio/${nome}`);
+      const storageRef = ref(
+        storage,
+        `audio ${route.params.nomeCol.nomeColmeia}/${nome}`
+      );
 
       // Upload Blob file to Firebase
-      uploadBytes(storageRef, file, "blob")
-      .then((snapshot) => {
+      uploadBytes(storageRef, file).then((snapshot) => {
         console.log("Uploaded a song to firebase storage!");
-        Alert.alert("Gravação criada!", "Gravação gravada com sucesso!")
+        Alert.alert("Gravação criada!", "Gravação gravada com sucesso!");
       });
 
       setSong(sound);
@@ -107,7 +117,7 @@ const AudioRecorder = () => {
     <View style={styles.container}>
       <Header name="Nova Gravação" type="upload" />
 
-      <CustomButton text="Colmeia X" type="COLMEIAS" />
+      <CustomButton text={route.params.nomeCol.nomeColmeia} type="COLMEIAS" />
 
       <View
         style={{
@@ -123,7 +133,7 @@ const AudioRecorder = () => {
         <CustomInput placeholder="Nome" value={nome} setValue={setNome} />
       </View>
 
-      <View style={styles.list}>{getRecordingLines()}</View> 
+      <View style={styles.list}>{getRecordingLines()}</View>
 
       <CustomButton
         type="NOVACOLMEIA"

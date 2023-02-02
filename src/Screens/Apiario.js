@@ -21,7 +21,7 @@ export default function Apiario(item) {
   const route = useRoute();
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
-  const ApiRef = firebase.firestore().collection("apiario");
+  const ApiRef = firebase.firestore().collection("apiarios");
   const [name, setName] = useState("")
 
   const getDadosApi = () => {
@@ -40,8 +40,10 @@ export default function Apiario(item) {
   }
 
   const getDadosNomes = () => {
-    firebase.firestore().collection("Nomes")
-    .doc(firebase.auth().currentUser.uid).get()
+    firebase.firestore()
+    .collection("Nomes")
+    .doc(firebase.auth().currentUser.uid)
+    .get()
     .then((snapshot) => {
       if (snapshot.exists) {
         setName(snapshot.data())

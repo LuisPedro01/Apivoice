@@ -11,33 +11,33 @@ import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
-import { db } from "../services/firebase";
-import { uid } from "uid";
-import { deleteDoc, doc, getDoc, setDoc, getDocs } from "firebase/firestore";
 import { firebase } from "../services/firebase";
-import { onValue, ref } from "firebase/database";
-import { FirebaseError } from "firebase/app";
 
-export default function Home({item,route}) {
-  //const route = useRoute();
+export default function Home({ item, route }) {
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
   const colRef = firebase.firestore().collection("colmeias");
   const [name, setName] = useState("");
 
-  const getDadosCol = () => {
-    colRef.onSnapshot((querySnapshot) => {
-      const userDoc = [];
-      querySnapshot.forEach((doc) => {
-        const { localizacao, nome } = doc.data();
-        userDoc.push({
-          id: doc.id,
-          localizacao,
-          nome,
+  const getDados = () => {
+    firebase
+      .firestore()
+      .collection("apiarios")
+      .doc(route.params.nomeApi.id)
+      .collection("colmeia")
+      .get()
+      .then((querySnapshot) => {
+        const userDoc = [];
+        querySnapshot.forEach((doc) => {
+          const { nomeColmeia, localizacao } = doc.data();
+          userDoc.push({
+            id: doc.id,
+            nomeColmeia,
+            localizacao
+          });
         });
+        setUserDoc(userDoc);
       });
-      setUserDoc(userDoc);
-    });
   };
 
   const getDadosNomes = () => {
@@ -56,22 +56,19 @@ export default function Home({item,route}) {
   };
 
   useEffect(() => {
-    getDadosCol();
     getDadosNomes();
+    getDados();
   }, []);
 
   const onUserPress = () => {
     navigation.navigate("Perfil");
   };
 
-  const onNovaColmeiaPress = () => {
-    navigation.navigate("Nova Colmeia");
-  };
 
   const deleteApi = () => {
     firebase
       .firestore()
-      .collection("apiario")
+      .collection("apiarios")
       .doc(route.params.nomeApi.id)
       .delete()
       .then(() => {
@@ -86,7 +83,7 @@ export default function Home({item,route}) {
       <Header name={name.username} type="user" onPress={onUserPress} />
       <View style={styles.buttons}>
         <CustomButton text={route.params.nomeApi.nome} type="HOME" />
-        
+
         <CustomButton
           text="Eliminar apiário"
           type="SECONDARY"
@@ -116,11 +113,12 @@ export default function Home({item,route}) {
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.container}>
             <CustomButton
-              text={item.nome}
+              text={item.nomeColmeia} 
               type="COLMEIA"
               onPress={() =>
                 navigation.navigate("Colmeia", {
                   nomeCol: item,
+                  nomeApi: route.params.nomeApi
                 })
               }
             />
@@ -131,7 +129,10 @@ export default function Home({item,route}) {
       <CustomButton
         text="Nova colmeia"
         type="NOVACOLMEIA"
-        onPress={onNovaColmeiaPress}
+        onPress={() =>
+          navigation.navigate("Nova Colmeia", {
+            nomeCol: route.params.nomeApi
+          })}
       />
     </View>
   );
