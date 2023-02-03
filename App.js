@@ -7,19 +7,20 @@ import {
   SafeAreaView, 
   NativeModules
 } from 'react-native';
+import { useEffect, useState } from "react"
+import axios from "axios";
 
 export default function App () {
+  const [data, setData] = useState([])
 
-  const PythonBridge = NativeModules;
-
-  PythonBridge("./src/python/comandos.py", (error, result) => {
-    if(error){
-      console.error(error);
-    }
-    else{
-      console.log(result)
-    }
-  });
+useEffect(()=> {
+  axios.get('http://127.0.0.1:5000')
+  .then(
+    res => setData(res.data),
+    console.log("valor",data)
+  )
+  .catch(error => console.log("error",error))
+  }, [])
 
   return(
     <SafeAreaView style={styles.root}>

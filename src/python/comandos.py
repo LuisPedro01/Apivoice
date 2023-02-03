@@ -13,7 +13,7 @@ import speech_recognition as sr
 import os
 
 #função para ouvir e reconhecer a fala
-def ouvir_microfone():
+def ouvir_microfone(audio):
     #Habilita o microfone do usuario 
     microfone= sr.Recognizer()
 
@@ -56,11 +56,8 @@ def ouvir_microfone():
 
         #Retorna a frase pronunciada
         print("Voce disse: " + frase)
+        return frase
     
     #Se não reconheceu o padrão de fala, exiba a mensagem
     except sr.UnkownValueError:
         print("Não entendi o seu comando")
-
-    return frase
-
-ouvir_microfone() 
