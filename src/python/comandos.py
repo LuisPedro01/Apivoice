@@ -13,7 +13,7 @@ import speech_recognition as sr
 import os
 
 #função para ouvir e reconhecer a fala
-def ouvir_microfone(audio):
+def ouvir_microfone():
     #Habilita o microfone do usuario 
     microfone= sr.Recognizer()
 
@@ -33,7 +33,7 @@ def ouvir_microfone(audio):
         #Passa a variavel para o algoritmo reconhecedor de padroes
         frase= microfone.recognize_google(audio,language='pt-PT')
 
-        if "Adicionar apiário" in frase:
+        if "adicionar apiário" in frase:
             os.system("start Chrome.exe")
 
         if "Adicionar colmeia" in frase:
@@ -44,7 +44,7 @@ def ouvir_microfone(audio):
 
         if "Abrir colmeia" in frase:
             os.system("start Chrome.exe")
-
+ 
         if "Gravar audio" in frase:
             os.system("start Chrome.exe")
 
@@ -59,5 +59,8 @@ def ouvir_microfone(audio):
         return frase
     
     #Se não reconheceu o padrão de fala, exiba a mensagem
-    except sr.UnkownValueError:
+    except sr.UnknownValueError:
         print("Não entendi o seu comando")
+        return sr.UnknownValueError
+
+ouvir_microfone()
