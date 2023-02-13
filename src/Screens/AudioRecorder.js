@@ -49,7 +49,7 @@ const AudioRecorder = ({ route }) => {
 
   async function stopRecording1() {
     console.log("Stopping recording..");
-    setRecording(undefined);
+    //setRecordings(undefined);
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI();
     console.log("Recording stopped and stored at", uri);
@@ -64,7 +64,7 @@ const AudioRecorder = ({ route }) => {
     });
     setRecordings(updatedRecordings);
 
-    const file = new Blob([sound], {
+    const file = new Blob([recording], {
       type: "audio/mp3",
     });
 
