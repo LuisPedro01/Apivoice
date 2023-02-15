@@ -13,6 +13,7 @@ import Colmeia from '../Screens/Colmeia';
 import Perfil from '../Screens/Profile';
 import Apiario from '../Screens/Apiario';
 import NovoApiario from '../Screens/NovoApiario';
+import AlterarApiario from '../Screens/AlterarApiario'
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,8 @@ export default function Navigation() {
             <Stack.Screen name="Perfil" component={Perfil} />
             <Stack.Screen name="Apiario" component={Apiario} />
             <Stack.Screen name="Novo Apiario" component={NovoApiario} />
+            <Stack.Screen name="Alterar Apiario" component={AlterarApiario} />
+
             
         </Stack.Navigator> 
     </NavigationContainer>

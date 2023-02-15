@@ -36,7 +36,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    fetch("http://192.168.1.106:3000", {
+    fetch("http://192.168.1.72:3000", {
       method: "GET",
       headers: {
         Accept: "application/json, text/plain",

@@ -69,3 +69,5 @@ def ouvir_microfone():
 if __name__ == "__main__":
     app.run(host='192.168.1.106', port=3000,debug=True)
 
+#mac -> 192.168.1.106
+#windows -> 192.168.1.72

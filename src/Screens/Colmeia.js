@@ -43,6 +43,10 @@ export default function NovaColmeia({ item, route }) {
       });
   };
 
+  const alterarApi = () => {
+    navigation.navigate("Alterar Apiario")
+  }
+  
   const listGrav = () => {
     listAll(listRef)
       .then((res) => {
@@ -65,6 +69,7 @@ export default function NovaColmeia({ item, route }) {
     console.log("A reproduzir audio");
   };
 
+
   return (
     <View style={styles.container}>
       <Header name={"Gravações"} type="music" />
@@ -84,7 +89,14 @@ export default function NovaColmeia({ item, route }) {
           type="SECONDARY"
           onPress={deleteColmeia}
         />
+
+        <CustomButton
+          text="Alterar apiário"
+          type="SECONDARY"
+          onPress={alterarApi}
+        />
       </View>
+
 
       <View
         style={{
