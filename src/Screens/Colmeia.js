@@ -44,7 +44,9 @@ export default function NovaColmeia({ item, route }) {
   };
 
   const alterarApi = () => {
-    navigation.navigate("Alterar Apiario")
+    navigation.navigate("Alterar Apiario", {
+      nomeApi: route.params.nomeApi
+    })
   }
   
   const listGrav = () => {

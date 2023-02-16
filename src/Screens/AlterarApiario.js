@@ -12,15 +12,15 @@ import { uid } from "uid";
 import { firebase } from "../services/firebase";
 
 
-export default function AlterarApiario() {
-  const route = useRoute();
+export default function AlterarApiario({route}) {
+  //const route = useRoute();
   const navigation = useNavigation();
   const [nome, setNome] = useState('');
   const [localizaçao, setLocalizaçao] = useState('');
   const [text, setText] = useState("")
   const ApiRef = firebase.firestore().collection("apiarios");
   const [userDoc, setUserDoc] = useState([]);
-
+  const nomeApi = route.params.nomeApi.nome
 
   useEffect(() => {
     getDadosApi();
@@ -53,7 +53,7 @@ export default function AlterarApiario() {
       <Header name={"Lista de Apiários"} type="tool" />
       <View style={styles.buttons}>
         <CustomButton text="Apiário Atual" type="ALTERAR" />
-        <CustomButton text="Apiario X" type="APIARIO" />
+        <CustomButton text={nomeApi} type="APIARIO" />
       </View>
 
       <View
