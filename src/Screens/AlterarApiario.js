@@ -7,7 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
 import { db } from "../services/firebase";
-import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
+import { addDoc, collection, doc, documentId, getDoc, setDoc } from "firebase/firestore";
 import { uid } from "uid";
 import { firebase } from "../services/firebase";
 
@@ -17,7 +17,7 @@ export default function AlterarApiario({route}) {
   const navigation = useNavigation();
   const [nome, setNome] = useState('');
   const [localizaçao, setLocalizaçao] = useState('');
-  const [text, setText] = useState("")
+  const [buttonValue, setButtonValue] = useState(route.params.nomeApi.nome);
   const ApiRef = firebase.firestore().collection("apiarios");
   const [userDoc, setUserDoc] = useState([]);
   const nomeApi = route.params.nomeApi.nome
@@ -41,6 +41,16 @@ export default function AlterarApiario({route}) {
     });
   }
 
+  const novoApi = (item) => {
+    console.log(item.nome)
+    if(nomeApi != item.nome){
+      setButtonValue(item.nome)
+    }
+    else{
+      setButtonValue(nomeApi)
+    }
+  }
+
 
   const alterarApi = () => {
     //copiar dados da colmeia (copiar dados da subcollection)
@@ -53,7 +63,7 @@ export default function AlterarApiario({route}) {
       <Header name={"Lista de Apiários"} type="tool" />
       <View style={styles.buttons}>
         <CustomButton text="Apiário Atual" type="ALTERAR" />
-        <CustomButton text={nomeApi} type="APIARIO" />
+        <CustomButton text={buttonValue} type="APIARIO" />
       </View>
 
       <View
@@ -73,7 +83,7 @@ export default function AlterarApiario({route}) {
         data={userDoc}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.container}>
-            <CustomButton text={item.nome} type="COLMEIA" />
+            <CustomButton text={item.nome} type="COLMEIA" onPress={() => novoApi(item)}/>
           </TouchableOpacity>
         )}
       />
