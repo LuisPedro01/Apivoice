@@ -42,7 +42,6 @@ export default function AlterarApiario({route}) {
   }
 
   const novoApi = (item) => {
-    console.log(item.nome)
     if(nomeApi != item.nome){
       setButtonValue(item.nome)
     }
