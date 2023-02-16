@@ -56,7 +56,9 @@ export default function AlterarApiario({route}) {
     //enviar os dados para a nova colmeia (criar nova subcollection noutra collection)
     //apagar dados da colmeia (apagar subcollection original)
 
+    Alert.alert("Colmeia alterada!", "A sua colmeia foi alterada de apiário com sucesso!")
   };
+
   return (
     <View style={styles.container}>
       <Header name={"Lista de Apiários"} type="tool" />
