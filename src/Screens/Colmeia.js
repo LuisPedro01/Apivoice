@@ -45,7 +45,8 @@ export default function NovaColmeia({ item, route }) {
 
   const alterarApi = () => {
     navigation.navigate("Alterar Apiario", {
-      nomeApi: route.params.nomeApi
+      nomeApi: route.params.nomeApi,
+      nomeCol: route.params.nomeCol
     })
   }
   

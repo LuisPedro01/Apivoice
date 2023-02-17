@@ -12,7 +12,7 @@ import { uid } from "uid";
 import { firebase } from "../services/firebase";
 
 
-export default function AlterarApiario({route}) {
+export default function AlterarApiario({ route }) {
   //const route = useRoute();
   const navigation = useNavigation();
   const [nome, setNome] = useState('');
@@ -21,6 +21,16 @@ export default function AlterarApiario({route}) {
   const ApiRef = firebase.firestore().collection("apiarios");
   const [userDoc, setUserDoc] = useState([]);
   const nomeApi = route.params.nomeApi.nome
+  const idApi = route.params.nomeApi.id
+  const idCol = route.params.nomeCol.id
+  const [newDocRef, setNewDocRef] = useState(route.params.nomeApi.id)
+
+  const originalDocRef = firebase.firestore().collection("apiarios").doc(idApi)
+  const originalSubCollectionRef = originalDocRef.collection("colmeia").doc(idCol)
+
+  const targetDocRef = firebase.firestore().collection('apiarios').doc(newDocRef)
+  const targetSubCollectionRef = targetDocRef.collection('colmeia')
+
 
   useEffect(() => {
     getDadosApi();
@@ -42,21 +52,47 @@ export default function AlterarApiario({route}) {
   }
 
   const novoApi = (item) => {
-    if(nomeApi != item.nome){
+    if (nomeApi != item.nome) {
       setButtonValue(item.nome)
     }
-    else{
+    else {
       setButtonValue(nomeApi)
     }
+
+    if (idApi != item.id) {
+      setNewDocRef(item.id)
+    } else {
+      setNewDocRef(idApi)
+    }
+    console.log(newDocRef)
   }
 
-
   const alterarApi = () => {
-    //copiar dados da colmeia (copiar dados da subcollection)
-    //enviar os dados para a nova colmeia (criar nova subcollection noutra collection)
-    //apagar dados da colmeia (apagar subcollection original)
+    //criar nova colmeia em um novo apiario 
 
-    Alert.alert("Colmeia alterada!", "A sua colmeia foi alterada de apiário com sucesso!")
+    originalSubCollectionRef.get()
+      .then(subdoc => {
+        if(subdoc.exists){
+          targetSubCollectionRef.add(subdoc.data())
+          .then(()=> {
+            Alert.alert("Colmeia alterada!", "A sua colmeia foi alterada de apiário com sucesso!") 
+            navigation.navigate("Apiario");
+            originalSubCollectionRef.delete()
+            .then(()=>{
+              console.log("Documento excluido com sucesso!")
+            })
+            .catch(error=>{
+              console.log("Error ao excluir o documento: ", error)
+            })      
+          })
+          .catch((error)=> {
+            alert(error.message)
+          })
+        }else{
+          console.log("Documento não encontrado!")
+        }
+      })
+
   };
 
   return (
@@ -84,7 +120,7 @@ export default function AlterarApiario({route}) {
         data={userDoc}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.container}>
-            <CustomButton text={item.nome} type="COLMEIA" onPress={() => novoApi(item)}/>
+            <CustomButton text={item.nome} type="COLMEIA" onPress={() => novoApi(item)} />
           </TouchableOpacity>
         )}
       />

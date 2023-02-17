@@ -17,25 +17,25 @@ export default function NovaColmeia({route}) {
   const [text, setText] = useState("")
   //console.log(route.params.nomeCol)
 
-   const Create = () => {
-    // Criar colmeias na base de dados
-    const myCol = collection(db, "colmeias");
-    const colData = {
-      nome: nome,
-      localizacao: localizaçao,
-      createdAt: Date()
-    };
+  //  const Create = () => {
+  //   // Criar colmeias na base de dados
+  //   const myCol = collection(db, "colmeias");
+  //   const colData = {
+  //     nome: nome,
+  //     localizacao: localizaçao,
+  //     createdAt: Date()
+  //   };
 
-    addDoc(myCol, colData)
-      .then(() => {
-        Alert.alert("Colmeia criada!", "Nova colmeia criada com sucesso!");
-        navigation.navigate("Apiario");
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
+  //   addDoc(myCol, colData)
+  //     .then(() => {
+  //       Alert.alert("Colmeia criada!", "Nova colmeia criada com sucesso!");
+  //       navigation.navigate("Apiario");
+  //     })
+  //     .catch((error) => {
+  //       alert(error.message);
+  //     });
       
-  };
+  // };
 
   const CreateCol = () => {
     const subCollection = firebase.firestore().collection('apiarios').doc(route.params.nomeCol.id).collection('colmeia')
