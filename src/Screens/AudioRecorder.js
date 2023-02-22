@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Button,
-  Alert,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet, Button, Alert, FlatList, TouchableOpacity } from "react-native";
 import { Audio } from "expo-av";
 import {
   requestPermissionsAsync,
@@ -20,7 +12,7 @@ import { getStorage, ref, uploadBytes } from "firebase/storage";
 import CustomInput from "../components/CustomInput";
 import { useNavigation } from "@react-navigation/native";
 
-const AudioRecorder = ({ route }) => {
+const AudioRecorder = ({route}) => {
   const navigation = useNavigation();
   const [recording, setRecording] = useState(false);
   const [recordings, setRecordings] = useState([]);
@@ -49,7 +41,7 @@ const AudioRecorder = ({ route }) => {
 
   async function stopRecording1() {
     console.log("Stopping recording..");
-    //setRecordings(undefined);
+    setRecording(undefined);
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI();
     console.log("Recording stopped and stored at", uri);
@@ -64,22 +56,21 @@ const AudioRecorder = ({ route }) => {
     });
     setRecordings(updatedRecordings);
 
-    const file = new Blob([recording], {
-      type: "audio/mp3",
+    const response = await fetch(uri)
+    const file = await response.blob([response.valueOf], {
+      type: "audio/mpeg",
     });
 
     try {
       //Create the file reference
       const storage = getStorage();
-      const storageRef = ref(
-        storage,
-        `audio ${route.params.nomeCol.nomeColmeia}/${nome}`
-      );
+      const storageRef = ref(storage, `audio ${route.params.nomeCol.nomeColmeia}/${nome}`);
 
       // Upload Blob file to Firebase
-      uploadBytes(storageRef, file).then((snapshot) => {
+      const snapshot = await uploadBytes(storageRef, file, "blob")
+      .then((snapshot) => {
         console.log("Uploaded a song to firebase storage!");
-        Alert.alert("Gravação criada!", "Gravação gravada com sucesso!");
+        Alert.alert("Gravação criada!", "Gravação gravada com sucesso!")
       });
 
       setSong(sound);
@@ -111,7 +102,7 @@ const AudioRecorder = ({ route }) => {
         </View>
       );
     });
-  }
+  } 
 
   return (
     <View style={styles.container}>
@@ -133,7 +124,7 @@ const AudioRecorder = ({ route }) => {
         <CustomInput placeholder="Nome" value={nome} setValue={setNome} />
       </View>
 
-      <View style={styles.list}>{getRecordingLines()}</View>
+      <View style={styles.list}>{getRecordingLines()}</View> 
 
       <CustomButton
         type="NOVACOLMEIA"

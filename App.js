@@ -51,6 +51,7 @@ export default function App() {
       .catch((error) => console.log("error", error));
   }, []);
 
+  console.log('A ouvir o comando')
   if (`selecionar apiário ${userDoc.nome}` in data) {
     useNavigation.navigate("Home", {
       nomeApi: item,
