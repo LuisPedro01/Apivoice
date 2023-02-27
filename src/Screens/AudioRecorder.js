@@ -58,7 +58,7 @@ const AudioRecorder = ({route}) => {
 
     const response = await fetch(uri)
     const file = await response.blob([response.valueOf], {
-      type: "audio/mpeg",
+      type: "audio/mp3",
     });
 
     try {
