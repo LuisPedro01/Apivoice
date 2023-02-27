@@ -13,11 +13,12 @@ import CustomButton from "../components/CustomButton";
 import { firebase, db } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 import { collection, deleteDoc, getDocs } from "firebase/firestore";
+import { Audio } from "expo-av";
 
 export default function NovaColmeia({ item, route }) {
   const navigation = useNavigation();
   const [Grav, setGrav] = useState([]);
-  const [URL, setURL] = useState("");
+  const [URL, setURL] = useState('');
   const storage = getStorage();
   const storage1=firebase.storage()
   var listRef = ref(storage, `audio ${route.params.nomeCol.nomeColmeia}/`);
@@ -75,10 +76,15 @@ export default function NovaColmeia({ item, route }) {
 
   const onPlayPress = (item) => {
     storage1.ref(`audio ${route.params.nomeCol.nomeColmeia}/${item}`).getDownloadURL()
-    .then((url)=>{
-      console.log(url)
+    .then(async (url)=>{
+      console.log(`url de ${item}->`,url)
+      try {
+        const { sound } = await Audio.Sound.createAsync({ uri: url });
+        await sound.replayAsync();
+      } catch (error) {
+        console.log('Erro ao reproduzir o audio: ', error);
+      }
     })
-    
   };
 
 
