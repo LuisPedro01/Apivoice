@@ -64,10 +64,9 @@ def ouvir_microfone():
     #Se não reconheceu o padrão de fala, exiba a mensagem
     except sr.UnknownValueError:
         print("Não entendi o seu comando")
-        return sr.UnknownValueError
 
 if __name__ == "__main__":
-    app.run(host='192.168.1.106', port=3000,debug=True)
+    app.run(host='192.168.1.72', port=3000,debug=True)
 
 #mac -> 192.168.1.106
 #windows -> 192.168.1.72
