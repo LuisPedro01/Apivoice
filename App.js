@@ -36,33 +36,31 @@ export default function App() {
     getDadosApi();
   }, []);
 
-  useEffect(() => {
-    const intervalID = setInterval(() => {
-      console.log('A ouvir o comando')
-      fetch("http://192.168.1.72:3000", {
-        method: "GET",
-        headers: {
-          Accept: "application/json, text/plain",
-          "Content-Type": "application/json",
-        },
-      })
-        .then((resp) => resp.text())
-        .then((data1) => {
-          console.log("data", data1);
-          Alert.alert("Voce disse", `${data1}`)
-          if (data1 == 'parar') {
-            Alert.alert('Comandos parados!', "Para voltar a ativar os comandos, reinicie a App.")
-            clearInterval(intervalID);
-         } 
-        })
-        .catch((error) => console.log("error", error));
+  // useEffect(() => {
+  //   const intervalID = setInterval(() => {
+  //     console.log('A ouvir o comando')
+  //     fetch("http://192.168.1.72:3000", {
+  //       method: "GET",
+  //       headers: {
+  //         Accept: "application/json, text/plain",
+  //         "Content-Type": "application/json",
+  //       },
+  //     })
+  //       .then((resp) => resp.text())
+  //       .then((data1) => {
+  //         console.log("data", data1);
+  //         Alert.alert("Voce disse", `${data1}`)
+  //         if (data1 == 'parar') {
+  //           Alert.alert('Comandos parados!', "Para voltar a ativar os comandos, reinicie a App.")
+  //           clearInterval(intervalID);
+  //        } 
+  //       })
+  //       .catch((error) => console.log("error", error));
 
-      }, 5000);
-  }, []);
+  //     }, 5000);
+  // }, []);
 
-  const Parar = () => {
-    clearInterval(intervalID)
-  }
+  
 
   // if (`selecionar apiário ${userDoc.nome}` in data) {
   //   useNavigation.navigate("Home", {
