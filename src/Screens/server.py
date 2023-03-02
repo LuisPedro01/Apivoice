@@ -36,26 +36,26 @@ def ouvir_microfone():
         #Passa a variavel para o algoritmo reconhecedor de padroes
         frase= microfone.recognize_google(audio,language='pt-PT')
 
-        if "selecionar apiário" in frase:
-            os.system("start Chrome.exe")
+        # if "selecionar apiário" in frase:
+        #     os.system("start Chrome.exe")
 
-        if "Adicionar colmeia" in frase:
-            os.system("start Chrome.exe")
+        # if "Adicionar colmeia" in frase:
+        #     os.system("start Chrome.exe")
 
-        if "Abrir apiário" in frase:
-            os.system("start Chrome.exe")
+        # if "Abrir apiário" in frase:
+        #     os.system("start Chrome.exe")
 
-        if "Abrir colmeia" in frase:
-            os.system("start Chrome.exe")
+        # if "Abrir colmeia" in frase:
+        #     os.system("start Chrome.exe")
  
-        if "Gravar audio" in frase:
-            os.system("start Chrome.exe")
+        # if "Gravar audio" in frase:
+        #     os.system("start Chrome.exe")
 
-        if "Reproduzir ultima gravação" in frase:
-            os.system("start Chrome.exe")
+        # if "Reproduzir ultima gravação" in frase:
+        #     os.system("start Chrome.exe")
 
-        if "Retroceder" in frase:
-            os.system("start Chrome.exe")
+        # if "Retroceder" in frase:
+        #     os.system("start Chrome.exe")
 
         #Retorna a frase pronunciada
         print("Voce disse: " + frase)
