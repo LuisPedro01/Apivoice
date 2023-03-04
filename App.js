@@ -36,39 +36,7 @@ export default function App() {
     getDadosApi();
   }, []);
 
- 
-
-  // if (`selecionar apiário ${userDoc.nome}` in data) {
-  //   useNavigation.navigate("Home", {
-  //     nomeApi: item,
-  //   });
-  //   if (`selecionar colmeia ${userDoc.nome}` in data) {
-  //     useNavigation.navigate("Colmeia", {
-  //       nomeApi: item,
-  //     });
-  //     if (`Criar colmeia` in data) {
-  //       useNavigation.navigate("Nova Colmeia");
-  //     } 
-  //     if (`Reproduzir ultima gravaççao` in data) {
-  //       //reproduz gravação
-  //     }
-  //     if (`Gravar` in data) {
-  //       useNavigation.navigate("Audio Recorder");
-  //       //começar gravação
-  //     }
-  //   } else {
-  //     console.log("Nenhuma colmeia selecionada!")
-  //   }
-  //   if (`Criar apiario` in data) {
-  //     useNavigation.navigate("Novo Apiario");
-  //     //pedir nome/localização do apiário
-  //   }
-  // } else {
-  //   console.log("Nenhum apiário selecionado!") 
-  // }
-
-
-  return (
+   return (
     <SafeAreaView style={styles.root}>
       <Navigation />
     </SafeAreaView>

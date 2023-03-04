@@ -14,6 +14,7 @@ import Perfil from '../Screens/Profile';
 import Apiario from '../Screens/Apiario';
 import NovoApiario from '../Screens/NovoApiario';
 import AlterarApiario from '../Screens/AlterarApiario'
+import Animated from '../Screens/Animated'
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +22,7 @@ export default function Navigation() {
  return (
     <NavigationContainer>
        <Stack.Navigator screenOptions={{headerShown: false}}>
+            <Stack.Screen name="Animated" component={Animated} />
             <Stack.Screen name="Sign In" component={SignIn} />
             <Stack.Screen name="Sign Up" component={SignUp} />
             <Stack.Screen name="Home" component={Home} />
