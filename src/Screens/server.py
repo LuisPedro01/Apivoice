@@ -66,7 +66,7 @@ def ouvir_microfone():
         print("Não entendi o seu comando")
 
 if __name__ == "__main__":
-    app.run(host='192.168.1.72', port=3000,debug=True)
+    app.run(host='192.168.1.72',port=3000,debug=True)
 
 #mac -> 192.168.1.106
 #windows -> 192.168.1.72

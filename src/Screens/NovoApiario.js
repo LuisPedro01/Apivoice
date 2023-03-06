@@ -15,8 +15,8 @@ export default function NovoApiario({ item, route }) {
   const [nome, setNome] = useState('');
   const [localizaçao, setLocalizaçao] = useState('');
   const [text, setText] = useState("")
-  const [nomeApi, SetNomeApi] = useState(route.params.NomeApi)
-  const [localizaçãoApi, SetLocalizaçãoApi] = useState(route.params.LocalApi) 
+  const [nomeApi, SetNomeApi] = useState('')
+  const [localizaçãoApi, SetLocalizaçãoApi] = useState('') 
 
    const Create = () => {
     // Criar apiarios na base de dados
@@ -40,8 +40,8 @@ export default function NovoApiario({ item, route }) {
 
 
   useEffect(()=>{
-    //console.log('Nome Apiario voz->', route.params.NomeApi)
-    //console.log('Nome Colmeia voz->', route.params.NomeCol)
+    SetNomeApi(route.params.NomeApi)
+    SetLocalizaçãoApi(route.params.LocalApi)
   })
 
 
@@ -50,8 +50,8 @@ export default function NovoApiario({ item, route }) {
       <Header name={"Novo Apiário"} type="plus-circle"/>
 
       <View style={styles.list}>  
-        <CustomInput placeholder='Nome' value={nome || route.params.NomeApi} setValue={setNome}/>
-        <CustomInput placeholder="Localização" value={localizaçao || route.params.LocalApi} setValue={setLocalizaçao}/> 
+        <CustomInput placeholder='Nome' value={nome || nomeApi} setValue={setNome}/>
+        <CustomInput placeholder="Localização" value={localizaçao || localizaçãoApi} setValue={setLocalizaçao}/> 
       </View>
       <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={Create}/>
     </View>
