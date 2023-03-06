@@ -1,4 +1,4 @@
-import React,  { useState }  from "react";
+import React,  { useState, useEffect }  from "react";
 import { StyleSheet, Text, View, FlatList, Button, Alert } from "react-native";
 import Header from "../components/Header";
 import Gravacoes from "../components/Gravacoes";
@@ -10,12 +10,13 @@ import { db } from "../services/firebase";
 import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import { uid } from "uid";
 
-export default function NovoApiario() {
-  const route = useRoute();
+export default function NovoApiario({ item, route }) {
   const navigation = useNavigation();
   const [nome, setNome] = useState('');
   const [localizaçao, setLocalizaçao] = useState('');
   const [text, setText] = useState("")
+  const [nomeApi, SetNomeApi] = useState(route.params.NomeApi)
+  const [localizaçãoApi, SetLocalizaçãoApi] = useState(route.params.LocalApi) 
 
    const Create = () => {
     // Criar apiarios na base de dados
@@ -36,13 +37,21 @@ export default function NovoApiario() {
       });
       
   };
+
+
+  useEffect(()=>{
+    //console.log('Nome Apiario voz->', route.params.NomeApi)
+    //console.log('Nome Colmeia voz->', route.params.NomeCol)
+  })
+
+
   return (
     <View style={styles.container}>
       <Header name={"Novo Apiário"} type="plus-circle"/>
 
       <View style={styles.list}>  
-        <CustomInput placeholder='Nome' value={nome} setValue={setNome} />
-        <CustomInput placeholder="Localização" value={localizaçao} setValue={setLocalizaçao}/> 
+        <CustomInput placeholder='Nome' value={nome || route.params.NomeApi} setValue={setNome}/>
+        <CustomInput placeholder="Localização" value={localizaçao || route.params.LocalApi} setValue={setLocalizaçao}/> 
       </View>
       <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={Create}/>
     </View>

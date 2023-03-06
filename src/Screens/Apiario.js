@@ -64,7 +64,7 @@ export default function Apiario(item) {
   };
 
   const onNovoApiarioPress = () => {
-    navigation.navigate("Novo Apiario");
+    navigation.navigate("Novo Apiario", {NomeApi: '', LocalApi: '' });
   };
 
   return (

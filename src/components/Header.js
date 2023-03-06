@@ -5,21 +5,26 @@ import {
   View,
   StatusBar,
   TouchableOpacity,
-  Switch, 
+  Switch,
   Alert
 } from "react-native";
 
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient';
+import { Screen } from 'react-native-screens';
 
 const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
 
-export default function Header({ name, type, onPress, route }) {
+export default function Header({ name, type, onPress, route, item }) {
   const navigation = useNavigation();
   const [isEnable, setIsEnable] = useState(false);
   const [apiario, setApiario] = useState('')
   const [colmeia, setColmeia] = useState('')
+  const [nomeApi, SetNomeApi] = useState('')
+  const [localizaçãoApi, SetLocalizaçãoApi] = useState('')
+  const [nomeCol, SetNomeCol] = useState('')
+  const [localizaçãoCol, SetLocalizaçãoCol] = useState('')
 
   const toggleSwitch = () => {
     if (isEnable) {
@@ -28,17 +33,17 @@ export default function Header({ name, type, onPress, route }) {
     }
     else {
       //fazer o fetch
-      console.log('comandos a ligados')      
+      console.log('comandos a ligados')
     }
     setIsEnable(previousState => !previousState)
   }
 
-  useEffect(()=>{    
+  useEffect(() => {
     //console.log(apiario)
   })
 
-  useEffect(()=>{
-    if(isEnable){
+  useEffect(() => {
+    if (isEnable) {
       const intervalID = setInterval(() => {
         console.log('A ouvir o comando')
         fetch("http://192.168.1.72:3000", {
@@ -51,56 +56,77 @@ export default function Header({ name, type, onPress, route }) {
           .then((resp) => resp.text())
           .then((data1) => {
             console.log("Voce disse: ", data1);
-            if (data1 == 'parar' || data1 == 'Parar') {
+
+            //comando parar
+            if (data1.includes('parar') || data1.includes('Parar')) {
               clearInterval(intervalID);
               Alert.alert('Comandos parados!', "Para voltar a ativar os comandos, ative-os no botão.")
               console.log('Comandos parados!')
               setIsEnable(false)
             }
-            //tratar
-            if (data1.includes(`Selecionar apiário`) || data1.includes(`selecionar apiário`) || data1.includes(`apiário`) ){
-              const nome = data1.split("apiário ")[null||1||2||3||4||5].split(" ")[0]
-              navigation.navigate("Home", {nomeApi: nome})
-              console.log("nome do apiario:",nome)
+
+            //comando selecionar apiario
+            if (data1.includes(`Selecionar apiário`) || data1.includes(`selecionar apiário`)) {
+              const nome = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+              navigation.navigate("Home", { nomeApi: nome })
+              console.log("nome do apiario:", nome)
             }
-            if (data1.includes(`selecionar colmeia`) || data1.includes(`Selecionar colmeia`)){
-              //navigation.navigate("Home", {nomeCol: colmeia})
-              const nome = data1.split("colmeia ")[null||1||2||3||4||5].split(" ")[0]
-              console.log("nome da colmeia:",nome)
-              setColmeia(nome)
+
+            //comando selecionar colmeia
+            if (data1.includes(`selecionar colmeia`) || data1.includes(`Selecionar colmeia`)) {
+              const nome = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+              navigation.navigate("Colmeia", { nomeCol: colmeia })
+              console.log("nome da colmeia:", nome)
+              //setColmeia(nome)
             }
-            if (data1 == 'criar novo apiário' || data1 == 'Criar novo apiário'){
-              navigation.navigate("Novo Apiario")
+
+            //comando criar novo apiario
+            if (data1.includes('criar novo apiário') || data1.includes('Criar novo apiário') || data1.includes('novo apiário')) {
+              navigation.navigate("Novo Apiario", { NomeApi: '', LocalApi: '' })
               console.log("criar novo apiário")
-              if(Screen=="Novo Apiario"){
-                if(data1.includes(`Nome ${nomeApi}`)){
-                  //nomeApi=input nome
-                  if(data1.includes(`Localização ${localApi}`)){
-                  //input localização == localApi
-                  //criar apiario(botão)
-                  }
-                }
-              }
             }
-            if (data1 == 'criar nova colmeia' || data1 == 'Criar nova colmeia'){
+            if (data1.includes(`Nome apiário`) || data1.includes(`nome apiário`)) {
+              const nomeapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+              console.log('Nome->', nomeapi)
+              //SetNomeApi(nomeapi)
+              //navigation.navigate("Novo Apiario", { NomeApi: nomeapi })
+              //nomeApi=input nome
+            }
+            if (data1.includes(`Localização apiário`) || data1.includes(`localização apiário`)) {
+              const localapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
+              console.log('localidade->', localapi)
+              //SetLocalizaçãoApi(localapi)
+              navigation.navigate("Novo Apiario", { LocalApi: localapi, NomeApi: nomeapi })
+              //input localização == localApi
+              //criar apiario(botão)
+            }
+
+            //comando criar nova colmeia
+            if (data1.includes('criar nova colmeia') || data1.includes('Criar nova colmeia')) {
               navigation.navigate("Nova Colmeia")
               console.log("Criar nova colmeia")
-              if(Screen=="Nova Colmeia"){
-                if(data1 == `Nome ${nomeCol}`){
-                  //input nome==nomeCol
-                  if(data1 == `Localização ${localCol}`){
-                  //input localização == localCol
-                  //criar colmeia(botão)
-                  }
-                }
-              }
+            }
+            if (data1.includes(`Nome colmeia`) || data1.includes(`nome colmeia`)) {
+              const nomecol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+              console.log('Nome->', nomecol)
+              SetNomeCol(nomecol)
+              navigation.navigate("Nova Colmeia", { NomeCol: nomeCol })
+              //nomeApi=input nome
+            }
+            if (data1.includes(`Localização colmeia`) || data1.includes(`localização colmeia`)) {
+              const localcol = data1.split("colmeia")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+              console.log('localidade->', localcol)
+              SetLocalizaçãoCol(localcol)
+              navigation.navigate("Nova Colmeia", { LocalCol: localcol })
+              //input localização == localApi
+              //criar apiario(botão)
             }
             // else{
             //   console.log('Nao percebi o seu comando!')
             // }
           })
           .catch((error) => console.log("error", error));
-        }, 5000); 
+      }, 5000);
     }
   })
 
@@ -119,7 +145,7 @@ export default function Header({ name, type, onPress, route }) {
         <Text style={styles.comandos}>Comandos por voz</Text>
         <View>
           <Switch
-          style={styles.switch}
+            style={styles.switch}
             trackColor={{ false: 'grey', true: '#FFDAAE' }}
             thumbColor={isEnable ? '#FFDAAE' : 'white'}
             ios_background='grey'
