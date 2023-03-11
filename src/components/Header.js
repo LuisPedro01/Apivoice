@@ -14,6 +14,9 @@ import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient';
 import { Screen } from 'react-native-screens';
 import { firebase } from "../services/firebase";
+import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../services/firebase";
+
 
 const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
 
@@ -29,20 +32,63 @@ export default function Header({ name, type, onPress, route, item }) {
   const [userDoc, setUserDoc] = useState([]);
   const ApiRef = firebase.firestore().collection("apiarios");
 
-  const getDadosApi = () => {
-    ApiRef.onSnapshot((querySnapshot) => {
-      const userDoc = [];
-      querySnapshot.forEach((doc) => {
-        const { localizacao, nome } = doc.data();
-        userDoc.push({
-          id: doc.id,
-          localizacao,
-          nome,
-        });
+  //++++++++++++++
+  //Criar apiarios
+  //++++++++++++++
+  const CreateApi = () => {
+    // Criar apiarios na base de dados
+    const myCol = collection(db, "apiarios");
+    const colData = {
+      nome: nomeApi,
+      localizacao: localizaçãoApi,
+      createdAt: Date()
+    };
+
+    addDoc(myCol, colData)
+      .then(() => {
+        console.log('apiario criado')
+        navigation.navigate("Apiario");
+      })
+      .catch((error) => {
+        alert(error.message);
       });
-      setUserDoc(userDoc);
+      
+  };
+
+  //++++++++++++++
+  //Criar colmeias
+  //++++++++++++++
+  const CreateCol = () => {
+    const subCollection = firebase.firestore().collection('apiarios').doc(route.params.nomeCol.id).collection('colmeia')
+    subCollection
+    .add({
+      nomeColmeia: nome,
+      localizacao: localizaçao,
+      createdAt: Date()
+    })
+    .then(() => {
+      console.log('Colmeia criada')
+      navigation.navigate("Apiario");
+    })
+    .catch((error) => {
+      alert(error.message);
     });
   }
+
+  // const getDadosApi = () => {
+  //   ApiRef.onSnapshot((querySnapshot) => {
+  //     const userDoc = [];
+  //     querySnapshot.forEach((doc) => {
+  //       const { localizacao, nome } = doc.data();
+  //       userDoc.push({
+  //         id: doc.id,
+  //         localizacao,
+  //         nome,
+  //       });
+  //     });
+  //     setUserDoc(userDoc);
+  //   });
+  // }
 
   const toggleSwitch = () => {
     if (isEnable) {
@@ -56,10 +102,10 @@ export default function Header({ name, type, onPress, route, item }) {
     setIsEnable(previousState => !previousState)
   }
 
-  useEffect(() => {
-    getDadosApi();
-    // console.log(userDoc)
-  })
+  // useEffect(() => {
+  //   getDadosApi();
+  //   // console.log(userDoc)
+  // })
 
   useEffect(() => {
     if (isEnable) {
@@ -90,12 +136,6 @@ export default function Header({ name, type, onPress, route, item }) {
             //+++++++++++++++++++++++++++
             if (data1.includes(`Selecionar apiário`) || data1.includes(`selecionar apiário`)) {
               const nome = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              .then((item) =>{
-                item.forEach(doc => {
-                  const selectedItem = doc.data()
-                  navigation.navigate("Home", { nomeApi: selectedItem })
-                })
-              })
 
             }
 
@@ -116,41 +156,51 @@ export default function Header({ name, type, onPress, route, item }) {
               navigation.navigate("Novo Apiario", { NomeApi: '', LocalApi: '' })
               console.log("criar novo apiário")
             }
-            if (data1.includes(`Nome apiário`) || data1.includes(`nome apiário`)) {
-              const nomeapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              SetNomeApi(nomeapi)
-              //console.log('Nome->', nomeapi)
-              //navigation.navigate("Novo Apiario", { LocalApi: localizaçãoApi})
-              //return nomeapi
-            }
-            if (data1.includes(`Localização apiário`) || data1.includes(`localização apiário`)) {
-              const localapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
-              //SetLocalizaçãoApi(localapi)
-              console.log('localidade->', localapi)
-              navigation.navigate("Novo Apiario", { LocalApi: localapi, NomeApi: nomeApi })
+            if(route.name=='Novo Apiario'){
+              if ((data1.includes(`Nome apiário`) || data1.includes(`nome apiário`))) {
+                const nomeapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+                SetNomeApi(nomeapi)
+                //console.log('Nome->', nomeapi)
+                //navigation.navigate("Novo Apiario", { LocalApi: localizaçãoApi})
+              }
+
+              if ( (data1.includes(`Localização apiário`) || data1.includes(`localização apiário`))) {
+                const localapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
+                SetLocalizaçãoApi(localapi)
+                console.log('localidade->', localapi)
+              }
+              
+              if (data1.includes('Criar apiário') || data1.includes('criar apiário')){
+                navigation.navigate("Novo Apiario", { LocalApi: localizaçãoApi, NomeApi: nomeApi })
+                CreateApi();
+              }
             }
 
             //++++++++++++++++++++++++++
             //comando criar nova colmeia
             //++++++++++++++++++++++++++
             if (data1.includes('criar nova colmeia') || data1.includes('Criar nova colmeia')) {
-              navigation.navigate("Nova Colmeia")
-              console.log("Criar nova colmeia")
+              navigation.navigate("Nova Colmeia", { NomeCol: '', LocalCol: '' })
+              console.log("criar nova colmeia")
             }
-            if (data1.includes(`Nome colmeia`) || data1.includes(`nome colmeia`)) {
-              const nomecol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              console.log('Nome->', nomecol)
-              SetNomeCol(nomecol)
-              navigation.navigate("Nova Colmeia", { NomeCol: nomeCol })
-              //nomeApi=input nome
-            }
-            if (data1.includes(`Localização colmeia`) || data1.includes(`localização colmeia`)) {
-              const localcol = data1.split("colmeia")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              console.log('localidade->', localcol)
-              SetLocalizaçãoCol(localcol)
-              navigation.navigate("Nova Colmeia", { LocalCol: localcol })
-              //input localização == localApi
-              //criar apiario(botão)
+            if(route.name=='Nova Colmeia'){
+              if ((data1.includes(`Nome colmeia`) || data1.includes(`nome colmeia`))) {
+                const nomecol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+                SetNomeCol(nomecol)
+                //console.log('Nome->', nomeapi)
+                //navigation.navigate("Novo Apiario", { LocalApi: localizaçãoApi})
+              }
+
+              if ( (data1.includes(`Localização colmeia`) || data1.includes(`localização colmeia`))) {
+                const localcol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
+                SetLocalizaçãoCol(localcol)
+                console.log('localidade->', localcol)
+              }
+              
+              if (data1.includes('Criar colmeia') || data1.includes('criar colmeia')){
+                navigation.navigate("Nova Colmeia", { LocalCol: localizaçãoCol, NomeCol: nomeCol })
+                CreateCol();
+              }
             }
             // else{
             //   console.log('Nao percebi o seu comando!')
