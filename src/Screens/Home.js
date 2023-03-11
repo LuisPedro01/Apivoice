@@ -131,7 +131,9 @@ export default function Home({ item, route }) {
         type="NOVACOLMEIA"
         onPress={() =>
           navigation.navigate("Nova Colmeia", {
-            nomeCol: route.params.nomeApi
+            nomeCol: route.params.nomeApi,
+            NomeCol:'',
+            LocalApi:''
           })}
       />
     </View>

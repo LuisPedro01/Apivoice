@@ -16,8 +16,8 @@ export default function NovaColmeia({route}) {
   const [localizaçao, setLocalizaçao] = useState('');
   const [text, setText] = useState("")
   //console.log(route.params.nomeCol)
-  const [nomeApi, SetNomeApi] = useState('')
-  const [localizaçãoApi, SetLocalizaçãoApi] = useState('') 
+  const [nomeCol, SetNomeCol] = useState('')
+  const [localizaçãoCol, SetLocalizaçãoCol] = useState('') 
 
   const CreateCol = () => {
     const subCollection = firebase.firestore().collection('apiarios').doc(route.params.nomeCol.id).collection('colmeia')
@@ -36,13 +36,18 @@ export default function NovaColmeia({route}) {
     });
   }
 
+  useEffect(()=>{
+    SetNomeCol(route.params.NomeCol)
+    SetLocalizaçãoCol(route.params.LocalCol)
+  })
+
   return (
     <View style={styles.container}>
       <Header name={"Nova Colmeia"} type="plus-circle"/>
 
       <View style={styles.list}>  
-        <CustomInput placeholder='Nome' value={nome} setValue={setNome} on/>
-        <CustomInput placeholder="Localização" value={localizaçao} setValue={setLocalizaçao}/> 
+        <CustomInput placeholder='Nome' value={nome || nomeCol} setValue={setNome} on/>
+        <CustomInput placeholder="Localização" value={localizaçao || localizaçãoCol} setValue={setLocalizaçao}/> 
       </View>
       <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={CreateCol}/>
     </View>
