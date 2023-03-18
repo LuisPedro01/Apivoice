@@ -36,6 +36,7 @@ export default function Header({ name, type, onPress, route, item }) {
   const [nome, setNome] = useState("");
   const [userDoc, setUserDoc] = useState([]);
   const ApiRef = firebase.firestore().collection("apiarios");
+  //const ColRef = firebase.firestore().collection("apiarios").doc(route.params.nomeApi.id).collection("colmeia")
 
   //++++++++++++++
   //Criar apiarios
@@ -173,16 +174,16 @@ export default function Header({ name, type, onPress, route, item }) {
     setIsEnable(previousState => !previousState)
   }
 
-  useEffect(() => {
-    getDadosApi();
-    // console.log(userDoc)
-  })
+  // useEffect(() => {
+  //   getDadosApi();
+  //   console.log(userDoc)
+  // })
 
-  useEffect(() => {
+  useEffect((route) => {
     if (isEnable) {
       const intervalID = setInterval(() => {
         console.log('A ouvir o comando')
-        fetch("http://192.168.1.72:3000", {
+        fetch("http://192.168.1.72:5000", {
           method: "GET",
           headers: {
             Accept: "application/json, text/plain",
@@ -192,10 +193,13 @@ export default function Header({ name, type, onPress, route, item }) {
           .then((resp) => resp.text())
           .then((data1) => {
             console.log("Voce disse: ", data1);
+            if((data1.includes('voltar') || data1.includes('Voltar'))){
+              navigation.goBack()
+            }
             //++++++++++++++
             //comando parar
             //++++++++++++++
-            if (data1.includes('parar') || data1.includes('Parar')) {
+            if (data1.includes('parar') || data1.includes('Parar') || data1.includes('STOP') || data1.includes('stop') || data1.includes('Stop')){
               clearInterval(intervalID);
               Alert.alert('Comandos parados!', "Para voltar a ativar os comandos, ative-os no botão.")
               console.log('Comandos parados!')
@@ -207,21 +211,22 @@ export default function Header({ name, type, onPress, route, item }) {
             //+++++++++++++++++++++++++++
             if (data1.includes(`Selecionar apiário`) || data1.includes(`selecionar apiário`)) {
               const nome = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              //const data = userDoc
-              //const keyExtractor = (item) => item.id
-              const querySnapshot = ApiRef.where('nome', '==', nome).get()
-              navigation.navigate("Apiario", { nomeApi: querySnapshot })
+              ApiRef.where('nome', '==', nome).get()
+              .then((querySnapshot)=>{
+                querySnapshot.forEach((doc)=>{                  
+                  navigation.navigate("Home",{nomeApi:doc.data()})
+                })
+              })
+              
+              //navigation.navigate("Apiario", { nomeApi: querySnapshot })
             }
-
 
             //+++++++++++++++++++++++++++
             //comando selecionar colmeia
             //+++++++++++++++++++++++++++
             if (data1.includes(`selecionar colmeia`) || data1.includes(`Selecionar colmeia`)) {
               const nome = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              navigation.navigate("Colmeia", { nomeCol: colmeia })
-              console.log("nome da colmeia:", nome)
-              //setColmeia(nome)
+
             }
 
             //+++++++++++++++++++++++++++
@@ -282,7 +287,7 @@ export default function Header({ name, type, onPress, route, item }) {
             //++++++
             if (data1.includes('Novo aúdio') || data1.includes('novo aúdio')) {
               navigation.navigate("Audio Recorder", {
-                nomeCol: route.params.nomeCol
+                
               })
               console.log('Gravar novo audio')
             }
@@ -301,12 +306,14 @@ export default function Header({ name, type, onPress, route, item }) {
               }
             }
 
+
+
             // else{
             //   console.log('Nao percebi o seu comando!')
             // }
           })
           .catch((error) => console.log("error", error));
-      }, 5000);
+      }, 10000);
     }
   })
 
