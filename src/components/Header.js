@@ -25,7 +25,7 @@ export default function Header({ name, type, onPress, route, item }) {
   const [isEnable, setIsEnable] = useState(false);
   const [apiario, setApiario] = useState('')
   const [colmeia, setColmeia] = useState('')
-  const [nomeApi, SetNomeApi] = useState("")
+  const [nomeapi, SetNomeApi] = useState("")
   const [localizaçãoApi, SetLocalizaçãoApi] = useState("")
   const [nomeCol, SetNomeCol] = useState('')
   const [localizaçãoCol, SetLocalizaçãoCol] = useState('')
@@ -36,8 +36,21 @@ export default function Header({ name, type, onPress, route, item }) {
   const [nome, setNome] = useState("");
   const [userDoc, setUserDoc] = useState([]);
   const ApiRef = firebase.firestore().collection("apiarios");
-  //const ColRef = firebase.firestore().collection("apiarios").doc(route.params.nomeApi.id).collection("colmeia")
+  //const ColRef = firebase.firestore().collection("apiarios").doc(apiario).collection("colmeia")
 
+  const keyExtractor = (item) => item.id
+
+  const toggleSwitch = () => {
+    if (isEnable) {
+      //parar o fetch
+      console.log('comandos a desligados')
+    }
+    else {
+      //fazer o fetch
+      console.log('comandos a ligados')
+    }
+    setIsEnable(previousState => !previousState)
+  }
   //++++++++++++++
   //Criar apiarios
   //++++++++++++++
@@ -147,38 +160,6 @@ export default function Header({ name, type, onPress, route, item }) {
     }
   }
 
-  const getDadosApi = () => {
-    ApiRef.onSnapshot((querySnapshot) => {
-      const userDoc = [];
-      querySnapshot.forEach((doc) => {
-        const { localizacao, nome } = doc.data();
-        userDoc.push({
-          id: doc.id,
-          localizacao,
-          nome,
-        });
-      });
-      setUserDoc(userDoc);
-    });
-  }
-
-  const toggleSwitch = () => {
-    if (isEnable) {
-      //parar o fetch
-      console.log('comandos a desligados')
-    }
-    else {
-      //fazer o fetch
-      console.log('comandos a ligados')
-    }
-    setIsEnable(previousState => !previousState)
-  }
-
-  // useEffect(() => {
-  //   getDadosApi();
-  //   console.log(userDoc)
-  // })
-
   useEffect((route) => {
     if (isEnable) {
       const intervalID = setInterval(() => {
@@ -193,45 +174,54 @@ export default function Header({ name, type, onPress, route, item }) {
           .then((resp) => resp.text())
           .then((data1) => {
             console.log("Voce disse: ", data1);
-            if((data1.includes('voltar') || data1.includes('Voltar'))){
+            if ((data1.includes('voltar') || data1.includes('Voltar'))) {
               navigation.goBack()
             }
-            //++++++++++++++
-            //comando parar
-            //++++++++++++++
-            if (data1.includes('parar') || data1.includes('Parar') || data1.includes('STOP') || data1.includes('stop') || data1.includes('Stop')){
+            //++++++++++++++++
+            // comando parar +
+            //++++++++++++++++
+            if (data1.includes('parar') || data1.includes('Parar') || data1.includes('STOP') || data1.includes('stop') || data1.includes('Stop')) {
               clearInterval(intervalID);
               Alert.alert('Comandos parados!', "Para voltar a ativar os comandos, ative-os no botão.")
               console.log('Comandos parados!')
               setIsEnable(false)
             }
 
-            //+++++++++++++++++++++++++++
-            //comando selecionar apiario
-            //+++++++++++++++++++++++++++
+            //++++++++++++++++++++++++++++++
+            //+ comando selecionar apiario +
+            //++++++++++++++++++++++++++++++
             if (data1.includes(`Selecionar apiário`) || data1.includes(`selecionar apiário`)) {
               const nome = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
               ApiRef.where('nome', '==', nome).get()
-              .then((querySnapshot)=>{
-                querySnapshot.forEach((doc)=>{                  
-                  navigation.navigate("Home",{nomeApi:doc.data()})
+                .then((querySnapshot) => {
+                  querySnapshot.forEach((doc) => {
+                    keyExtractor(doc)
+                    navigation.navigate("Home", { nomeApi1: doc.data().nome, nomeApi: doc})
+                    //setApiario(doc.data().id)
+                  })
                 })
-              })
-              
-              //navigation.navigate("Apiario", { nomeApi: querySnapshot })
             }
 
-            //+++++++++++++++++++++++++++
-            //comando selecionar colmeia
-            //+++++++++++++++++++++++++++
+            //++++++++++++++++++++++++++++++
+            //+ comando selecionar colmeia +
+            //++++++++++++++++++++++++++++++
             if (data1.includes(`selecionar colmeia`) || data1.includes(`Selecionar colmeia`)) {
               const nome = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-
+              ColRef.where('nome', '==', nome).get()
+                .then((querySnapshot) => {
+                  querySnapshot.forEach((doc) => {
+                    keyExtractor(doc)
+                    navigation.navigate("Colmeia", {
+                      nomeCol: doc,
+                      nomeApi: apiario
+                    })
+                  })
+                })
             }
 
-            //+++++++++++++++++++++++++++
-            //comando criar novo apiario
-            //+++++++++++++++++++++++++++
+            //++++++++++++++++++++++++++++++
+            //+ comando criar novo apiario +
+            //++++++++++++++++++++++++++++++
             if (data1.includes('criar novo apiário') || data1.includes('Criar novo apiário') || data1.includes('novo apiário')) {
               navigation.navigate("Novo Apiario", { NomeApi: '', LocalApi: '' })
               console.log("criar novo apiário")
@@ -256,9 +246,9 @@ export default function Header({ name, type, onPress, route, item }) {
               }
             }
 
-            //++++++++++++++++++++++++++
-            //comando criar nova colmeia
-            //++++++++++++++++++++++++++
+            //++++++++++++++++++++++++++++++
+            //+ comando criar nova colmeia +
+            //++++++++++++++++++++++++++++++
             if (data1.includes('criar nova colmeia') || data1.includes('Criar nova colmeia')) {
               navigation.navigate("Nova Colmeia", { NomeCol: '', LocalCol: '' })
               console.log("criar nova colmeia")
@@ -282,12 +272,12 @@ export default function Header({ name, type, onPress, route, item }) {
                 CreateCol();
               }
             }
-            //++++++
-            //Gravar
-            //++++++
+            //++++++++++
+            //+ Gravar +
+            //++++++++++
             if (data1.includes('Novo aúdio') || data1.includes('novo aúdio')) {
               navigation.navigate("Audio Recorder", {
-                
+
               })
               console.log('Gravar novo audio')
             }

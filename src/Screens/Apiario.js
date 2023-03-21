@@ -95,7 +95,8 @@ export default function Apiario(item) {
               text={item.nome + ' - ' + item.localizacao}
               type="COLMEIA"
               onPress={()=> navigation.navigate("Home", {
-                nomeApi: item
+                nomeApi: item,
+                nomeApi1: item.nome
               })}
             />
           </TouchableOpacity>

@@ -82,7 +82,7 @@ export default function Home({ item, route }) {
     <View style={styles.container}>
       <Header name={name.username} type="user" onPress={onUserPress} />
       <View style={styles.buttons}>
-        <CustomButton text={route.params.nomeApi.nome} type="HOME" />
+        <CustomButton text={route.params.nomeApi1} type="HOME" />
 
         <CustomButton
           text="Eliminar apiário"
