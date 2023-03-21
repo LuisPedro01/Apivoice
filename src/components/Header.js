@@ -25,7 +25,7 @@ export default function Header({ name, type, onPress, route, item }) {
   const [isEnable, setIsEnable] = useState(false);
   const [apiario, setApiario] = useState('')
   const [colmeia, setColmeia] = useState('')
-  const [nomeapi, SetNomeApi] = useState("")
+  const [nomeapi, SetNomeApi] = useState()
   const [localizaçãoApi, SetLocalizaçãoApi] = useState("")
   const [nomeCol, SetNomeCol] = useState('')
   const [localizaçãoCol, SetLocalizaçãoCol] = useState('')
@@ -36,7 +36,9 @@ export default function Header({ name, type, onPress, route, item }) {
   const [nome, setNome] = useState("");
   const [userDoc, setUserDoc] = useState([]);
   const ApiRef = firebase.firestore().collection("apiarios");
-  //const ColRef = firebase.firestore().collection("apiarios").doc(apiario).collection("colmeia")
+  //const ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
+  let RouteApi;
+  let nomeApi;
 
   const keyExtractor = (item) => item.id
 
@@ -196,8 +198,9 @@ export default function Header({ name, type, onPress, route, item }) {
                 .then((querySnapshot) => {
                   querySnapshot.forEach((doc) => {
                     keyExtractor(doc)
-                    navigation.navigate("Home", { nomeApi1: doc.data().nome, nomeApi: doc})
-                    //setApiario(doc.data().id)
+                    navigation.navigate("Home", { nomeApi1: doc.data().nome, nomeApi: doc })
+                    RouteApi=doc.id
+                    nomeApi=doc.data().nome
                   })
                 })
             }
@@ -205,18 +208,19 @@ export default function Header({ name, type, onPress, route, item }) {
             //++++++++++++++++++++++++++++++
             //+ comando selecionar colmeia +
             //++++++++++++++++++++++++++++++
-            if (data1.includes(`selecionar colmeia`) || data1.includes(`Selecionar colmeia`)) {
+            if (data1.includes(`Selecionar colmeia`) || data1.includes(`selecionar colmeia`)) {
               const nome = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              ColRef.where('nome', '==', nome).get()
+              let ColRef= firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
+              ColRef.where('nomeColmeia', '==', nome)
+              .get()
                 .then((querySnapshot) => {
                   querySnapshot.forEach((doc) => {
-                    keyExtractor(doc)
-                    navigation.navigate("Colmeia", {
-                      nomeCol: doc,
-                      nomeApi: apiario
-                    })
+                     keyExtractor(doc)
+                     navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
                   })
                 })
+                .catch((error) => console.log(error));
+
             }
 
             //++++++++++++++++++++++++++++++
