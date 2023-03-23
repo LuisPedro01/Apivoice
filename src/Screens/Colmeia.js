@@ -70,7 +70,7 @@ export default function NovaColmeia({ item, route }) {
 
   const NovaGravacaoPress = () => {
     navigation.navigate("Audio Recorder", {
-      nomeCol: route.params.nomeCol
+      nomeCol: route.params.nomeCol.nomeColmeia
     });
   };
 

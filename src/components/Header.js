@@ -16,6 +16,8 @@ import { Screen } from 'react-native-screens';
 import { firebase } from "../services/firebase";
 import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../services/firebase";
+import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
+import { Audio } from "expo-av";
 
 
 const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
@@ -36,9 +38,11 @@ export default function Header({ name, type, onPress, route, item }) {
   const [nome, setNome] = useState("");
   const [userDoc, setUserDoc] = useState([]);
   const ApiRef = firebase.firestore().collection("apiarios");
+  const storage1=firebase.storage()
   //const ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
   let RouteApi;
   let nomeApi;
+  let NomeCol;
 
   const keyExtractor = (item) => item.id
 
@@ -162,6 +166,23 @@ export default function Header({ name, type, onPress, route, item }) {
     }
   }
 
+  //++++++++++++++++
+  //Reproduzir audio
+  //++++++++++++++++
+  const onPlayPress = (nomeAudio) => {
+    storage1.ref(`audio ${NomeCol}/${nomeAudio}`).getDownloadURL()
+      .then(async (url) => {
+        console.log(`url de ${nomeAudio}->`, url)
+        try {
+          const { sound } = await Audio.Sound.createAsync({ uri: url });
+          await sound.replayAsync();
+        } catch (error) {
+          console.log('Erro ao reproduzir o audio: ', error);
+        }
+      })
+  };
+
+
   useEffect((route) => {
     if (isEnable) {
       const intervalID = setInterval(() => {
@@ -176,9 +197,36 @@ export default function Header({ name, type, onPress, route, item }) {
           .then((resp) => resp.text())
           .then((data1) => {
             console.log("Voce disse: ", data1);
+
+            //++++++++++
+            //+ Gravar +
+            //++++++++++
+            if (data1.includes('nova gravação') || data1.includes('novo áudio')) {
+              console.log('Chega aqui?')
+              navigation.navigate("Audio Recorder", {
+                nomeCol: NomeCol
+              })
+            }
+            if ((data1.includes('Nome aúdio') || data1.includes('nome aúdio'))) {
+              const nomeaudio = data1.split("aúdio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+              SetNomeAudio(nomeaudio)
+            }
+            if (data1.includes('Gravar aúdio') || data1.includes('gravar audio')) {
+              navigation.navigate("Nova Colmeia", { NomeAudio: nomeAudio })
+              startRecording1();
+            }
+            if (data1.includes('Parar gravação') || data1.includes('parar gravação')) {
+              stopRecording1();
+              console.log('audio parado')
+            }
+
+            //+++++++++++++++++
+            // comando voltar +
+            //+++++++++++++++++    
             if ((data1.includes('voltar') || data1.includes('Voltar'))) {
               navigation.goBack()
             }
+
             //++++++++++++++++
             // comando parar +
             //++++++++++++++++
@@ -199,8 +247,8 @@ export default function Header({ name, type, onPress, route, item }) {
                   querySnapshot.forEach((doc) => {
                     keyExtractor(doc)
                     navigation.navigate("Home", { nomeApi1: doc.data().nome, nomeApi: doc })
-                    RouteApi=doc.id
-                    nomeApi=doc.data().nome
+                    RouteApi = doc.id
+                    nomeApi = doc.data().nome
                   })
                 })
             }
@@ -210,17 +258,17 @@ export default function Header({ name, type, onPress, route, item }) {
             //++++++++++++++++++++++++++++++
             if (data1.includes(`Selecionar colmeia`) || data1.includes(`selecionar colmeia`)) {
               const nome = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              let ColRef= firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
+              let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
               ColRef.where('nomeColmeia', '==', nome)
-              .get()
+                .get()
                 .then((querySnapshot) => {
                   querySnapshot.forEach((doc) => {
-                     keyExtractor(doc)
-                     navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
+                    keyExtractor(doc)
+                    NomeCol = doc.data().nomeColmeia
+                    navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
                   })
                 })
                 .catch((error) => console.log(error));
-
             }
 
             //++++++++++++++++++++++++++++++
@@ -230,24 +278,18 @@ export default function Header({ name, type, onPress, route, item }) {
               navigation.navigate("Novo Apiario", { NomeApi: '', LocalApi: '' })
               console.log("criar novo apiário")
             }
-            if (route.name == 'Novo Apiario') {
-              if ((data1.includes(`Nome apiário`) || data1.includes(`nome apiário`))) {
-                const nomeapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-                SetNomeApi(nomeapi)
-                //console.log('Nome->', nomeapi)
-                //navigation.navigate("Novo Apiario", { LocalApi: localizaçãoApi})
-              }
-
-              if ((data1.includes(`Localização apiário`) || data1.includes(`localização apiário`))) {
-                const localapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
-                SetLocalizaçãoApi(localapi)
-                console.log('localidade->', localapi)
-              }
-
-              if (data1.includes('Criar apiário') || data1.includes('criar apiário')) {
-                navigation.navigate("Novo Apiario", { LocalApi: localizaçãoApi, NomeApi: nomeApi })
-                CreateApi();
-              }
+            if ((data1.includes(`Nome apiário`) || data1.includes(`nome apiário`))) {
+              const nomeapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+              SetNomeApi(nomeapi)
+            }
+            if ((data1.includes(`Localização apiário`) || data1.includes(`localização apiário`))) {
+              const localapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
+              SetLocalizaçãoApi(localapi)
+              console.log('localidade->', localapi)
+            }
+            if (data1.includes('Criar apiário') || data1.includes('criar apiário')) {
+              navigation.navigate("Novo Apiario", { LocalApi: localizaçãoApi, NomeApi: nomeApi })
+              CreateApi();
             }
 
             //++++++++++++++++++++++++++++++
@@ -257,54 +299,28 @@ export default function Header({ name, type, onPress, route, item }) {
               navigation.navigate("Nova Colmeia", { NomeCol: '', LocalCol: '' })
               console.log("criar nova colmeia")
             }
-            if (route.name == 'Nova Colmeia') {
-              if ((data1.includes(`Nome colmeia`) || data1.includes(`nome colmeia`))) {
-                const nomecol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-                SetNomeCol(nomecol)
-                //console.log('Nome->', nomeapi)
-                //navigation.navigate("Novo Apiario", { LocalApi: localizaçãoApi})
-              }
-
-              if ((data1.includes(`Localização colmeia`) || data1.includes(`localização colmeia`))) {
-                const localcol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
-                SetLocalizaçãoCol(localcol)
-                console.log('localidade->', localcol)
-              }
-
-              if (data1.includes('Criar colmeia') || data1.includes('criar colmeia')) {
-                navigation.navigate("Nova Colmeia", { LocalCol: localizaçãoCol, NomeCol: nomeCol })
-                CreateCol();
-              }
+            if ((data1.includes(`Nome colmeia`) || data1.includes(`nome colmeia`))) {
+              const nomecol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+              SetNomeCol(nomecol)
             }
-            //++++++++++
-            //+ Gravar +
-            //++++++++++
-            if (data1.includes('Novo aúdio') || data1.includes('novo aúdio')) {
-              navigation.navigate("Audio Recorder", {
-
-              })
-              console.log('Gravar novo audio')
+            if ((data1.includes(`Localização colmeia`) || data1.includes(`localização colmeia`))) {
+              const localcol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
+              SetLocalizaçãoCol(localcol)
+              console.log('localidade->', localcol)
             }
-            if (route.name == 'Audio Recorder') {
-              if ((data1.includes('Nome aúdio') || data1.includes('nome aúdio'))) {
-                const nomeaudio = data1.split("aúdio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-                SetNomeAudio(nomeaudio)
-              }
-              if (data1.includes('Gravar aúdio') || data1.includes('gravar audio')) {
-                navigation.navigate("Nova Colmeia", { NomeAudio: nomeAudio })
-                startRecording1();
-              }
-              if (data1 - includes('Parar aúdio') || data1.includes('parar aúdio')) {
-                stopRecording1();
-                console.log('audio parado')
-              }
+            if (data1.includes('Criar colmeia') || data1.includes('criar colmeia')) {
+              navigation.navigate("Nova Colmeia", { LocalCol: localizaçãoCol, NomeCol: nomeCol })
+              CreateCol();
             }
 
+            //++++++++++++++++++++++++
+            //Comando reproduzir audio
+            //++++++++++++++++++++++++
+            if (data1.includes('Reproduzir gravação') || data1.includes('reproduzir gravação')) {
+              const nomeAudio = data1.split("gravação ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
+              onPlayPress(nomeAudio)
+            }
 
-
-            // else{
-            //   console.log('Nao percebi o seu comando!')
-            // }
           })
           .catch((error) => console.log("error", error));
       }, 10000);

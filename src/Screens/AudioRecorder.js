@@ -64,7 +64,7 @@ const AudioRecorder = ({route}) => {
     try {
       //Create the file reference
       const storage = getStorage();
-      const storageRef = ref(storage, `audio ${route.params.nomeCol.nomeColmeia}/${nome}`);
+      const storageRef = ref(storage, `audio ${route.params.nomeCol}/${nome}`);
 
       // Upload Blob file to Firebase
       const snapshot = await uploadBytes(storageRef, file, "blob")
@@ -108,7 +108,7 @@ const AudioRecorder = ({route}) => {
     <View style={styles.container}>
       <Header name="Nova Gravação" type="upload" />
 
-      <CustomButton text={route.params.nomeCol.nomeColmeia} type="COLMEIAS" />
+      <CustomButton text={route.params.nomeCol} type="COLMEIAS" />
 
       <View
         style={{
