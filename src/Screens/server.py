@@ -6,10 +6,14 @@ app = Flask(__name__)
 
 #Members API Route
 
+@app.route("/upload-audio",methods=["POST"])
+def upload_audio():
+    file = request.files['audio']
+    # faça algo com o arquivo de áudio
+    return file
+
 @app.route("/", methods=["GET", "POST"])
 def voice_command():
-    #data = {"key1": "value1", "key2": "value2"}
-    #return jsonify({"Hello":"World"})
     comando=ouvir_microfone()
     return(comando)
 

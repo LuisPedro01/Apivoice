@@ -121,7 +121,7 @@ const AudioRecorder = ({route}) => {
       />
 
       <View style={styles.list}>
-        <CustomInput placeholder="Nome" value={nome} setValue={setNome} />
+        <CustomInput placeholder="Nome" value={nome || route.params.NomeAudio} setValue={setNome} />
       </View>
 
       <View style={styles.list}>{getRecordingLines()}</View> 

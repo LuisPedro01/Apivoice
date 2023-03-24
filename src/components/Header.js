@@ -8,7 +8,7 @@ import {
   Switch,
   Alert
 } from "react-native";
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,7 +16,7 @@ import { Screen } from 'react-native-screens';
 import { firebase } from "../services/firebase";
 import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../services/firebase";
-import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
+import { getDownloadURL, getStorage, listAll, ref, uploadBytes } from "firebase/storage";
 import { Audio } from "expo-av";
 
 
@@ -32,17 +32,19 @@ export default function Header({ name, type, onPress, route, item }) {
   const [nomeCol, SetNomeCol] = useState('')
   const [localizaçãoCol, SetLocalizaçãoCol] = useState('')
   const [nomeAudio, SetNomeAudio] = useState('')
-  const [recording, setRecording] = useState(false);
+  const [recording, setRecording] = useState();
   const [recordings, setRecordings] = useState([]);
   const [song, setSong] = useState();
   const [nome, setNome] = useState("");
-  const [userDoc, setUserDoc] = useState([]);
   const ApiRef = firebase.firestore().collection("apiarios");
-  const storage1=firebase.storage()
-  //const ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
+  const storage1 = firebase.storage()
   let RouteApi;
   let nomeApi;
-  let NomeCol;
+  let NomeCol = '';
+  let NomeAudio = ''
+  let uri;
+  const [nomeA, setNomeA] = useState('')
+  const [nomeC, setNomeC] = useState('')
 
   const keyExtractor = (item) => item.id
 
@@ -103,7 +105,7 @@ export default function Header({ name, type, onPress, route, item }) {
   //+++++++++++++++
   //Começar a gravar
   //++++++++++++++++
-  async function startRecording1() {
+  async function startRecording1(NomeAudio) {
     try {
       console.log("Requesting permissions..");
       await Audio.requestPermissionsAsync();
@@ -118,6 +120,7 @@ export default function Header({ name, type, onPress, route, item }) {
       );
       setRecording(recording);
       console.log("Recording started");
+      return NomeAudio
     } catch (err) {
       console.error("Failed to start recording", err);
     }
@@ -126,11 +129,18 @@ export default function Header({ name, type, onPress, route, item }) {
   //+++++++++++++++
   //Parar de gravar
   //+++++++++++++++
+  function getDurationFormated(millis) {
+    const minutes = millis / 1000 / 60;
+    const minutesDisplay = Math.floor(minutes);
+    const seconds = Math.round((minutes - minutesDisplay) * 60);
+    const secondsDisplay = seconds < 10 ? `0${seconds}` : seconds;
+    return `${minutesDisplay}:${secondsDisplay}`;
+  }
   async function stopRecording1() {
     console.log("Stopping recording..");
     setRecording(undefined);
     await recording.stopAndUnloadAsync();
-    const uri = recording.getURI();
+    uri = recording.getURI();
     console.log("Recording stopped and stored at", uri);
 
     let updatedRecordings = [...recordings];
@@ -151,13 +161,12 @@ export default function Header({ name, type, onPress, route, item }) {
     try {
       //Create the file reference
       const storage = getStorage();
-      const storageRef = ref(storage, `audio ${route.params.nomeCol.nomeColmeia}/${nome}`);
+      const storageRef = ref(storage, `audio ${nomeC}/${nomeA}`);
 
       // Upload Blob file to Firebase
       const snapshot = await uploadBytes(storageRef, file, "blob")
         .then((snapshot) => {
-          console.log("Uploaded a song to firebase storage!");
-          Alert.alert("Gravação criada!", "Gravação gravada com sucesso!")
+          console.log("Gravação criada com sucesso!");
         });
 
       setSong(sound);
@@ -182,8 +191,7 @@ export default function Header({ name, type, onPress, route, item }) {
       })
   };
 
-
-  useEffect((route) => {
+  useEffect(() => {
     if (isEnable) {
       const intervalID = setInterval(() => {
         console.log('A ouvir o comando')
@@ -197,27 +205,42 @@ export default function Header({ name, type, onPress, route, item }) {
           .then((resp) => resp.text())
           .then((data1) => {
             console.log("Voce disse: ", data1);
+            if (data1.includes('Página inicial') || data1.includes('página inicial')) {
+              navigation.navigate('Apiario')
+            }
+            //++++++++++++++++
+            // comando parar +
+            //++++++++++++++++
+            if (data1 === 'parar' || data1 === 'Parar' || data1.includes('STOP') || data1.includes('stop') || data1.includes('Stop')) {
+              clearInterval(intervalID);
+              console.log('Comandos parados!')
+              console.log('nome audio->(parar)', NomeAudio)
+              Alert.alert('Comandos parados!', "Para voltar a ativar os comandos, ative-os no botão.")
+              setIsEnable(false)
+            }
 
             //++++++++++
             //+ Gravar +
             //++++++++++
             if (data1.includes('nova gravação') || data1.includes('novo áudio')) {
-              console.log('Chega aqui?')
               navigation.navigate("Audio Recorder", {
                 nomeCol: NomeCol
               })
             }
-            if ((data1.includes('Nome aúdio') || data1.includes('nome aúdio'))) {
-              const nomeaudio = data1.split("aúdio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              SetNomeAudio(nomeaudio)
+            if ((data1.includes('Nome áudio') || data1.includes('nome áudio'))) {
+              NomeAudio = data1.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+              //NomeAudio = nomeaudio
+              navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
+              setNomeA(NomeAudio)
+              setNomeC(NomeCol)
             }
-            if (data1.includes('Gravar aúdio') || data1.includes('gravar audio')) {
-              navigation.navigate("Nova Colmeia", { NomeAudio: nomeAudio })
+            if (data1.includes('Começar a gravar') || data1.includes('começar a gravar')) {
+              clearInterval(intervalID);
               startRecording1();
             }
+
             if (data1.includes('Parar gravação') || data1.includes('parar gravação')) {
               stopRecording1();
-              console.log('audio parado')
             }
 
             //+++++++++++++++++
@@ -225,16 +248,6 @@ export default function Header({ name, type, onPress, route, item }) {
             //+++++++++++++++++    
             if ((data1.includes('voltar') || data1.includes('Voltar'))) {
               navigation.goBack()
-            }
-
-            //++++++++++++++++
-            // comando parar +
-            //++++++++++++++++
-            if (data1.includes('parar') || data1.includes('Parar') || data1.includes('STOP') || data1.includes('stop') || data1.includes('Stop')) {
-              clearInterval(intervalID);
-              Alert.alert('Comandos parados!', "Para voltar a ativar os comandos, ative-os no botão.")
-              console.log('Comandos parados!')
-              setIsEnable(false)
             }
 
             //++++++++++++++++++++++++++++++
@@ -324,6 +337,9 @@ export default function Header({ name, type, onPress, route, item }) {
           })
           .catch((error) => console.log("error", error));
       }, 10000);
+      return () => {
+        clearInterval(intervalID);
+      };
     }
   })
 
