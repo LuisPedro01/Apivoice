@@ -8,7 +8,6 @@ import {
   Switch,
   Alert
 } from "react-native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient';
@@ -27,8 +26,8 @@ export default function Header({ name, type, onPress, route, item }) {
   const [isEnable, setIsEnable] = useState(false);
   const [apiario, setApiario] = useState('')
   const [colmeia, setColmeia] = useState('')
-  const [nomeapi, SetNomeApi] = useState()
-  const [localizaçãoApi, SetLocalizaçãoApi] = useState("")
+  //const [nomeapi, SetNomeApi] = useState('')
+  //const [localizaçãoApi, SetLocalizaçãoApi] = useState("")
   const [nomeCol, SetNomeCol] = useState('')
   const [localizaçãoCol, SetLocalizaçãoCol] = useState('')
   const [nomeAudio, SetNomeAudio] = useState('')
@@ -43,6 +42,10 @@ export default function Header({ name, type, onPress, route, item }) {
   let NomeCol = '';
   let NomeAudio = ''
   let uri;
+  let nomeApi1;
+  let localapi1;
+  let nomeCol1;
+  let localCol1;
   const [nomeA, setNomeA] = useState('')
   const [nomeC, setNomeC] = useState('')
 
@@ -66,8 +69,8 @@ export default function Header({ name, type, onPress, route, item }) {
     // Criar apiarios na base de dados
     const myCol = collection(db, "apiarios");
     const colData = {
-      nome: nomeApi,
-      localizacao: localizaçãoApi,
+      nome: nomeApi1,
+      localizacao: localapi1,
       createdAt: Date()
     };
 
@@ -86,11 +89,11 @@ export default function Header({ name, type, onPress, route, item }) {
   //Criar colmeias
   //++++++++++++++
   const CreateCol = () => {
-    const subCollection = firebase.firestore().collection('apiarios').doc(route.params.nomeCol.id).collection('colmeia')
+    const subCollection = firebase.firestore().collection('apiarios').doc(RouteApi).collection('colmeia')
     subCollection
       .add({
-        nomeColmeia: nome,
-        localizacao: localizaçao,
+        nomeColmeia: nomeCol1,
+        localizacao: localCol1,
         createdAt: Date()
       })
       .then(() => {
@@ -195,7 +198,7 @@ export default function Header({ name, type, onPress, route, item }) {
     if (isEnable) {
       const intervalID = setInterval(() => {
         console.log('A ouvir o comando')
-        fetch("http://192.168.1.72:5000", {
+        fetch("http://192.168.1.106:5000", {
           method: "GET",
           headers: {
             Accept: "application/json, text/plain",
@@ -214,7 +217,6 @@ export default function Header({ name, type, onPress, route, item }) {
             if (data1 === 'parar' || data1 === 'Parar' || data1.includes('STOP') || data1.includes('stop') || data1.includes('Stop')) {
               clearInterval(intervalID);
               console.log('Comandos parados!')
-              console.log('nome audio->(parar)', NomeAudio)
               Alert.alert('Comandos parados!', "Para voltar a ativar os comandos, ative-os no botão.")
               setIsEnable(false)
             }
@@ -241,6 +243,7 @@ export default function Header({ name, type, onPress, route, item }) {
 
             if (data1.includes('Parar gravação') || data1.includes('parar gravação')) {
               stopRecording1();
+              navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
             }
 
             //+++++++++++++++++
@@ -293,16 +296,17 @@ export default function Header({ name, type, onPress, route, item }) {
             }
             if ((data1.includes(`Nome apiário`) || data1.includes(`nome apiário`))) {
               const nomeapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              SetNomeApi(nomeapi)
+              nomeApi1=nomeapi
+              navigation.navigate("Novo Apiario", { NomeApi: nomeApi1, LocalApi: '' })
             }
             if ((data1.includes(`Localização apiário`) || data1.includes(`localização apiário`))) {
               const localapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
-              SetLocalizaçãoApi(localapi)
-              console.log('localidade->', localapi)
+              localapi1=localapi
+              navigation.navigate("Novo Apiario", { NomeApi: nomeApi1, LocalApi: localapi1 })
             }
             if (data1.includes('Criar apiário') || data1.includes('criar apiário')) {
-              navigation.navigate("Novo Apiario", { LocalApi: localizaçãoApi, NomeApi: nomeApi })
               CreateApi();
+              navigation.navigate('Apiario')
             }
 
             //++++++++++++++++++++++++++++++
@@ -314,15 +318,15 @@ export default function Header({ name, type, onPress, route, item }) {
             }
             if ((data1.includes(`Nome colmeia`) || data1.includes(`nome colmeia`))) {
               const nomecol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              SetNomeCol(nomecol)
+              nomeCol1=nomecol
+              navigation.navigate("Nova Colmeia", { NomeCol: nomeCol1, LocalCol: '' })
             }
             if ((data1.includes(`Localização colmeia`) || data1.includes(`localização colmeia`))) {
               const localcol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
-              SetLocalizaçãoCol(localcol)
-              console.log('localidade->', localcol)
+              localCol1=localcol
+              navigation.navigate("Nova Colmeia", { NomeCol: nomeCol1, LocalCol: localCol1 })
             }
             if (data1.includes('Criar colmeia') || data1.includes('criar colmeia')) {
-              navigation.navigate("Nova Colmeia", { LocalCol: localizaçãoCol, NomeCol: nomeCol })
               CreateCol();
             }
 
