@@ -33,7 +33,7 @@ export default function Home({ item, route }) {
           userDoc.push({
             id: doc.id,
             nomeColmeia,
-            localizacao
+            localizacao,
           });
         });
         setUserDoc(userDoc);
@@ -64,7 +64,6 @@ export default function Home({ item, route }) {
     navigation.navigate("Perfil");
   };
 
-
   const deleteApi = () => {
     firebase
       .firestore()
@@ -76,6 +75,46 @@ export default function Home({ item, route }) {
         navigation.navigate("Apiario");
       })
       .catch((error) => console.log(error));
+  };
+
+  const onOfflinePress = async () => {
+    console.log("A tornar apiario disponivel off-line...");
+    try {
+      // Habilita o modo offline para Firestore e Storage
+
+      // Obtém a referência para a coleção principal
+      const collectionRef = ApiRef;
+
+      // Adiciona um ouvinte para eventos de snapshot da coleção
+      const unsubscribe = collectionRef.onSnapshot((querySnapshot) => {
+        const newData = [];
+
+        // Para cada documento, obtém os dados e os arquivos associados
+        querySnapshot.forEach(async (doc) => {
+          const data = doc.data();
+
+          newData.push(data);
+        });
+
+        // Atualiza o estado com os novos dados
+        setData(newData);
+      });
+
+      console.log("sucesso");
+      return () => {
+        unsubscribe();
+      };
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const EmptyListMessage = ({ item }) => {
+    return (
+      <View style={styles.message}>
+        <Text style={styles.cor}>Nenhuma colmeia encontrada</Text>
+      </View>
+    );
   };
 
   return (
@@ -110,15 +149,16 @@ export default function Home({ item, route }) {
         style={styles.list}
         showsVerticalScrollIndicator={false}
         data={userDoc}
+        ListEmptyComponent={EmptyListMessage}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.container}>
             <CustomButton
-              text={item.nomeColmeia} 
+              text={item.nomeColmeia}
               type="COLMEIA"
               onPress={() =>
                 navigation.navigate("Colmeia", {
                   nomeCol: item,
-                  nomeApi: route.params.nomeApi
+                  nomeApi: route.params.nomeApi,
                 })
               }
             />
@@ -126,16 +166,25 @@ export default function Home({ item, route }) {
         )}
       />
 
-      <CustomButton
-        text="Nova colmeia"
-        type="NOVACOLMEIA"
-        onPress={() =>
-          navigation.navigate("Nova Colmeia", {
-            nomeCol: route.params.nomeApi,
-            NomeCol:'',
-            LocalApi:''
-          })}
-      />
+      <View style={styles.buttons1}>
+        <CustomButton
+          text="Nova colmeia"
+          type="teste1"
+          onPress={() =>
+            navigation.navigate("Nova Colmeia", {
+              nomeCol: route.params.nomeApi,
+              NomeCol: "",
+              LocalApi: "",
+            })
+          }
+        />
+
+        <CustomButton
+          text="Disponivel off-line"
+          type="teste"
+          onPress={onOfflinePress}
+        />
+      </View>
     </View>
   );
 }
@@ -161,4 +210,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignSelf: "center",
   },
+  buttons1: {
+    flexDirection: "row",
+    alignSelf: "center",
+    marginBottom: 40,
+  },
+  message: {
+    alignItems: "center",
+  },
+  cor:{
+    color: "#939393"
+  }
 });
