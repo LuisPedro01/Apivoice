@@ -8,6 +8,7 @@ import "firebase/compat/auth";
 import "firebase/compat/firestore";
 import "firebase/compat/storage";
 import { getStorage, ref } from "firebase/storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -37,7 +38,14 @@ db.settings({
   experimentalAutoDetectLongPolling: true,
   timestampsInSnapshot: true,
   merge: true,
-  cacheSizeBytes: CACHE_SIZE_UNLIMITED
+  persistence: true,
+  cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
+  cache: { // usando cache ao invés de enableIndexedDbPersistence
+    synchronizeTabs: true,
+    experimentalForceOwningTab: true,
+    storage: AsyncStorage,
+  },
+
 });
 
 

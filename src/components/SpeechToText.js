@@ -226,7 +226,7 @@ export default function SpeechToText() {
         {"  Resultado ->"} {result}
       </Text>
       <CustomButton text="Apagar" type="SECONDARY" onPress={clear} />
-      <CustomButton text="Teste?" type="SECONDARY" onPress={testevoz} />
+      {/* <CustomButton text="Teste?" type="SECONDARY" onPress={testevoz} /> */}
 
 
       <View style={styles.comandos2}>

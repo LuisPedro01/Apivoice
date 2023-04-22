@@ -26,6 +26,41 @@ export default function Apiario(item) {
   const [name, setName] = useState("");
   const [data, setData] = useState(null);
 
+  const checkAuthentication = async () => {
+    // get user authentication information from local storage
+    const email = await AsyncStorage.getItem('email');
+    const password = await AsyncStorage.getItem('password');
+    const user = await AsyncStorage.getItem('user');
+
+  
+    // compare user authentication information with current user
+    if (email === route.params.email && password === route.email.params) {
+      // user is authenticated
+    } else {
+      // user is not authenticated
+    }
+  };
+
+
+  // // Sincronização dos dados do Firestore com a aplicação
+  // ApiRef.onSnapshot((querySnapshot) => {
+  //   const apiarios = querySnapshot.docs.map((doc) => doc.data());
+  //   console.log("dados do firestore:", apiarios);
+  //   // AsyncStorage.setItem("off", apiarios)
+  //   //   .then(() => {
+  //   //     // Recupera o valor da chave "foo" no AsyncStorage
+  //   //     return AsyncStorage.getItem("off");
+  //   //   })
+  //   //   .then((value) => {
+  //   //     console.log("Valor recuperado do AsyncStorage:", value);
+  //   //   })
+  //   //   .catch((err) => {
+  //   //     console.error("Erro ao usar o AsyncStorage:", err);
+  //   //   });
+  // });
+
+  // // Define um valor no AsyncStorage com a chave "foo" e o valor "bar"
+
   const getDadosApi = () => {
     ApiRef.onSnapshot((querySnapshot) => {
       const userDoc = [];
@@ -69,7 +104,6 @@ export default function Apiario(item) {
     navigation.navigate("Novo Apiario", { NomeApi: "", LocalApi: "" });
   };
 
- 
   const EmptyListMessage = ({ item }) => {
     return (
       <View style={styles.message}>
@@ -94,8 +128,6 @@ export default function Apiario(item) {
         }}
       />
 
-      
-
       <FlatList
         keyExtractor={(item) => item.id}
         style={styles.list}
@@ -117,11 +149,11 @@ export default function Apiario(item) {
           </TouchableOpacity>
         )}
       />
-        <CustomButton
-          text="Novo apiario"
-          type="NOVACOLMEIA"
-          onPress={onNovoApiarioPress}
-        />
+      <CustomButton
+        text="Novo apiario"
+        type="NOVACOLMEIA"
+        onPress={onNovoApiarioPress}
+      />
     </View>
   );
 }
@@ -151,7 +183,7 @@ const styles = StyleSheet.create({
   message: {
     alignItems: "center",
   },
-  cor:{
-    color: "#939393"
-  }
+  cor: {
+    color: "#939393",
+  },
 });

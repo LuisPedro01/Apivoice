@@ -12,12 +12,65 @@ import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import { firebase } from "../services/firebase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getStorage, ref } from "firebase/storage";
 
 export default function Home({ item, route }) {
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
+  const [userDocOff, setUserDocOff] = useState([]);
   const colRef = firebase.firestore().collection("colmeias");
   const [name, setName] = useState("");
+  const ApiRef = firebase
+    .firestore()
+    .collection("apiarios")
+    .doc(route.params.nomeApi.id);
+  const IdApi = route.params.nomeApi.id;
+
+  //guarda as subcollections
+  const offline = async () => {
+    try {
+      await AsyncStorage.setItem(IdApi, JSON.stringify(userDoc)); // converte a array em uma string JSON e a armazena no AsyncStorage
+      Alert.alert(
+        "Apiário salvo com sucesso!",
+        "O apiário encontra-se agora disponível off-line."
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const carregarUserDoc = async () => {
+    try {
+      const valorArmazenado = await AsyncStorage.getItem(IdApi); // busca o valor armazenado no AsyncStorage com a chave 'userDoc'
+      if (valorArmazenado !== null) {
+        setUserDocOff(JSON.parse(valorArmazenado)); // converte a string JSON em uma array de objetos e a define como o valor atual de userDoc
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // const offline = async () => {
+
+  //   try {
+  //     await AsyncStorage.setItem("userDocOff", userDocOff);
+  //     Alert.alert('Apiário salvo com sucesso!', 'O apiário encontra-se agora disponível off-line.')
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
+  // const carregarDados = async () => {
+  //   try {
+  //     const valorArmazenado = await AsyncStorage.getItem('userDocOff');
+  //     if (valorArmazenado !== null) {
+  //       setUserDocOff(valorArmazenado);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   const getDados = () => {
     firebase
@@ -37,6 +90,7 @@ export default function Home({ item, route }) {
           });
         });
         setUserDoc(userDoc);
+        console.log(userDoc);
       });
   };
 
@@ -55,11 +109,6 @@ export default function Home({ item, route }) {
       });
   };
 
-  useEffect(() => {
-    getDadosNomes();
-    getDados();
-  }, []);
-
   const onUserPress = () => {
     navigation.navigate("Perfil");
   };
@@ -77,37 +126,19 @@ export default function Home({ item, route }) {
       .catch((error) => console.log(error));
   };
 
-  const onOfflinePress = async () => {
-    console.log("A tornar apiario disponivel off-line...");
-    try {
-      // Habilita o modo offline para Firestore e Storage
-
-      // Obtém a referência para a coleção principal
-      const collectionRef = ApiRef;
-
-      // Adiciona um ouvinte para eventos de snapshot da coleção
-      const unsubscribe = collectionRef.onSnapshot((querySnapshot) => {
-        const newData = [];
-
-        // Para cada documento, obtém os dados e os arquivos associados
-        querySnapshot.forEach(async (doc) => {
-          const data = doc.data();
-
-          newData.push(data);
-        });
-
-        // Atualiza o estado com os novos dados
-        setData(newData);
-      });
-
-      console.log("sucesso");
-      return () => {
-        unsubscribe();
-      };
-    } catch (error) {
-      console.error(error);
+  useEffect(() => {
+    getDadosNomes();
+    getDados();
+    if (userDoc.length === 0 && IdApi == route.params.nomeApi.id) {
+      carregarUserDoc();
     }
-  };
+    //console.log(userDoc) // Retorna mesmo offline
+  }, []);
+
+  const collectionRef = firebase
+    .firestore()
+    .collection("apiarios")
+    .doc(route.params.nomeApi.id);
 
   const EmptyListMessage = ({ item }) => {
     return (
@@ -116,6 +147,67 @@ export default function Home({ item, route }) {
       </View>
     );
   };
+
+  const renderFlatList = () => {
+    if (userDoc.length === 0) {
+      return (
+        <FlatList
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          data={userDocOff}
+          ListEmptyComponent={EmptyListMessage}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.container}>
+              <CustomButton
+                text={item.nomeColmeia}
+                type="COLMEIA"
+                onPress={() =>
+                  navigation.navigate("Colmeia", {
+                    nomeCol: item,
+                    nomeApi: route.params.nomeApi,
+                  })
+                }
+              />
+            </TouchableOpacity>
+          )}
+        />
+      );
+    } else {
+      return (
+        <FlatList
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          data={userDoc}
+          ListEmptyComponent={EmptyListMessage}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.container}>
+              <CustomButton
+                text={item.nomeColmeia}
+                type="COLMEIA"
+                onPress={() =>
+                  navigation.navigate("Colmeia", {
+                    nomeCol: item,
+                    nomeApi: route.params.nomeApi,
+                  })
+                }
+              />
+            </TouchableOpacity>
+          )}
+        />
+      );
+    }
+  };
+  const teste = () => {
+    console.log("userdoc->", userDoc);
+    console.log("userdocoff->", userDocOff);
+  };
+
+  // Storage
+  //Create the file reference
+  const storage = getStorage();
+  const storageRef = ref(storage, `audio ${route.params.nomeCol}`);
 
   return (
     <View style={styles.container}>
@@ -132,7 +224,12 @@ export default function Home({ item, route }) {
         />
       </View>
 
-      <CustomButton text={"Lista de colmeias"} type="COLMEIAS" />
+      <CustomButton
+        text={"Lista de colmeias"}
+        type="COLMEIAS"
+        onPress={teste}
+      />
+      {/* <CustomButton text={"variavel guardada localmente"} type="COLMEIAS" onPress={guardarUserDoc}/> */}
 
       <View
         style={{
@@ -144,27 +241,7 @@ export default function Home({ item, route }) {
         }}
       />
 
-      <FlatList
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
-        data={userDoc}
-        ListEmptyComponent={EmptyListMessage}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.container}>
-            <CustomButton
-              text={item.nomeColmeia}
-              type="COLMEIA"
-              onPress={() =>
-                navigation.navigate("Colmeia", {
-                  nomeCol: item,
-                  nomeApi: route.params.nomeApi,
-                })
-              }
-            />
-          </TouchableOpacity>
-        )}
-      />
+      {renderFlatList()}
 
       <View style={styles.buttons1}>
         <CustomButton
@@ -182,7 +259,7 @@ export default function Home({ item, route }) {
         <CustomButton
           text="Disponivel off-line"
           type="teste"
-          onPress={onOfflinePress}
+          onPress={offline}
         />
       </View>
     </View>
@@ -218,7 +295,7 @@ const styles = StyleSheet.create({
   message: {
     alignItems: "center",
   },
-  cor:{
-    color: "#939393"
-  }
+  cor: {
+    color: "#939393",
+  },
 });

@@ -17,6 +17,8 @@ import { useNavigation } from "@react-navigation/native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../services/firebase";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -27,8 +29,26 @@ export default function SignIn() {
   const onSignInPressed = () => {
     //LOGIN
     signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(async (userCredential) => {
         const user = userCredential.user;
+        // const email = userCredential.email;
+        // const password = userCredential.password;
+        try {
+          await AsyncStorage.setItem('email', email);
+          await AsyncStorage.setItem('password', password);
+          const email1 = await AsyncStorage.getItem('email');
+          const password1 = await AsyncStorage.getItem('password');
+              
+          // compare user authentication information with current user
+          if (email === email1 && password === password1) {
+            navigation.navigate("Apiario");
+          } else {
+            console.log('hehehe')
+          }
+          // navigate to the main app screen
+        } catch (e) {
+          console.log('Error storing user authentication information:', e);
+        }
         navigation.navigate("Apiario");
       })
       .catch((error) => {

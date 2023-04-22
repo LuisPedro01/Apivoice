@@ -42,7 +42,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.root}>
-      <Navigation />
+      <Navigation/>
     </SafeAreaView>
   );
 }
