@@ -13,7 +13,9 @@ import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import { firebase } from "../services/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getStorage, ref } from "firebase/storage";
+import * as FileSystem from 'expo-file-system'
+import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
+
 
 export default function Home({ item, route }) {
   const navigation = useNavigation();
@@ -90,7 +92,6 @@ export default function Home({ item, route }) {
           });
         });
         setUserDoc(userDoc);
-        console.log(userDoc);
       });
   };
 
@@ -125,15 +126,6 @@ export default function Home({ item, route }) {
       })
       .catch((error) => console.log(error));
   };
-
-  useEffect(() => {
-    getDadosNomes();
-    getDados();
-    if (userDoc.length === 0 && IdApi == route.params.nomeApi.id) {
-      carregarUserDoc();
-    }
-    //console.log(userDoc) // Retorna mesmo offline
-  }, []);
 
   const collectionRef = firebase
     .firestore()
@@ -204,10 +196,63 @@ export default function Home({ item, route }) {
     console.log("userdocoff->", userDocOff);
   };
 
-  // Storage
-  //Create the file reference
+  useEffect(() => {
+    getDadosNomes();
+    getDados();
+    if (userDoc.length === 0 && IdApi == route.params.nomeApi.id) {
+      carregarUserDoc();
+    }
+  }, []);
+
   const storage = getStorage();
-  const storageRef = ref(storage, `audio ${route.params.nomeCol}`);
+  var listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/`);
+  const [URL, setURL] = useState('');
+  const [Grav, setGrav] = useState([]);
+
+
+  const listFiles = () => {
+    listAll(listRef)
+      .then((res) => {
+        res.items.forEach((item) => {
+          setGrav((arr) => [...arr, item.name]);
+          getDownloadURL(item).then((url)=>{
+            setURL((prev)=>[...prev, url]);
+          })
+        });
+        console.log(Grav)
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  async function listAllDirectoriesAndFiles(path) {
+    const reference = firebase.storage().ref(path);
+    const results = await reference.listAll();
+    const listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/`);
+    
+  
+    const subdirectories = results.prefixes.map(async (prefix) => {
+      const subdirectoryFiles = await listAllDirectoriesAndFiles(prefix.fullPath);
+      return {
+        path: prefix.fullPath,
+        files: subdirectoryFiles,
+      };
+    });
+  
+    const subdirectoryFiles = await Promise.all(subdirectories);
+  
+    results.items.forEach((item) => {
+      subdirectoryFiles.push({ path: item.fullPath });
+    });
+  
+    console.log(subdirectoryFiles);
+  
+    return subdirectoryFiles;
+  
+  }
+
+  
 
   return (
     <View style={styles.container}>
@@ -259,7 +304,7 @@ export default function Home({ item, route }) {
         <CustomButton
           text="Disponivel off-line"
           type="teste"
-          onPress={offline}
+          onPress={()=>listAllDirectoriesAndFiles(`apiario ${route.params.nomeApi.nome}`)}
         />
       </View>
     </View>

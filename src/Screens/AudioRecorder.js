@@ -65,7 +65,7 @@ const AudioRecorder = ({route}) => {
     try {
       //Create the file reference
       const storage = getStorage();
-      const storageRef = ref(storage, `apiario ${route.params.nomeApi.nome}/audio ${route.params.nomeCol}/${nome}`);
+      const storageRef = ref(storage, `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/audio ${nome}`);
 
       // Upload Blob file to Firebase
       const snapshot = await uploadBytes(storageRef, file, "blob")

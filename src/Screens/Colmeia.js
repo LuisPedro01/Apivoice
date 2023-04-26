@@ -21,11 +21,13 @@ export default function NovaColmeia({ item, route }) {
   const [URL, setURL] = useState('');
   const storage = getStorage();
   const storage1=firebase.storage()
-  var listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/audio ${route.params.nomeCol.nomeColmeia}/`);
+  var listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}`);
   const [userDocOff, setUserDocOff] = useState([]);
 
   useEffect(() => {
     listGrav();
+    console.log('apiario->',route.params.nomeApi.nome)
+    console.log('colmeia->',route.params.nomeCol.nomeColmeia)
   }, []);
 
   const deleteColmeia = () => {
@@ -73,12 +75,12 @@ export default function NovaColmeia({ item, route }) {
   const NovaGravacaoPress = () => {
     navigation.navigate("Audio Recorder", {
       nomeCol: route.params.nomeCol.nomeColmeia,
-      nomeApi: route.params.nomeApi
+      nomeApi: route.params.nomeApi.nome
     });
   };
 
   const onPlayPress = (item) => {
-    storage1.ref(`apiario ${route.params.nomeApi.nome}/audio ${route.params.nomeCol.nomeColmeia}/${item}`).getDownloadURL()
+    storage1.ref(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}/${item}`).getDownloadURL()
     .then(async (url)=>{
       console.log(`url de ${item}->`,url)
       try {
