@@ -12,12 +12,67 @@ import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import { firebase } from "../services/firebase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from 'expo-file-system'
+import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
+
 
 export default function Home({ item, route }) {
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
+  const [userDocOff, setUserDocOff] = useState([]);
   const colRef = firebase.firestore().collection("colmeias");
   const [name, setName] = useState("");
+  const ApiRef = firebase
+    .firestore()
+    .collection("apiarios")
+    .doc(route.params.nomeApi.id);
+  const IdApi = route.params.nomeApi.id;
+
+  //guarda as subcollections
+  const offline = async () => {
+    try {
+      await AsyncStorage.setItem(IdApi, JSON.stringify(userDoc)); // converte a array em uma string JSON e a armazena no AsyncStorage
+      Alert.alert(
+        "Apiário salvo com sucesso!",
+        "O apiário encontra-se agora disponível off-line."
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const carregarUserDoc = async () => {
+    try {
+      const valorArmazenado = await AsyncStorage.getItem(IdApi); // busca o valor armazenado no AsyncStorage com a chave 'userDoc'
+      if (valorArmazenado !== null) {
+        setUserDocOff(JSON.parse(valorArmazenado)); // converte a string JSON em uma array de objetos e a define como o valor atual de userDoc
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // const offline = async () => {
+
+  //   try {
+  //     await AsyncStorage.setItem("userDocOff", userDocOff);
+  //     Alert.alert('Apiário salvo com sucesso!', 'O apiário encontra-se agora disponível off-line.')
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
+  // const carregarDados = async () => {
+  //   try {
+  //     const valorArmazenado = await AsyncStorage.getItem('userDocOff');
+  //     if (valorArmazenado !== null) {
+  //       setUserDocOff(valorArmazenado);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   const getDados = () => {
     firebase
@@ -33,7 +88,7 @@ export default function Home({ item, route }) {
           userDoc.push({
             id: doc.id,
             nomeColmeia,
-            localizacao
+            localizacao,
           });
         });
         setUserDoc(userDoc);
@@ -55,15 +110,9 @@ export default function Home({ item, route }) {
       });
   };
 
-  useEffect(() => {
-    getDadosNomes();
-    getDados();
-  }, []);
-
   const onUserPress = () => {
     navigation.navigate("Perfil");
   };
-
 
   const deleteApi = () => {
     firebase
@@ -77,6 +126,133 @@ export default function Home({ item, route }) {
       })
       .catch((error) => console.log(error));
   };
+
+  const collectionRef = firebase
+    .firestore()
+    .collection("apiarios")
+    .doc(route.params.nomeApi.id);
+
+  const EmptyListMessage = ({ item }) => {
+    return (
+      <View style={styles.message}>
+        <Text style={styles.cor}>Nenhuma colmeia encontrada</Text>
+      </View>
+    );
+  };
+
+  const renderFlatList = () => {
+    if (userDoc.length === 0) {
+      return (
+        <FlatList
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          data={userDocOff}
+          ListEmptyComponent={EmptyListMessage}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.container}>
+              <CustomButton
+                text={item.nomeColmeia}
+                type="COLMEIA"
+                onPress={() =>
+                  navigation.navigate("Colmeia", {
+                    nomeCol: item,
+                    nomeApi: route.params.nomeApi,
+                  })
+                }
+              />
+            </TouchableOpacity>
+          )}
+        />
+      );
+    } else {
+      return (
+        <FlatList
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          data={userDoc}
+          ListEmptyComponent={EmptyListMessage}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.container}>
+              <CustomButton
+                text={item.nomeColmeia}
+                type="COLMEIA"
+                onPress={() =>
+                  navigation.navigate("Colmeia", {
+                    nomeCol: item,
+                    nomeApi: route.params.nomeApi,
+                  })
+                }
+              />
+            </TouchableOpacity>
+          )}
+        />
+      );
+    }
+  };
+  const teste = () => {
+    console.log("userdoc->", userDoc);
+    console.log("userdocoff->", userDocOff);
+  };
+
+  useEffect(() => {
+    getDadosNomes();
+    getDados();
+    if (userDoc.length === 0 && IdApi == route.params.nomeApi.id) {
+      carregarUserDoc();
+    }
+  }, []);
+
+  const storage = getStorage();
+  var listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/`);
+  const [URL, setURL] = useState('');
+  const [Grav, setGrav] = useState([]);
+
+
+  const listFiles = () => {
+    listAll(listRef)
+      .then((res) => {
+        res.items.forEach((item) => {
+          setGrav((arr) => [...arr, item.name]);
+          getDownloadURL(item).then((url)=>{
+            setURL((prev)=>[...prev, url]);
+          })
+        });
+        console.log(Grav)
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  async function listAllDirectoriesAndFiles(path) {
+    const reference = firebase.storage().ref(path);
+    const results = await reference.listAll();
+    const listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/`);
+    
+  
+    const subdirectories = results.prefixes.map(async (prefix) => {
+      const subdirectoryFiles = await listAllDirectoriesAndFiles(prefix.fullPath);
+      return {
+        path: prefix.fullPath,
+        files: subdirectoryFiles,
+      };
+    });
+  
+    const subdirectoryFiles = await Promise.all(subdirectories);
+  
+    results.items.forEach((item) => {
+      subdirectoryFiles.push({ path: item.fullPath });
+    });
+  
+    console.log(subdirectoryFiles);
+  
+    return subdirectoryFiles;
+  
+  }
+
+  
 
   return (
     <View style={styles.container}>
@@ -93,7 +269,12 @@ export default function Home({ item, route }) {
         />
       </View>
 
-      <CustomButton text={"Lista de colmeias"} type="COLMEIAS" />
+      <CustomButton
+        text={"Lista de colmeias"}
+        type="COLMEIAS"
+        onPress={teste}
+      />
+      {/* <CustomButton text={"variavel guardada localmente"} type="COLMEIAS" onPress={guardarUserDoc}/> */}
 
       <View
         style={{
@@ -105,37 +286,27 @@ export default function Home({ item, route }) {
         }}
       />
 
-      <FlatList
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
-        data={userDoc}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.container}>
-            <CustomButton
-              text={item.nomeColmeia} 
-              type="COLMEIA"
-              onPress={() =>
-                navigation.navigate("Colmeia", {
-                  nomeCol: item,
-                  nomeApi: route.params.nomeApi
-                })
-              }
-            />
-          </TouchableOpacity>
-        )}
-      />
+      {renderFlatList()}
 
-      <CustomButton
-        text="Nova colmeia"
-        type="NOVACOLMEIA"
-        onPress={() =>
-          navigation.navigate("Nova Colmeia", {
-            nomeCol: route.params.nomeApi,
-            NomeCol:'',
-            LocalApi:''
-          })}
-      />
+      <View style={styles.buttons1}>
+        <CustomButton
+          text="Nova colmeia"
+          type="teste1"
+          onPress={() =>
+            navigation.navigate("Nova Colmeia", {
+              nomeCol: route.params.nomeApi,
+              NomeCol: "",
+              LocalApi: "",
+            })
+          }
+        />
+
+        <CustomButton
+          text="Disponivel off-line"
+          type="teste"
+          onPress={()=>listAllDirectoriesAndFiles(`apiario ${route.params.nomeApi.nome}`)}
+        />
+      </View>
     </View>
   );
 }
@@ -160,5 +331,16 @@ const styles = StyleSheet.create({
   buttons: {
     flexDirection: "row",
     alignSelf: "center",
+  },
+  buttons1: {
+    flexDirection: "row",
+    alignSelf: "center",
+    marginBottom: 40,
+  },
+  message: {
+    alignItems: "center",
+  },
+  cor: {
+    color: "#939393",
   },
 });

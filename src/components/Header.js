@@ -17,7 +17,7 @@ import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref, uploadBytes } from "firebase/storage";
 import { Audio } from "expo-av";
-
+import SpeechToText from './SpeechToText';
 
 const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
 
@@ -51,17 +51,7 @@ export default function Header({ name, type, onPress, route, item }) {
 
   const keyExtractor = (item) => item.id
 
-  const toggleSwitch = () => {
-    if (isEnable) {
-      //parar o fetch
-      console.log('comandos a desligados')
-    }
-    else {
-      //fazer o fetch
-      console.log('comandos a ligados')
-    }
-    setIsEnable(previousState => !previousState)
-  }
+
   //++++++++++++++
   //Criar apiarios
   //++++++++++++++
@@ -352,25 +342,13 @@ export default function Header({ name, type, onPress, route, item }) {
       <View style={styles.container}>
         <View style={styles.content}>
           <Feather name={"chevron-left"} size={27} color="black" onPress={() => navigation.goBack()} />
-          <Text style={styles.username}>{name}</Text>
+          <Text style={styles.username}>{name || "Bem vindo!"}</Text>
           <TouchableOpacity style={styles.buttonUser}>
             <Feather name={`${type}`} size={27} color="black" onPress={onPress} />
           </TouchableOpacity>
         </View>
       </View>
-      <View style={styles.comandos2}>
-        <Text style={styles.comandos}>Comandos por voz</Text>
-        <View>
-          <Switch
-            style={styles.switch}
-            trackColor={{ false: 'grey', true: '#FFDAAE' }}
-            thumbColor={isEnable ? '#FFDAAE' : 'white'}
-            ios_background='grey'
-            onValueChange={toggleSwitch}
-            value={isEnable}
-          />
-        </View>
-      </View>
+      <SpeechToText/>
     </LinearGradient>
   )
 }

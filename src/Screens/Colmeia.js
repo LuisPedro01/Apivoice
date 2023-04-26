@@ -21,11 +21,13 @@ export default function NovaColmeia({ item, route }) {
   const [URL, setURL] = useState('');
   const storage = getStorage();
   const storage1=firebase.storage()
-  var listRef = ref(storage, `audio ${route.params.nomeCol.nomeColmeia}/`);
-  const [data, setData] = useState([]);
+  var listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}`);
+  const [userDocOff, setUserDocOff] = useState([]);
 
   useEffect(() => {
     listGrav();
+    console.log('apiario->',route.params.nomeApi.nome)
+    console.log('colmeia->',route.params.nomeCol.nomeColmeia)
   }, []);
 
   const deleteColmeia = () => {
@@ -40,6 +42,8 @@ export default function NovaColmeia({ item, route }) {
       .then(() => {
         Alert.alert("Colemia apagada!", "Colmeia apagada com sucesso!");
         navigation.navigate("Apiario");
+        console.log(userDocOff)
+        setUserDocOff("")
       })
       .catch((error) => {
         console.error("Error deleting document: ", error);
@@ -70,12 +74,13 @@ export default function NovaColmeia({ item, route }) {
 
   const NovaGravacaoPress = () => {
     navigation.navigate("Audio Recorder", {
-      nomeCol: route.params.nomeCol.nomeColmeia
+      nomeCol: route.params.nomeCol.nomeColmeia,
+      nomeApi: route.params.nomeApi.nome
     });
   };
 
   const onPlayPress = (item) => {
-    storage1.ref(`audio ${route.params.nomeCol.nomeColmeia}/${item}`).getDownloadURL()
+    storage1.ref(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}/${item}`).getDownloadURL()
     .then(async (url)=>{
       console.log(`url de ${item}->`,url)
       try {
@@ -87,6 +92,13 @@ export default function NovaColmeia({ item, route }) {
     })
   };
 
+  const EmptyListMessage = ({ item }) => {
+    return (
+      <View style={styles.message}>
+        <Text style={styles.cor}>Nenhuma gravação encontrada</Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -128,6 +140,7 @@ export default function NovaColmeia({ item, route }) {
 
       <FlatList
         style={styles.list}
+        ListEmptyComponent={EmptyListMessage}
         showsVerticalScrollIndicator={false}
         data={Grav}
         renderItem={({ item }) => (
@@ -166,5 +179,11 @@ const styles = StyleSheet.create({
   buttons: {
     flexDirection: "row",
     alignSelf: "center",
+  },
+  message: {
+    alignItems: "center",
+  },
+  cor: {
+    color: "#939393",
   },
 });

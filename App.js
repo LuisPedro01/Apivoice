@@ -6,16 +6,20 @@ import {
   TouchableOpacity,
   SafeAreaView,
   NativeModules,
-  Alert
+  Alert,
+  LogBox,
 } from "react-native";
 import { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { firebase } from "./src/services/firebase";
+import { db, firebase } from "./src/services/firebase";
 
 export default function App() {
   //const [data, setData] = useState([{}]);
   const [userDoc, setUserDoc] = useState([]);
   const ApiRef = firebase.firestore().collection("apiarios");
+  LogBox.ignoreLogs(["new NativeEventEmitter"]);
+  LogBox.ignoreLogs(["Non-serializable values"]);
+ 
 
   const getDadosApi = () => {
     ApiRef.onSnapshot((querySnapshot) => {
@@ -36,9 +40,9 @@ export default function App() {
     getDadosApi();
   }, []);
 
-   return (
+  return (
     <SafeAreaView style={styles.root}>
-      <Navigation />
+      <Navigation/>
     </SafeAreaView>
   );
 }

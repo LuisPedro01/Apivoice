@@ -54,7 +54,6 @@ export default function SignUp() {
   }
 
   const onSignInPressed = () => {
-    console.warn("On sign in");
     navigation.navigate("Sign In");
   };
 

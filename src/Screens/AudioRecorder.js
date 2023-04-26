@@ -12,6 +12,7 @@ import { getStorage, ref, uploadBytes } from "firebase/storage";
 import CustomInput from "../components/CustomInput";
 import { useNavigation } from "@react-navigation/native";
 
+
 const AudioRecorder = ({route}) => {
   const navigation = useNavigation();
   const [recording, setRecording] = useState(false);
@@ -64,13 +65,14 @@ const AudioRecorder = ({route}) => {
     try {
       //Create the file reference
       const storage = getStorage();
-      const storageRef = ref(storage, `audio ${route.params.nomeCol}/${nome}`);
+      const storageRef = ref(storage, `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/audio ${nome}`);
 
       // Upload Blob file to Firebase
       const snapshot = await uploadBytes(storageRef, file, "blob")
       .then((snapshot) => {
         console.log("Uploaded a song to firebase storage!");
         Alert.alert("Gravação criada!", "Gravação gravada com sucesso!")
+        // navigation.navigate('Apiario')
       });
 
       setSong(sound);

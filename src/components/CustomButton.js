@@ -128,5 +128,18 @@ const styles = StyleSheet.create({
     },
     text_HOME:{
         color:'#4F4F4F'
+    },
+    container_teste:{
+        width: '40%',
+        padding: 15,
+        backgroundColor: '#3B71F3',
+    },
+    container_teste1:{
+        width: '40%',
+        backgroundColor: '#3B71F3',
+    },
+    text_teste:{
+        textAlign: 'center',
+        textAlignVertical: 'center',
     }
 })
