@@ -16,7 +16,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from 'expo-file-system'
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 
-
 export default function Home({ item, route }) {
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
@@ -29,50 +28,6 @@ export default function Home({ item, route }) {
     .doc(route.params.nomeApi.id);
   const IdApi = route.params.nomeApi.id;
 
-  //guarda as subcollections
-  const offline = async () => {
-    try {
-      await AsyncStorage.setItem(IdApi, JSON.stringify(userDoc)); // converte a array em uma string JSON e a armazena no AsyncStorage
-      Alert.alert(
-        "Apiário salvo com sucesso!",
-        "O apiário encontra-se agora disponível off-line."
-      );
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const carregarUserDoc = async () => {
-    try {
-      const valorArmazenado = await AsyncStorage.getItem(IdApi); // busca o valor armazenado no AsyncStorage com a chave 'userDoc'
-      if (valorArmazenado !== null) {
-        setUserDocOff(JSON.parse(valorArmazenado)); // converte a string JSON em uma array de objetos e a define como o valor atual de userDoc
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  // const offline = async () => {
-
-  //   try {
-  //     await AsyncStorage.setItem("userDocOff", userDocOff);
-  //     Alert.alert('Apiário salvo com sucesso!', 'O apiário encontra-se agora disponível off-line.')
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
-  // const carregarDados = async () => {
-  //   try {
-  //     const valorArmazenado = await AsyncStorage.getItem('userDocOff');
-  //     if (valorArmazenado !== null) {
-  //       setUserDocOff(valorArmazenado);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
 
   const getDados = () => {
     firebase
@@ -127,11 +82,6 @@ export default function Home({ item, route }) {
       .catch((error) => console.log(error));
   };
 
-  const collectionRef = firebase
-    .firestore()
-    .collection("apiarios")
-    .doc(route.params.nomeApi.id);
-
   const EmptyListMessage = ({ item }) => {
     return (
       <View style={styles.message}>
@@ -147,12 +97,12 @@ export default function Home({ item, route }) {
           keyExtractor={(item) => item.id}
           style={styles.list}
           showsVerticalScrollIndicator={false}
-          data={userDocOff}
+          data={arquivos}
           ListEmptyComponent={EmptyListMessage}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.container}>
               <CustomButton
-                text={item.nomeColmeia}
+                text={item}
                 type="COLMEIA"
                 onPress={() =>
                   navigation.navigate("Colmeia", {
@@ -191,18 +141,37 @@ export default function Home({ item, route }) {
       );
     }
   };
+
   const teste = () => {
     console.log("userdoc->", userDoc);
     console.log("userdocoff->", userDocOff);
+    console.log("arquivos->", arquivos);
   };
 
   useEffect(() => {
     getDadosNomes();
     getDados();
-    if (userDoc.length === 0 && IdApi == route.params.nomeApi.id) {
-      carregarUserDoc();
+    if (userDoc.length === 0) {
+      listarArquivos1();
     }
   }, []);
+
+
+  const [arquivos, setArquivos] = useState([]);
+
+  const listarArquivos1 = async () => {
+    try {
+      const dirInfo = await FileSystem.getInfoAsync(`file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}`);
+      if (dirInfo.exists && dirInfo.isDirectory) {
+        const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
+        setArquivos(arquivosInfo);
+        console.log(arquivos)
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
 
   const storage = getStorage();
   var listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/`);
@@ -210,49 +179,54 @@ export default function Home({ item, route }) {
   const [Grav, setGrav] = useState([]);
 
 
-  const listFiles = () => {
-    listAll(listRef)
-      .then((res) => {
-        res.items.forEach((item) => {
-          setGrav((arr) => [...arr, item.name]);
-          getDownloadURL(item).then((url)=>{
-            setURL((prev)=>[...prev, url]);
-          })
-        });
-        console.log(Grav)
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
+  async function listarSubdiretorios(diretorio) {
+    const lista = await firebase.storage().ref(diretorio).listAll();
+    const subdiretorios = lista.prefixes.map(p => p.fullPath);
 
-  async function listAllDirectoriesAndFiles(path) {
-    const reference = firebase.storage().ref(path);
-    const results = await reference.listAll();
-    const listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/`);
-    
-  
-    const subdirectories = results.prefixes.map(async (prefix) => {
-      const subdirectoryFiles = await listAllDirectoriesAndFiles(prefix.fullPath);
-      return {
-        path: prefix.fullPath,
-        files: subdirectoryFiles,
-      };
-    });
-  
-    const subdirectoryFiles = await Promise.all(subdirectories);
-  
-    results.items.forEach((item) => {
-      subdirectoryFiles.push({ path: item.fullPath });
-    });
-  
-    console.log(subdirectoryFiles);
-  
-    return subdirectoryFiles;
-  
+    const arquivos = lista.items.map(i => i.fullPath);
+    for (const subdiretorio of lista.prefixes) {
+      const sublista = await listarArquivos(subdiretorio.fullPath);
+      arquivos.push(...sublista);
+    }
+    console.log(arquivos)
+
+    return arquivos;
   }
 
-  
+  async function listarArquivos(diretorio) {
+    const lista = await firebase.storage().ref(diretorio).listAll();
+    const arquivos = lista.items.map(i => i.fullPath);
+    for (const subdiretorio of lista.prefixes) {
+      const sublista = await listarArquivos(subdiretorio.fullPath);
+      arquivos.push(...sublista);
+    }
+    return arquivos;
+  }
+
+  async function baixarArquivo(caminho) {
+    const referencia = firebase.storage().ref(caminho);
+    const url = await referencia.getDownloadURL();
+    const info = await FileSystem.getInfoAsync(FileSystem.documentDirectory + caminho);
+    if (!info.exists) {
+      const diretorio = caminho.substring(0, caminho.lastIndexOf('/'));
+      const diretorioLocal = FileSystem.documentDirectory + diretorio;
+      const infoDiretorio = await FileSystem.getInfoAsync(diretorioLocal);
+      if (!infoDiretorio.exists) {
+        await FileSystem.makeDirectoryAsync(diretorioLocal, { intermediates: true });
+      }
+      const arquivo = await FileSystem.downloadAsync(url, FileSystem.documentDirectory + caminho);
+      console.log('Arquivo baixado em: ' + arquivo.uri);
+    } else {
+      console.log('Arquivo já existe localmente: ' + info.uri);
+    }
+  }
+
+  async function baixarArquivos(diretorio) {
+    const arquivos = await listarArquivos(diretorio);
+    for (const caminho of arquivos) {
+      await baixarArquivo(caminho);
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -274,7 +248,6 @@ export default function Home({ item, route }) {
         type="COLMEIAS"
         onPress={teste}
       />
-      {/* <CustomButton text={"variavel guardada localmente"} type="COLMEIAS" onPress={guardarUserDoc}/> */}
 
       <View
         style={{
@@ -304,7 +277,8 @@ export default function Home({ item, route }) {
         <CustomButton
           text="Disponivel off-line"
           type="teste"
-          onPress={()=>listAllDirectoriesAndFiles(`apiario ${route.params.nomeApi.nome}`)}
+          onPress={() => baixarArquivos(`apiario ${route.params.nomeApi.nome}/`)}
+
         />
       </View>
     </View>

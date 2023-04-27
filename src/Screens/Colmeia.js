@@ -14,21 +14,43 @@ import { firebase, db } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 import { collection, deleteDoc, getDocs } from "firebase/firestore";
 import { Audio } from "expo-av";
+import * as FileSystem from 'expo-file-system'
+
 
 export default function NovaColmeia({ item, route }) {
   const navigation = useNavigation();
   const [Grav, setGrav] = useState([]);
   const [URL, setURL] = useState('');
   const storage = getStorage();
-  const storage1=firebase.storage()
+  const storage1 = firebase.storage()
   var listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}`);
   const [userDocOff, setUserDocOff] = useState([]);
 
   useEffect(() => {
     listGrav();
-    console.log('apiario->',route.params.nomeApi.nome)
-    console.log('colmeia->',route.params.nomeCol.nomeColmeia)
+    if (Grav.length === 0) {
+      listarArquivos1()
+    }
   }, []);
+
+  const [arquivos, setArquivos] = useState([]);
+
+  const listarArquivos1 = async () => {
+    try {
+      const dirInfo = await FileSystem.getInfoAsync(`file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`);
+      if (dirInfo.exists && dirInfo.isDirectory) {
+        const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
+        setArquivos(arquivosInfo);
+        console.log(arquivos)
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const teste = () => {
+    console.log("arquivos->", arquivos);
+  };
 
   const deleteColmeia = () => {
     const subCollection = firebase
@@ -56,14 +78,14 @@ export default function NovaColmeia({ item, route }) {
       nomeCol: route.params.nomeCol
     })
   }
-  
+
   const listGrav = () => {
     listAll(listRef)
       .then((res) => {
         res.items.forEach((item) => {
           setGrav((arr) => [...arr, item.name]);
-          getDownloadURL(item).then((url)=>{
-            setURL((prev)=>[...prev, url]);
+          getDownloadURL(item).then((url) => {
+            setURL((prev) => [...prev, url]);
           })
         });
       })
@@ -81,16 +103,21 @@ export default function NovaColmeia({ item, route }) {
 
   const onPlayPress = (item) => {
     storage1.ref(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}/${item}`).getDownloadURL()
-    .then(async (url)=>{
-      console.log(`url de ${item}->`,url)
-      try {
-        const { sound } = await Audio.Sound.createAsync({ uri: url });
-        await sound.replayAsync();
-      } catch (error) {
-        console.log('Erro ao reproduzir o audio: ', error);
-      }
-    })
+      .then(async (url) => {
+        console.log(`url de ${item}->`, url)
+        try {
+          const { sound } = await Audio.Sound.createAsync({ uri: url });
+          await sound.replayAsync();
+        } catch (error) {
+          console.log('Erro ao reproduzir o audio: ', error);
+        }
+      })
   };
+
+  const onPlayPressOffline = (item) => {
+    console.log('A tentar reproduzir audio offline...')
+  }
+
 
   const EmptyListMessage = ({ item }) => {
     return (
@@ -100,10 +127,43 @@ export default function NovaColmeia({ item, route }) {
     );
   };
 
+
+  const renderFlatList = () => {
+    if (Grav.length === 0) {
+      return (
+        <FlatList
+          style={styles.list}
+          ListEmptyComponent={EmptyListMessage}
+          showsVerticalScrollIndicator={false}
+          data={arquivos}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.container}>
+              <CustomButton text={item} type="COLMEIA" onPress={() => onPlayPressOffline(item)} />
+            </TouchableOpacity>
+          )}
+        />
+      );
+    } else {
+      return (
+        <FlatList
+          style={styles.list}
+          ListEmptyComponent={EmptyListMessage}
+          showsVerticalScrollIndicator={false}
+          data={Grav}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.container}>
+              <CustomButton text={item} type="COLMEIA" onPress={() => onPlayPress(item)} />
+            </TouchableOpacity>
+          )}
+        />
+      );
+    }
+  };
+
+
   return (
     <View style={styles.container}>
       <Header name={"Gravações"} type="music" />
-
       <CustomButton
         text={
           route.params.nomeCol.nomeColmeia +
@@ -111,8 +171,8 @@ export default function NovaColmeia({ item, route }) {
           route.params.nomeCol.localizacao
         }
         type="COLMEIAS"
+        onPress={teste}
       />
-
       <View style={styles.buttons}>
         <CustomButton
           text="Eliminar Colmeia"
@@ -138,17 +198,7 @@ export default function NovaColmeia({ item, route }) {
         }}
       />
 
-      <FlatList
-        style={styles.list}
-        ListEmptyComponent={EmptyListMessage}
-        showsVerticalScrollIndicator={false}
-        data={Grav}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.container}>
-            <CustomButton text={item} type="COLMEIA" onPress={()=>onPlayPress(item)} />
-          </TouchableOpacity>
-        )}
-      />
+      {renderFlatList()}
 
       <CustomButton
         text={"Nova gravação"}
