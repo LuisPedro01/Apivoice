@@ -226,6 +226,7 @@ export default function Home({ item, route }) {
     for (const caminho of arquivos) {
       await baixarArquivo(caminho);
     }
+    Alert.alert('Download feito com sucesso!','O apiário encontra-se agora disponível offline.')
   }
 
   return (

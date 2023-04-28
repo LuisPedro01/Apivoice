@@ -114,8 +114,17 @@ export default function NovaColmeia({ item, route }) {
       })
   };
 
+  const [sound, setSound] = useState();
+
   const onPlayPressOffline = (item) => {
-    console.log('A tentar reproduzir audio offline...')
+    console.log('Loading Sound');
+    const { sound } = Audio.Sound.createAsync(
+      require(`file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`)
+    );
+    setSound(sound);
+
+    console.log('Playing Sound');
+    sound.playAsync();
   }
 
 
