@@ -27,6 +27,7 @@ export default function NovaColmeia({ item, route }) {
     `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}`
   );
   const [userDocOff, setUserDocOff] = useState([]);
+  const [arquivos, setArquivos] = useState([]);
 
   useEffect(() => {
     listGrav();
@@ -35,13 +36,12 @@ export default function NovaColmeia({ item, route }) {
     }
   }, []);
 
-  const [arquivos, setArquivos] = useState([]);
-
   const listarArquivos1 = async () => {
     try {
       const dirInfo = await FileSystem.getInfoAsync(
         `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`
       );
+
       if (dirInfo.exists && dirInfo.isDirectory) {
         const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
         setArquivos(arquivosInfo);
@@ -51,8 +51,17 @@ export default function NovaColmeia({ item, route }) {
     }
   };
 
-  const teste = () => {
-    console.log("arquivos->", arquivos);
+  const teste = async () => {
+    const directory = FileSystem.cacheDirectory;
+    const filename = 'recording-d8d2803f-d5d9-465f-9d69-97e638e1bbcb.m4a';
+    const filePath = `${directory}Audio/${filename}`;
+    
+    const fileInfo = await FileSystem.getInfoAsync(filePath);
+    if (fileInfo.exists) {
+      console.log('Arquivo encontrado no diretório:', filePath);
+    } else {
+      console.log('Arquivo não encontrado no diretório.');
+    }
   };
 
   const deleteColmeia = () => {

@@ -11,6 +11,7 @@ import { firebase } from "../services/firebase";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 import CustomInput from "../components/CustomInput";
 import { useNavigation } from "@react-navigation/native";
+import * as FileSystem from "expo-file-system";
 
 
 const AudioRecorder = ({route}) => {
@@ -45,7 +46,9 @@ const AudioRecorder = ({route}) => {
     setRecording(undefined);
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI();
+    const info = await FileSystem.getInfoAsync(recording.getURI());
     console.log("Recording stopped and stored at", uri);
+    console.log('info->', info.uri)
 
     let updatedRecordings = [...recordings];
     const { sound, status } = await recording.createNewLoadedSoundAsync();
