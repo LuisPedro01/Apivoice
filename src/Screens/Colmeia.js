@@ -64,7 +64,7 @@ export default function NovaColmeia({ item, route }) {
     }
   };
 
-  const deleteColmeia = () => {
+  const deleteColmeia = async () => {
     const subCollection = firebase
       .firestore()
       .collection("apiarios")
@@ -82,6 +82,14 @@ export default function NovaColmeia({ item, route }) {
       .catch((error) => {
         console.error("Error deleting document: ", error);
       });
+      const directory = FileSystem.documentDirectory;
+      const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`;
+      try {
+        await FileSystem.deleteAsync(filePath);
+        console.log('Arquivo excluído com sucesso.');
+      } catch (error) {
+        console.log(`Erro ao excluir o arquivo: ${error.message}`);
+      }
   };
 
   const alterarApi = () => {

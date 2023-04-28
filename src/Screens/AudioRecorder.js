@@ -36,6 +36,7 @@ const AudioRecorder = ({route}) => {
       );
       setRecording(recording);
       console.log("Recording started");
+
     } catch (err) {
       console.error("Failed to start recording", err);
     }
@@ -46,9 +47,8 @@ const AudioRecorder = ({route}) => {
     setRecording(undefined);
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI();
-    const info = await FileSystem.getInfoAsync(recording.getURI());
-    console.log("Recording stopped and stored at", uri);
-    console.log('info->', info.uri)
+    const novoUri = `${FileSystem.documentDirectory}${nome}`;
+
 
     let updatedRecordings = [...recordings];
     const { sound, status } = await recording.createNewLoadedSoundAsync();
@@ -59,11 +59,13 @@ const AudioRecorder = ({route}) => {
       file: recording.getURI(),
     });
     setRecordings(updatedRecordings);
-
-    const response = await fetch(uri)
+    
+    await FileSystem.moveAsync({ from: uri, to: novoUri });
+    const response = await fetch(novoUri)
     const file = await response.blob([response.valueOf], {
       type: "audio/mp3",
     });
+    console.log("Recording stopped and stored at", novoUri);
 
     try {
       //Create the file reference

@@ -62,7 +62,7 @@ export default function Home({ item, route }) {
     navigation.navigate("Perfil");
   };
 
-  const deleteApi = () => {
+  const deleteApi = async () => {
     firebase
       .firestore()
       .collection("apiarios")
@@ -73,6 +73,14 @@ export default function Home({ item, route }) {
         navigation.navigate("Apiario");
       })
       .catch((error) => console.log(error));
+
+    const fileUri = `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}`;
+    try {
+      await FileSystem.deleteAsync(fileUri);
+      console.log("Arquivo excluído com sucesso.");
+    } catch (error) {
+      console.log(`Erro ao excluir o arquivo: ${error.message}`);
+    }
   };
 
   const EmptyListMessage = ({ item }) => {
@@ -121,7 +129,6 @@ export default function Home({ item, route }) {
                 })
               }
             />
-
           </View>
         </View>
       );
@@ -181,6 +188,7 @@ export default function Home({ item, route }) {
     getDados();
     if (userDoc.length === 0) {
       listarArquivos1();
+      listarArquivos2();
     }
   }, []);
 
@@ -194,6 +202,21 @@ export default function Home({ item, route }) {
       if (dirInfo.exists && dirInfo.isDirectory) {
         const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
         setArquivos(arquivosInfo);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const [arquivos1, setArquivo1] = useState([]);
+  const listarArquivos2 = async () => {
+    try {
+      const dirInfo = await FileSystem.getInfoAsync(
+        `file:///data/user/0/com.luispedro.Apivoice/cache/987654321`
+      );
+      if (dirInfo.exists && dirInfo.isDirectory) {
+        const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
+        setArquivo1(arquivosInfo);
       }
     } catch (error) {
       console.error(error);
@@ -265,6 +288,9 @@ export default function Home({ item, route }) {
     );
   }
 
+  const teste = () => {
+    console.log(arquivos1);
+  };
   return (
     <View style={styles.container}>
       <Header name={name.username} type="user" onPress={onUserPress} />
@@ -280,7 +306,11 @@ export default function Home({ item, route }) {
         />
       </View>
 
-      <CustomButton text={"Lista de colmeias"} type="COLMEIAS" />
+      <CustomButton
+        text={"Lista de colmeias"}
+        type="COLMEIAS"
+        onPress={teste}
+      />
 
       <View
         style={{

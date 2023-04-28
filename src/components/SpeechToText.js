@@ -222,10 +222,10 @@ export default function SpeechToText() {
 
   return (
     <View>
-      <Text>
+      {/* <Text>
         {"  Resultado ->"} {result}
       </Text>
-      <CustomButton text="Apagar" type="SECONDARY" onPress={clear} />
+      <CustomButton text="Apagar" type="SECONDARY" onPress={clear} /> */}
       {/* <CustomButton text="Teste?" type="SECONDARY" onPress={testevoz} /> */}
 
 
