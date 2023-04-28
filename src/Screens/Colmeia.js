@@ -14,22 +14,24 @@ import { firebase, db } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 import { collection, deleteDoc, getDocs } from "firebase/firestore";
 import { Audio } from "expo-av";
-import * as FileSystem from 'expo-file-system'
-
+import * as FileSystem from "expo-file-system";
 
 export default function NovaColmeia({ item, route }) {
   const navigation = useNavigation();
   const [Grav, setGrav] = useState([]);
-  const [URL, setURL] = useState('');
+  const [URL, setURL] = useState("");
   const storage = getStorage();
-  const storage1 = firebase.storage()
-  var listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}`);
+  const storage1 = firebase.storage();
+  var listRef = ref(
+    storage,
+    `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}`
+  );
   const [userDocOff, setUserDocOff] = useState([]);
 
   useEffect(() => {
     listGrav();
     if (Grav.length === 0) {
-      listarArquivos1()
+      listarArquivos1();
     }
   }, []);
 
@@ -37,11 +39,12 @@ export default function NovaColmeia({ item, route }) {
 
   const listarArquivos1 = async () => {
     try {
-      const dirInfo = await FileSystem.getInfoAsync(`file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`);
+      const dirInfo = await FileSystem.getInfoAsync(
+        `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`
+      );
       if (dirInfo.exists && dirInfo.isDirectory) {
         const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
         setArquivos(arquivosInfo);
-        console.log(arquivos)
       }
     } catch (error) {
       console.error(error);
@@ -64,8 +67,8 @@ export default function NovaColmeia({ item, route }) {
       .then(() => {
         Alert.alert("Colemia apagada!", "Colmeia apagada com sucesso!");
         navigation.navigate("Apiario");
-        console.log(userDocOff)
-        setUserDocOff("")
+        console.log(userDocOff);
+        setUserDocOff("");
       })
       .catch((error) => {
         console.error("Error deleting document: ", error);
@@ -75,9 +78,9 @@ export default function NovaColmeia({ item, route }) {
   const alterarApi = () => {
     navigation.navigate("Alterar Apiario", {
       nomeApi: route.params.nomeApi,
-      nomeCol: route.params.nomeCol
-    })
-  }
+      nomeCol: route.params.nomeCol,
+    });
+  };
 
   const listGrav = () => {
     listAll(listRef)
@@ -86,7 +89,7 @@ export default function NovaColmeia({ item, route }) {
           setGrav((arr) => [...arr, item.name]);
           getDownloadURL(item).then((url) => {
             setURL((prev) => [...prev, url]);
-          })
+          });
         });
       })
       .catch((error) => {
@@ -97,36 +100,40 @@ export default function NovaColmeia({ item, route }) {
   const NovaGravacaoPress = () => {
     navigation.navigate("Audio Recorder", {
       nomeCol: route.params.nomeCol.nomeColmeia,
-      nomeApi: route.params.nomeApi.nome
+      nomeApi: route.params.nomeApi.nome,
     });
   };
 
   const onPlayPress = (item) => {
-    storage1.ref(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}/${item}`).getDownloadURL()
+    storage1
+      .ref(
+        `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}/${item}`
+      )
+      .getDownloadURL()
       .then(async (url) => {
-        console.log(`url de ${item}->`, url)
+        console.log(`url de ${item}->`, url);
         try {
           const { sound } = await Audio.Sound.createAsync({ uri: url });
           await sound.replayAsync();
         } catch (error) {
-          console.log('Erro ao reproduzir o audio: ', error);
+          console.log("Erro ao reproduzir o audio: ", error);
         }
-      })
+      });
   };
 
-  const [sound, setSound] = useState();
+  const onPlayPressOffline = async (item) => {
+    console.log("Loading Sound");
 
-  const onPlayPressOffline = (item) => {
-    console.log('Loading Sound');
-    const { sound } = Audio.Sound.createAsync(
-      require(`file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`)
-    );
-    setSound(sound);
-
-    console.log('Playing Sound');
-    sound.playAsync();
-  }
-
+    const directory = FileSystem.documentDirectory;
+    const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}/${item}`;
+    
+    try {
+      const { sound } = await Audio.Sound.createAsync({ uri: filePath });
+      await sound.replayAsync();
+    } catch (error) {
+      console.log("Erro ao reproduzir o audio: ", error);
+    }
+  };
 
   const EmptyListMessage = ({ item }) => {
     return (
@@ -135,7 +142,6 @@ export default function NovaColmeia({ item, route }) {
       </View>
     );
   };
-
 
   const renderFlatList = () => {
     if (Grav.length === 0) {
@@ -147,7 +153,11 @@ export default function NovaColmeia({ item, route }) {
           data={arquivos}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.container}>
-              <CustomButton text={item} type="COLMEIA" onPress={() => onPlayPressOffline(item)} />
+              <CustomButton
+                text={item}
+                type="COLMEIA"
+                onPress={() => onPlayPressOffline(item)}
+              />
             </TouchableOpacity>
           )}
         />
@@ -161,14 +171,17 @@ export default function NovaColmeia({ item, route }) {
           data={Grav}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.container}>
-              <CustomButton text={item} type="COLMEIA" onPress={() => onPlayPress(item)} />
+              <CustomButton
+                text={item}
+                type="COLMEIA"
+                onPress={() => onPlayPress(item)}
+              />
             </TouchableOpacity>
           )}
         />
       );
     }
   };
-
 
   return (
     <View style={styles.container}>
@@ -195,7 +208,6 @@ export default function NovaColmeia({ item, route }) {
           onPress={alterarApi}
         />
       </View>
-
 
       <View
         style={{

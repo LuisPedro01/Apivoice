@@ -20,13 +20,7 @@ export default function Home({ item, route }) {
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
   const [userDocOff, setUserDocOff] = useState([]);
-  const colRef = firebase.firestore().collection("colmeias");
   const [name, setName] = useState("");
-  const ApiRef = firebase
-    .firestore()
-    .collection("apiarios")
-    .doc(route.params.nomeApi.id);
-  const IdApi = route.params.nomeApi.id;
 
 
   const getDados = () => {
@@ -142,11 +136,6 @@ export default function Home({ item, route }) {
     }
   };
 
-  const teste = () => {
-    console.log("userdoc->", userDoc);
-    console.log("userdocoff->", userDocOff);
-    console.log("arquivos->", arquivos);
-  };
 
   useEffect(() => {
     getDadosNomes();
@@ -165,7 +154,6 @@ export default function Home({ item, route }) {
       if (dirInfo.exists && dirInfo.isDirectory) {
         const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
         setArquivos(arquivosInfo);
-        console.log(arquivos)
       }
     } catch (error) {
       console.error(error);
@@ -214,7 +202,7 @@ export default function Home({ item, route }) {
       if (!infoDiretorio.exists) {
         await FileSystem.makeDirectoryAsync(diretorioLocal, { intermediates: true });
       }
-      const arquivo = await FileSystem.downloadAsync(url, FileSystem.documentDirectory + caminho);
+      const arquivo = await FileSystem.downloadAsync(url, FileSystem.documentDirectory + caminho + '.m4a');
       console.log('Arquivo baixado em: ' + arquivo.uri);
     } else {
       console.log('Arquivo já existe localmente: ' + info.uri);
@@ -247,7 +235,6 @@ export default function Home({ item, route }) {
       <CustomButton
         text={"Lista de colmeias"}
         type="COLMEIAS"
-        onPress={teste}
       />
 
       <View
