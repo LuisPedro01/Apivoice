@@ -25,6 +25,7 @@ export default function Apiario(item) {
   const ApiRef = firebase.firestore().collection("apiarios");
   const [name, setName] = useState("");
   const [data, setData] = useState(null);
+  
 
   const checkAuthentication = async () => {
     // get user authentication information from local storage
@@ -61,8 +62,14 @@ export default function Apiario(item) {
 
   // // Define um valor no AsyncStorage com a chave "foo" e o valor "bar"
 
+
+
+
   const getDadosApi = () => {
-    ApiRef.onSnapshot((querySnapshot) => {
+    const userAtual = firebase.auth().currentUser.uid
+    const docsUser =  ApiRef.where('userId', '==', userAtual)
+
+    docsUser.onSnapshot((querySnapshot) => {
       const userDoc = [];
       querySnapshot.forEach((doc) => {
         const { localizacao, nome } = doc.data();

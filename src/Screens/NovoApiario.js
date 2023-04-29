@@ -8,6 +8,7 @@ import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
 import { db } from "../services/firebase";
 import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
+import { firebase } from "../services/firebase";
 import { uid } from "uid";
 
 export default function NovoApiario({ item, route }) {
@@ -17,6 +18,8 @@ export default function NovoApiario({ item, route }) {
   const [text, setText] = useState("")
   const [nomeApi, SetNomeApi] = useState('')
   const [localizaçãoApi, SetLocalizaçãoApi] = useState('') 
+  const userId = firebase.auth().currentUser.uid;
+
 
    const Create = () => {
     // Criar apiarios na base de dados
@@ -24,7 +27,8 @@ export default function NovoApiario({ item, route }) {
     const colData = {
       nome: nome,
       localizacao: localizaçao,
-      createdAt: Date()
+      createdAt: Date(),
+      userId: userId
     };
 
     addDoc(myCol, colData)
