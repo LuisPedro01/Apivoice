@@ -12,6 +12,7 @@ import CustomButton from "../components/CustomButton";
 import * as Speech from "expo-speech";
 import { useNavigation } from "@react-navigation/native";
 import { firebase } from "../services/firebase";
+import * as FileSystem from "expo-file-system";
 
 export default function SpeechToText() {
   const navigation = useNavigation();
@@ -19,8 +20,9 @@ export default function SpeechToText() {
   const [isLoading, setLoading] = useState(false);
   const [isEnable, setIsEnable] = useState(false);
   const ApiRef = firebase.firestore().collection("apiarios");
-  const keyExtractor = (item) => item.id
+  const [arquivos, setArquivos] = useState([]);
 
+  const keyExtractor = (item) => item.id;
 
   const toggleSwitch = () => {
     if (isEnable) {
@@ -34,7 +36,6 @@ export default function SpeechToText() {
       Speech.speak("A ouvir comandos", {
         voice: "pt-pt-x-sfs-network",
       });
-      
     }
     setIsEnable((previousState) => !previousState);
   };
@@ -50,13 +51,14 @@ export default function SpeechToText() {
 
   const speechResultsHandler = (e) => {
     const text = e.value[0];
-    setResult(text);
+    const text1 = text.toLowerCase();
+    setResult(text1);
   };
 
   useEffect(() => {
     if (isEnable) {
       const intervalID = setInterval(() => {
-        startRecording()
+        startRecording();
       }, 8000);
       return () => clearInterval(intervalID);
     }
@@ -88,6 +90,14 @@ export default function SpeechToText() {
     Voice.onSpeechStart = speechStartHandler;
     Voice.onSpeechEnd = speechEndHandler;
     Voice.onSpeechResults = speechResultsHandler;
+    // const dirInfo = FileSystem.getInfoAsync(
+    //   `file:///data/user/0/com.luispedro.Apivoice/files/apiario eu/colmeia teste/`
+    // );
+    
+    //   const arquivosInfo = FileSystem.readDirectoryAsync(dirInfo.uri);
+    //   setArquivos(arquivosInfo);
+    //   console.log('teste',arquivos);
+    
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
@@ -124,7 +134,7 @@ export default function SpeechToText() {
         voice: "pt-pt-x-sfs-network",
       });
       navigation.navigate("Apiario");
-      setResult("")
+      setResult("");
     }
 
     // comando selecionar apiario (tratar de quando for offline)
@@ -133,11 +143,12 @@ export default function SpeechToText() {
       result.includes(`Selecionar apiário`) ||
       result.includes(`Selecionar diário`) ||
       result.includes(`Selecionar pior`) ||
-      result.includes(`Selecionar piário`)
-      ||
+      result.includes(`Selecionar piário`) ||
       result.includes(`selecionar diário`) ||
       result.includes(`selecionar pior`) ||
-      result.includes(`selecionar piário`)
+      result.includes(`selecionar piário`) ||
+      result.includes(`selecionar a piário`) ||
+      result.includes(`selecionar a diário`)
     ) {
       // const nome =
       //   result.split("diário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0] ||
@@ -149,22 +160,31 @@ export default function SpeechToText() {
 
       const nomeApiario = palavras[palavras.length - 1];
 
-      ApiRef.where("nome", "==", nomeApiario)
-        .get()
-        .then((querySnapshot) => {
-          querySnapshot.forEach((doc) => {
-            keyExtractor(doc);
-            navigation.navigate("Home", {
-              nomeApi1: doc.data().nome,
-              nomeApi: doc,
-            });
-            RouteApi = doc.id;
-            nomeApi = doc.data().nome;
-            Speech.speak(`Apiário ${nomeApiario} selecionado`, {
-              voice: "pt-pt-x-sfs-network",
-            });
-          });
-        });
+      const dirInfo = FileSystem.getInfoAsync(
+        `file:///data/user/0/com.luispedro.Apivoice/files/apiario eu`
+      );
+      if (dirInfo.exists && dirInfo.isDirectory) {
+        const arquivosInfo = FileSystem.readDirectoryAsync(dirInfo.uri);
+        setArquivos(arquivosInfo);
+        console.log(arquivos);
+      }
+
+      // ApiRef.where("nome", "==", nomeApiario)
+      //   .get()
+      //   .then((querySnapshot) => {
+      //     querySnapshot.forEach((doc) => {
+      //       keyExtractor(doc);
+      //       navigation.navigate("Home", {
+      //         nomeApi1: doc.data().nome,
+      //         nomeApi: doc,
+      //       });
+      //       RouteApi = doc.id;
+      //       nomeApi = doc.data().nome;
+      //       Speech.speak(`Apiário ${nomeApiario} selecionado`, {
+      //         voice: "pt-pt-x-sfs-network",
+      //       });
+      //     });
+      //   });
     }
 
     // comando selecionar colmeia (tratar de quando for offline)
@@ -208,7 +228,7 @@ export default function SpeechToText() {
       Speech.speak("A voltar para página anterior", {
         voice: "pt-pt-x-sfs-network",
       });
-      setResult("")
+      setResult("");
     }
 
     if (result.includes("parar") || result.includes("parar")) {
@@ -222,12 +242,11 @@ export default function SpeechToText() {
 
   return (
     <View>
-      {/* <Text>
+      <Text>
         {"  Resultado ->"} {result}
       </Text>
-      <CustomButton text="Apagar" type="SECONDARY" onPress={clear} /> */}
-      {/* <CustomButton text="Teste?" type="SECONDARY" onPress={testevoz} /> */}
-
+      <CustomButton text="Apagar" type="SECONDARY" onPress={clear} />
+      <CustomButton text="Teste?" type="SECONDARY" onPress={testevoz} />
 
       <View style={styles.comandos2}>
         <Text style={styles.comandos}>Comandos por voz</Text>

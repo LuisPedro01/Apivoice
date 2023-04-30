@@ -83,7 +83,7 @@ export default function NovaColmeia({ item, route }) {
         console.error("Error deleting document: ", error);
       });
       const directory = FileSystem.documentDirectory;
-      const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`;
+      const filePath = `${directory}apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`;
       try {
         await FileSystem.deleteAsync(filePath);
         console.log('Arquivo excluído com sucesso.');

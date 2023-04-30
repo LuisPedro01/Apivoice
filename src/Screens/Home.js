@@ -188,7 +188,6 @@ export default function Home({ item, route }) {
     getDados();
     if (userDoc.length === 0) {
       listarArquivos1();
-      listarArquivos2();
     }
   }, []);
 
@@ -202,21 +201,7 @@ export default function Home({ item, route }) {
       if (dirInfo.exists && dirInfo.isDirectory) {
         const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
         setArquivos(arquivosInfo);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const [arquivos1, setArquivo1] = useState([]);
-  const listarArquivos2 = async () => {
-    try {
-      const dirInfo = await FileSystem.getInfoAsync(
-        `file:///data/user/0/com.luispedro.Apivoice/cache/987654321`
-      );
-      if (dirInfo.exists && dirInfo.isDirectory) {
-        const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
-        setArquivo1(arquivosInfo);
+        console.log(arquivos)
       }
     } catch (error) {
       console.error(error);
@@ -289,7 +274,7 @@ export default function Home({ item, route }) {
   }
 
   const teste = () => {
-    console.log(arquivos1);
+    
   };
   return (
     <View style={styles.container}>
