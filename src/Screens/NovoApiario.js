@@ -1,4 +1,4 @@
-import React,  { useState, useEffect }  from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, FlatList, Button, Alert } from "react-native";
 import Header from "../components/Header";
 import Gravacoes from "../components/Gravacoes";
@@ -9,7 +9,7 @@ import CustomInput from "../components/CustomInput";
 import { db } from "../services/firebase";
 import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import { firebase } from "../services/firebase";
-import { uid } from "uid";
+import * as FileSystem from "expo-file-system";
 
 export default function NovoApiario({ item, route }) {
   const navigation = useNavigation();
@@ -17,11 +17,24 @@ export default function NovoApiario({ item, route }) {
   const [localizaçao, setLocalizaçao] = useState('');
   const [text, setText] = useState("")
   const [nomeApi, SetNomeApi] = useState('')
-  const [localizaçãoApi, SetLocalizaçãoApi] = useState('') 
+  const [localizaçãoApi, SetLocalizaçãoApi] = useState('')
   const userId = firebase.auth().currentUser.uid;
 
 
-   const Create = () => {
+  const Create = () => {
+    //criar offline
+    try {
+      const directory = FileSystem.documentDirectory;
+      const filePath = `${directory}apiario ${nome}`;
+      const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`
+      FileSystem.makeDirectoryAsync(filePath, conteudo)
+      console.log('Arquivo guardado localmente em, ', filePath)
+      Alert.alert("Apiario criado!", "Novo apiário criado com sucesso!");
+      navigation.navigate("Apiario");
+    } catch (error) {
+      console.log(`Erro: ${error.message}`);
+    }
+
     // Criar apiarios na base de dados
     const myCol = collection(db, "apiarios");
     const colData = {
@@ -39,11 +52,11 @@ export default function NovoApiario({ item, route }) {
       .catch((error) => {
         alert(error.message);
       });
-      
+
   };
 
 
-  useEffect(()=>{
+  useEffect(() => {
     SetNomeApi(route.params.NomeApi)
     SetLocalizaçãoApi(route.params.LocalApi)
   })
@@ -51,13 +64,13 @@ export default function NovoApiario({ item, route }) {
 
   return (
     <View style={styles.container}>
-      <Header name={"Novo Apiário"} type="plus-circle"/>
+      <Header name={"Novo Apiário"} type="plus-circle" />
 
-      <View style={styles.list}>  
-        <CustomInput placeholder='Nome' value={nome || nomeApi} setValue={setNome}/>
-        <CustomInput placeholder="Localização" value={localizaçao || localizaçãoApi} setValue={setLocalizaçao}/> 
+      <View style={styles.list}>
+        <CustomInput placeholder='Nome' value={nome || nomeApi} setValue={setNome} />
+        <CustomInput placeholder="Localização" value={localizaçao || localizaçãoApi} setValue={setLocalizaçao} />
       </View>
-      <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={Create}/>
+      <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={Create} />
     </View>
   );
 }

@@ -12,6 +12,8 @@ import CustomButton from "../components/CustomButton";
 import * as Speech from "expo-speech";
 import { useNavigation } from "@react-navigation/native";
 import { firebase } from "../services/firebase";
+import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
+
 
 export default function SpeechToText() {
   const navigation = useNavigation();
@@ -34,7 +36,7 @@ export default function SpeechToText() {
       Speech.speak("A ouvir comandos", {
         voice: "pt-pt-x-sfs-network",
       });
-      
+
     }
     setIsEnable((previousState) => !previousState);
   };
@@ -54,6 +56,8 @@ export default function SpeechToText() {
   };
 
   useEffect(() => {
+    getLastFileUrl()
+
     if (isEnable) {
       const intervalID = setInterval(() => {
         startRecording()
@@ -84,10 +88,46 @@ export default function SpeechToText() {
     setResult("");
   };
 
+  const storageRef = firebase.storage().ref('apiario apiario1/colmeia colmeia2/');
+
+
+  async function getLastFileUrl() {
+    const filesList = (storageRef.listAll()).items;
+    console.log(filesList)
+    // const urls = Promise.all(
+    //   filesList.map(async (fileRef) => {
+    //     const url = await fileRef.getDownloadURL();
+    //     console.log(url)
+    //     return url;
+    //   })
+    // );
+    // console.log(urls)
+    // return urls;
+  }
+
+  async function listAllFiles() {
+    // Obtenha uma referência à raiz do armazenamento do Firebase
+    const storageRef = firebase.storage().ref();
+  
+    try {
+      // Obtenha a lista de todos os arquivos na raiz do armazenamento
+      const listResult = await storageRef.listAll();
+  
+      // Faça algo com a lista de arquivos, por exemplo, imprima o nome de cada arquivo
+      listResult.items.forEach(item => {
+        console.log(item);
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+
   useEffect(() => {
     Voice.onSpeechStart = speechStartHandler;
     Voice.onSpeechEnd = speechEndHandler;
     Voice.onSpeechResults = speechResultsHandler;
+    listAllFiles();
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
@@ -174,7 +214,7 @@ export default function SpeechToText() {
     ) {
       const nome = result
         .split("colmeia ")
-        [null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
+      [null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
       let ColRef = firebase
         .firestore()
         .collection("apiarios")
@@ -199,6 +239,8 @@ export default function SpeechToText() {
     }
 
     // comando reproduzir ultima gravação
+
+
 
     // comando gravar
 

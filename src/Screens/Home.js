@@ -76,8 +76,10 @@ export default function Home({ item, route }) {
 
     const fileUri = `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}`;
     try {
-      await FileSystem.deleteAsync(fileUri);
+      FileSystem.deleteAsync(fileUri);
       console.log("Arquivo excluído com sucesso.");
+      navigation.navigate("Apiario");
+      Alert.alert("Apiário apagado!", "Apiário apagado com sucesso!");
     } catch (error) {
       console.log(`Erro ao excluir o arquivo: ${error.message}`);
     }
@@ -123,7 +125,7 @@ export default function Home({ item, route }) {
               type="NOVACOLMEIA"
               onPress={() =>
                 navigation.navigate("Nova Colmeia", {
-                  nomeCol: route.params.nomeApi,
+                  nomeApi: route.params.nomeApi,
                   NomeCol: "",
                   LocalApi: "",
                 })
@@ -163,7 +165,7 @@ export default function Home({ item, route }) {
               type="teste1"
               onPress={() =>
                 navigation.navigate("Nova Colmeia", {
-                  nomeCol: route.params.nomeApi,
+                  nomeApi: route.params.nomeApi,
                   NomeCol: "",
                   LocalApi: "",
                 })
@@ -212,11 +214,11 @@ export default function Home({ item, route }) {
   const listarArquivos2 = async () => {
     try {
       const dirInfo = await FileSystem.getInfoAsync(
-        `file:///data/user/0/com.luispedro.Apivoice/cache/987654321`
+        `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/`
       );
       if (dirInfo.exists && dirInfo.isDirectory) {
         const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
-        setArquivo1(arquivosInfo);
+        setArquivos(arquivosInfo);
       }
     } catch (error) {
       console.error(error);
@@ -289,7 +291,7 @@ export default function Home({ item, route }) {
   }
 
   const teste = () => {
-    console.log(arquivos1);
+    console.log(arquivos);
   };
   return (
     <View style={styles.container}>
