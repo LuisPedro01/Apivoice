@@ -13,10 +13,13 @@ import * as Speech from "expo-speech";
 import { useNavigation } from "@react-navigation/native";
 import { firebase } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
+import { Audio } from "expo-av";
 
 
 export default function SpeechToText() {
   const navigation = useNavigation();
+  const [recording, setRecording] = useState();
+  const [recordings, setRecordings] = useState([]);
   const [result, setResult] = useState("");
   const [isLoading, setLoading] = useState(false);
   const [isEnable, setIsEnable] = useState(false);
@@ -122,12 +125,78 @@ export default function SpeechToText() {
     }
   }
 
+  async function startRecording1(NomeAudio) {
+    try {
+      console.log("Requesting permissions..");
+      await Audio.requestPermissionsAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      console.log("Starting recording..");
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      setRecording(recording);
+      console.log("Recording started");
+      return NomeAudio
+    } catch (err) {
+      console.error("Failed to start recording", err);
+    }
+  }
+
+  function getDurationFormated(millis) {
+    const minutes = millis / 1000 / 60;
+    const minutesDisplay = Math.floor(minutes);
+    const seconds = Math.round((minutes - minutesDisplay) * 60);
+    const secondsDisplay = seconds < 10 ? `0${seconds}` : seconds;
+    return `${minutesDisplay}:${secondsDisplay}`;
+  }
+
+  async function stopRecording1() {
+    console.log("Stopping recording..");
+    setRecording(undefined);
+    await recording.stopAndUnloadAsync();
+    uri = recording.getURI();
+    console.log("Recording stopped and stored at", uri);
+
+    let updatedRecordings = [...recordings];
+    const { sound, status } = await recording.createNewLoadedSoundAsync();
+
+    updatedRecordings.push({
+      sound: sound,
+      duration: getDurationFormated(status.durationMillis),
+      file: recording.getURI(),
+    });
+    setRecordings(updatedRecordings);
+
+    const response = await fetch(uri)
+    const file = await response.blob([response.valueOf], {
+      type: "audio/mp3",
+    });
+
+    try {
+      //Create the file reference
+      const storage = getStorage();
+      const storageRef = ref(storage, `audio ${nomeC}/${nomeA}`);
+
+      // Upload Blob file to Firebase
+      const snapshot = await uploadBytes(storageRef, file, "blob")
+        .then((snapshot) => {
+          console.log("Gravação criada com sucesso!");
+        });
+
+      setSong(sound);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   useEffect(() => {
     Voice.onSpeechStart = speechStartHandler;
     Voice.onSpeechEnd = speechEndHandler;
     Voice.onSpeechResults = speechResultsHandler;
-    listAllFiles();
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
@@ -243,6 +312,27 @@ export default function SpeechToText() {
 
 
     // comando gravar
+    if (result.includes('nova gravação') || result.includes('novo áudio')) {
+      navigation.navigate("Audio Recorder", {
+        nomeCol: NomeCol
+      })
+    }
+    if ((result.includes('Nome áudio') || result.includes('nome áudio'))) {
+      NomeAudio = result.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+      //NomeAudio = nomeaudio
+      navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
+      setNomeA(NomeAudio)
+      setNomeC(NomeCol)
+    }
+    if (result.includes('Começar a gravar') || result.includes('começar a gravar')) {
+      clearInterval(intervalID);
+      startRecording1();
+    }
+
+    if (result.includes('Parar gravação') || result.includes('parar gravação')) {
+      stopRecording1();
+      navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
+    }
 
     // comando voltar
     if (result.includes("voltar") || result.includes("Voltar")) {
