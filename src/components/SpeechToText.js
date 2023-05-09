@@ -25,7 +25,17 @@ export default function SpeechToText() {
   const [isEnable, setIsEnable] = useState(false);
   const ApiRef = firebase.firestore().collection("apiarios");
   const keyExtractor = (item) => item.id
-
+  let RouteApi;
+  let nomeApi;
+  let NomeCol = '';
+  let NomeAudio = ''
+  let uri;
+  let nomeApi1;
+  let localapi1;
+  let nomeCol1;
+  let localCol1;
+  const [nomeA, setNomeA] = useState('')
+  const [nomeC, setNomeC] = useState('')
 
   const toggleSwitch = () => {
     if (isEnable) {
@@ -59,7 +69,7 @@ export default function SpeechToText() {
   };
 
   useEffect(() => {
-    getLastFileUrl()
+    //getLastFileUrl()
 
     if (isEnable) {
       const intervalID = setInterval(() => {
@@ -308,6 +318,28 @@ export default function SpeechToText() {
     }
 
     // comando reproduzir ultima gravação
+    const [latestFileUrl, setLatestFileUrl] = useState('');
+    const storageRef = firebase.storage().ref();
+
+    storageRef.listAll()
+    .then((res)=>{
+      const sortedFiles = res.items.sort((a,b)=>b.timeCreated - a.timeCreated);
+
+      if(sortedFiles.length > 0){
+        sortedFiles[0].getDownloadURL()
+        .then((url)=>{
+          setLatestFileUrl(url)
+        })
+        .catch((error)=>{
+          console.log('error->', error)
+        })
+      }
+    })
+    .catch((error)=>{
+      console.log('erro ao listar arquivos->', error)
+    })
+
+    //console.log(latestFileUrl)
 
 
 
