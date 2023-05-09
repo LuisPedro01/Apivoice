@@ -78,7 +78,7 @@ export default function SignUp() {
           resizeMode="contain"
         />
         <Text style={styles.name}>Sign Up</Text>
-        <View style={{ flexDirection: "row" }}>
+        {/* <View style={{ flexDirection: "row" }}>
           <CustomButton
             text="Facebook"
             onPress={onSignInFacebook}
@@ -90,7 +90,7 @@ export default function SignUp() {
             type="TERTIARY"
           />
         </View>
-        <Text style={{ marginBottom: 20 }}>Or, Sign Up with...</Text>
+        <Text style={{ marginBottom: 20 }}>Or, Sign Up with...</Text> */}
         <CustomInput
           placeholder="Username"
           value={username}
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   logo: {
-    width: "30%",
+    width: "40%",
     maxHeight: 200,
     maxWidth: 300,
     marginTop: 20,
