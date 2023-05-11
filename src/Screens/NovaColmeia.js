@@ -20,34 +20,41 @@ export default function NovaColmeia({ route }) {
 
   const CreateCol = () => {
     //criar offline
-    const subCollection = firebase.firestore().collection('apiarios').doc(route.params.nomeApi.id).collection('colmeia')
-    subCollection
-      .add({
-        nomeColmeia: nome,
-        localizacao: localizaçao,
-        createdAt: Date()
-      })
-      .then(() => {
+    if (nome.trim() != '' && localizaçao.trim() != '') {
+
+
+      const subCollection = firebase.firestore().collection('apiarios').doc(route.params.nomeApi.id).collection('colmeia')
+      subCollection
+        .add({
+          nomeColmeia: nome,
+          localizacao: localizaçao,
+          createdAt: Date()
+        })
+        .then(() => {
+          Alert.alert("Colmeia criada!", "Nova colmeia criada com sucesso!");
+          navigation.navigate("Apiario");
+          return
+        })
+        .catch((error) => {
+          alert(error.message);
+        });
+
+      try {
+        const directory = FileSystem.documentDirectory;
+        const filePath = `${directory}apiario ${route.params.nomeApi.nome}/colmeia ${nome}`;
+        const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`
+        FileSystem.makeDirectoryAsync(filePath, conteudo)
+        console.log('Arquivo guardado localmente em, ', filePath)
         Alert.alert("Colmeia criada!", "Nova colmeia criada com sucesso!");
         navigation.navigate("Apiario");
-        return
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
-
-    try {
-      const directory = FileSystem.documentDirectory;
-      const filePath = `${directory}apiario ${route.params.nomeApi.nome}/colmeia ${nome}`;
-      const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`
-      FileSystem.makeDirectoryAsync(filePath, conteudo)
-      console.log('Arquivo guardado localmente em, ', filePath)
-      Alert.alert("Colmeia criada!", "Nova colmeia criada com sucesso!");
-      navigation.navigate("Apiario");
-      return;
-    } catch (error) {
-      console.log(`Erro: ${error.message}`);
+        return;
+      } catch (error) {
+        console.log(`Erro: ${error.message}`);
+      }
     }
+  else{
+    Alert.alert('Campos obrigatórios!', 'Os campos de "Nome" e de "Localização" são obrigatórios!')
+  }
 
   }
 
@@ -61,8 +68,8 @@ export default function NovaColmeia({ route }) {
       <Header name={"Nova Colmeia"} type="plus-circle" />
 
       <View style={styles.list}>
-        <CustomInput placeholder='Nome' value={nome || nomeCol} setValue={setNome} on />
-        <CustomInput placeholder="Localização" value={localizaçao || localizaçãoCol} setValue={setLocalizaçao} />
+        <CustomInput placeholder='Nome' value={nome || nomeCol} setValue={setNome} required={true} />
+        <CustomInput placeholder="Localização" value={localizaçao || localizaçãoCol} setValue={setLocalizaçao} required={true} />
       </View>
       <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={CreateCol} />
     </View>

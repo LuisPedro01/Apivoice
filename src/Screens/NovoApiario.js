@@ -22,36 +22,43 @@ export default function NovoApiario({ item, route }) {
 
 
   const Create = () => {
-    // Criar apiarios na base de dados
-    const myCol = collection(db, "apiarios");
-    const colData = {
-      nome: nome,
-      localizacao: localizaçao,
-      createdAt: Date(),
-      userId: userId
-    };
+    if (nome.trim() != '' && localizaçao.trim() != '') {
 
-    addDoc(myCol, colData)
-      .then(() => {
+
+      // Criar apiarios na base de dados
+      const myCol = collection(db, "apiarios");
+      const colData = {
+        nome: nome,
+        localizacao: localizaçao,
+        createdAt: Date(),
+        userId: userId
+      };
+
+      addDoc(myCol, colData)
+        .then(() => {
+          Alert.alert("Apiario criado!", "Novo apiário criado com sucesso!");
+          navigation.navigate("Apiario");
+          return
+        })
+        .catch((error) => {
+          alert(error.message);
+        });
+
+      //criar offline
+      try {
+        const directory = FileSystem.documentDirectory;
+        const filePath = `${directory}apiario ${nome}`;
+        const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`
+        FileSystem.makeDirectoryAsync(filePath, conteudo)
+        console.log('Arquivo guardado localmente em, ', filePath)
         Alert.alert("Apiario criado!", "Novo apiário criado com sucesso!");
         navigation.navigate("Apiario");
-        return
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
-
-    //criar offline
-     try {
-      const directory = FileSystem.documentDirectory;
-      const filePath = `${directory}apiario ${nome}`;
-      const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`
-      FileSystem.makeDirectoryAsync(filePath, conteudo)
-      console.log('Arquivo guardado localmente em, ', filePath)
-      Alert.alert("Apiario criado!", "Novo apiário criado com sucesso!");
-      navigation.navigate("Apiario");
-    } catch (error) {
-      console.log(`Erro: ${error.message}`);
+      } catch (error) {
+        console.log(`Erro: ${error.message}`);
+      }
+    }
+    else {
+      Alert.alert('Campos obrigatórios!', 'Os campos de "Nome" e de "Localização" são obrigatórios!')
     }
 
   };
