@@ -37,7 +37,9 @@ export default function AlterarApiario({ route }) {
   }, [])
 
   const getDadosApi = () => {
-    ApiRef.onSnapshot((querySnapshot) => {
+    const userAtual = firebase.auth().currentUser.uid
+    const docsUser =  ApiRef.where('userId', '==', userAtual)
+    docsUser.onSnapshot((querySnapshot) => {
       const userDoc = [];
       querySnapshot.forEach((doc) => {
         const { localizacao, nome } = doc.data();
