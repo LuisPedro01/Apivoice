@@ -11,7 +11,7 @@ import Voice from "@react-native-voice/voice";
 import CustomButton from "../components/CustomButton";
 import * as Speech from "expo-speech";
 import { useNavigation } from "@react-navigation/native";
-import { firebase } from "../services/firebase";
+import { firebase, storage } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 import { Audio } from "expo-av";
 
@@ -36,6 +36,32 @@ export default function SpeechToText() {
   let localCol1;
   const [nomeA, setNomeA] = useState('')
   const [nomeC, setNomeC] = useState('')
+  let nomeApiario;
+  let nomeCol;
+  let lastFile;
+
+  const getLastUploadedFile = async () => {
+    try {
+      const reference = firebase.storage().ref(`apiario ${nomeApiario}/colmeia ${nomeCol}`); // Referência para o diretório raiz do Firebase Storage
+      const listResult = await reference.list(); // Recupera uma lista de todos os itens no diretório raiz
+      
+      console.log('Lista de arquivos no Firebase Storage:');
+      
+      for (const item of listResult.items) {
+        console.log('Nome do arquivo:', item.name);
+        lastFile = item.name
+        console.log('Caminho do arquivo:', item.fullPath);
+        console.log('----');
+      }
+    } catch (error) {
+      console.error('Erro ao recuperar a lista de arquivos:', error);
+    }
+  };
+
+  useEffect(() => {
+    getLastUploadedFile();
+  })
+
 
   const toggleSwitch = () => {
     if (isEnable) {
@@ -101,39 +127,6 @@ export default function SpeechToText() {
     setResult("");
   };
 
-  const storageRef = firebase.storage().ref('apiario apiario1/colmeia colmeia2/');
-
-
-  async function getLastFileUrl() {
-    const filesList = (storageRef.listAll()).items;
-    console.log(filesList)
-    // const urls = Promise.all(
-    //   filesList.map(async (fileRef) => {
-    //     const url = await fileRef.getDownloadURL();
-    //     console.log(url)
-    //     return url;
-    //   })
-    // );
-    // console.log(urls)
-    // return urls;
-  }
-
-  async function listAllFiles() {
-    // Obtenha uma referência à raiz do armazenamento do Firebase
-    const storageRef = firebase.storage().ref();
-  
-    try {
-      // Obtenha a lista de todos os arquivos na raiz do armazenamento
-      const listResult = await storageRef.listAll();
-  
-      // Faça algo com a lista de arquivos, por exemplo, imprima o nome de cada arquivo
-      listResult.items.forEach(item => {
-        console.log(item);
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }
 
   async function startRecording1(NomeAudio) {
     try {
@@ -203,6 +196,20 @@ export default function SpeechToText() {
     }
   }
 
+  const storage1 = firebase.storage()
+  const onPlayPress = (nomeAudio) => {
+    storage1.ref(`apiario ${nomeApiario}/colmeia ${nomeCol}`).getDownloadURL()
+      .then(async (url) => {
+        console.log(`url de ${nomeAudio}->`, url)
+        try {
+          const { sound } = await Audio.Sound.createAsync({ uri: url });
+          await sound.replayAsync();
+        } catch (error) {
+          console.log('Erro ao reproduzir o audio: ', error);
+        }
+      })
+  };
+
   useEffect(() => {
     Voice.onSpeechStart = speechStartHandler;
     Voice.onSpeechEnd = speechEndHandler;
@@ -266,7 +273,7 @@ export default function SpeechToText() {
 
       const palavras = result.split(" ");
 
-      const nomeApiario = palavras[palavras.length - 1];
+      nomeApiario = palavras[palavras.length - 1];
 
       ApiRef.where("nome", "==", nomeApiario)
         .get()
@@ -291,15 +298,14 @@ export default function SpeechToText() {
       result.includes(`Selecionar colmeia`) ||
       result.includes(`selecionar colmeia`)
     ) {
-      const nome = result
-        .split("colmeia ")
-      [null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
+      nomeCol = result.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
+
       let ColRef = firebase
         .firestore()
         .collection("apiarios")
         .doc(RouteApi)
         .collection("colmeia");
-      ColRef.where("nomeColmeia", "==", nome)
+      ColRef.where("nomeColmeia", "==", nomeCol)
         .get()
         .then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
@@ -309,7 +315,7 @@ export default function SpeechToText() {
               nomeCol: doc.data(),
               nomeApi: nomeApi,
             });
-            Speech.speak(`Colmeia ${nome} selecionada`, {
+            Speech.speak(`Colmeia ${nomeCol} selecionada`, {
               voice: "pt-pt-x-sfs-network",
             });
           });
@@ -318,30 +324,12 @@ export default function SpeechToText() {
     }
 
     // comando reproduzir ultima gravação
-    const [latestFileUrl, setLatestFileUrl] = useState('');
-    const storageRef = firebase.storage().ref();
-
-    storageRef.listAll()
-    .then((res)=>{
-      const sortedFiles = res.items.sort((a,b)=>b.timeCreated - a.timeCreated);
-
-      if(sortedFiles.length > 0){
-        sortedFiles[0].getDownloadURL()
-        .then((url)=>{
-          setLatestFileUrl(url)
-        })
-        .catch((error)=>{
-          console.log('error->', error)
-        })
-      }
-    })
-    .catch((error)=>{
-      console.log('erro ao listar arquivos->', error)
-    })
-
-    //console.log(latestFileUrl)
-
-
+    if(result.includes('reproduzir última gravação')){
+      Speech.speak(`A reproduzir ultima gravação`, {
+        voice: "pt-pt-x-sfs-network",
+      });
+      onPlayPress(lastFile)
+    }
 
     // comando gravar
     if (result.includes('nova gravação') || result.includes('novo áudio')) {
