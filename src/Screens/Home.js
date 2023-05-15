@@ -76,8 +76,10 @@ export default function Home({ item, route }) {
 
     const fileUri = `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}`;
     try {
-      await FileSystem.deleteAsync(fileUri);
+      FileSystem.deleteAsync(fileUri);
       console.log("Arquivo excluído com sucesso.");
+      navigation.navigate("Apiario");
+      Alert.alert("Apiário apagado!", "Apiário apagado com sucesso!");
     } catch (error) {
       console.log(`Erro ao excluir o arquivo: ${error.message}`);
     }
@@ -123,7 +125,7 @@ export default function Home({ item, route }) {
               type="NOVACOLMEIA"
               onPress={() =>
                 navigation.navigate("Nova Colmeia", {
-                  nomeCol: route.params.nomeApi,
+                  nomeApi: route.params.nomeApi,
                   NomeCol: "",
                   LocalApi: "",
                 })
@@ -163,7 +165,7 @@ export default function Home({ item, route }) {
               type="teste1"
               onPress={() =>
                 navigation.navigate("Nova Colmeia", {
-                  nomeCol: route.params.nomeApi,
+                  nomeApi: route.params.nomeApi,
                   NomeCol: "",
                   LocalApi: "",
                 })
@@ -274,7 +276,7 @@ export default function Home({ item, route }) {
   }
 
   const teste = () => {
-    
+    console.log(arquivos);
   };
   return (
     <View style={styles.container}>

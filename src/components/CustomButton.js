@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
     },
     container_PRIMARY:{
         backgroundColor: '#3B71F3',
+        marginTop:80
     },
     container_SECONDARY:{
         width: '35%',

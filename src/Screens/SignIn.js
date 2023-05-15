@@ -90,20 +90,6 @@ export default function SignIn() {
           resizeMode="contain"
         />
         <Text style={styles.name}>Speek2Bees</Text>
-        <View style={{ flexDirection: "row" }}>
-          <CustomButton
-            text="Facebook"
-            onPress={onSignInFacebook}
-            type="TERTIARY"
-          />
-          <CustomButton
-            text="Google"
-            onPress={onSignInGoogle}
-            type="TERTIARY"
-          />
-        </View>
-
-        <Text style={{ marginBottom: 20 }}>Or, login with...</Text>
         <CustomInput placeholder="Email" value={email} setValue={setEmail} />
         <CustomInput
           placeholder="Password"
@@ -129,7 +115,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   logo: {
-    width: "30%",
+    width: "50%",
     maxHeight: 200,
     maxWidth: 300,
     marginTop: 20,
@@ -138,10 +124,13 @@ const styles = StyleSheet.create({
     color: "rgb(179, 122, 0)",
     fontWeight: "bold",
     fontSize: 24,
+    marginBottom: 50,
+    marginTop: 30,
+
   },
   text: {
     color: "gray",
-    marginVertical: 10,
+    marginVertical: 10
   },
   link: {
     color: "#FDB075",
