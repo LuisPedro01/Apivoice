@@ -72,7 +72,7 @@ export default function NovoApiario({ item, route }) {
 
   return (
     <View style={styles.container}>
-      <Header name={"Novo Apiário"} type="plus-circle" />
+      <Header name={"Novo Apiário"} type="plus-circle" showIcon={'true'}/>
 
       <View style={styles.list}>
         <CustomInput placeholder='Nome' value={nome || nomeApi} setValue={setNome} />

@@ -65,7 +65,7 @@ export default function NovaColmeia({ route }) {
 
   return (
     <View style={styles.container}>
-      <Header name={"Nova Colmeia"} type="plus-circle" />
+      <Header name={"Nova Colmeia"} type="plus-circle" showIcon={'true'}/>
 
       <View style={styles.list}>
         <CustomInput placeholder='Nome' value={nome || nomeCol} setValue={setNome} required={true} />

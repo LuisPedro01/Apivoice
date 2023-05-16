@@ -202,7 +202,7 @@ export default function NovaColmeia({ item, route }) {
 
   return (
     <View style={styles.container}>
-      <Header name={"Gravações"} type="music" />
+      <Header name={"Gravações"} type="music" showIcon={'true'}/>
       <CustomButton
         text={
           route.params.nomeCol.nomeColmeia +

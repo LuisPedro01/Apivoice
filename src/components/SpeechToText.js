@@ -14,7 +14,8 @@ import { useNavigation } from "@react-navigation/native";
 import { firebase, storage } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 import { Audio } from "expo-av";
-
+import { classifyAudio } from '../teste/classifyAudio'; // Substitua pelo caminho correto para seus arquivos utilitários
+import * as FileSystem from "expo-file-system";
 
 export default function SpeechToText() {
   const navigation = useNavigation();
@@ -24,45 +25,64 @@ export default function SpeechToText() {
   const [isLoading, setLoading] = useState(false);
   const [isEnable, setIsEnable] = useState(false);
   const ApiRef = firebase.firestore().collection("apiarios");
-  const keyExtractor = (item) => item.id
+  const keyExtractor = (item) => item.id;
   let RouteApi;
   let nomeApi;
-  let NomeCol = '';
-  let NomeAudio = ''
+  let NomeCol = "";
+  let NomeAudio = "";
   let uri;
-  let nomeApi1;
-  let localapi1;
-  let nomeCol1;
-  let localCol1;
-  const [nomeA, setNomeA] = useState('')
-  const [nomeC, setNomeC] = useState('')
+  const [nomeA, setNomeA] = useState("");
+  const [nomeC, setNomeC] = useState("");
   let nomeApiario;
   let nomeCol;
   let lastFile;
 
+  //Users/luisrodrigues/Desktop/Projects/ApiVoice/Apivoice/src/model/model.json
+  //src/model/model.json
+  //src/components/soundclassifier_with_metadata.tflite
+
+  const runClassification = async () => {
+    try {
+      // Carregue o modelo TensorFlow Lite
+      const modelPath = './soundclassifier_with_metadata.tflite';
+      const modelBuffer = await FileSystem.readFile(modelPath);
+      const model = new Tensor(modelPath, 'float32');
+
+      // Classifique o áudio
+      const { sound } = await Audio.Recording.createAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+      const audioData = await sound.exportAsync();
+    
+      const result = await classifyAudio(audioData, model);
+      console.log('Resultado da classificação de áudio:', result);
+    } catch (error) {
+      console.error('Erro na classificação de áudio:', error);
+    }
+  };
+
   const getLastUploadedFile = async () => {
     try {
-      const reference = firebase.storage().ref(`apiario ${nomeApiario}/colmeia ${nomeCol}`); // Referência para o diretório raiz do Firebase Storage
+      const reference = firebase
+        .storage()
+        .ref(`apiario ${nomeApiario}/colmeia ${nomeCol}`); // Referência para o diretório raiz do Firebase Storage
       const listResult = await reference.list(); // Recupera uma lista de todos os itens no diretório raiz
-      
-      console.log('Lista de arquivos no Firebase Storage:');
-      
+
+      //console.log("Lista de arquivos no Firebase Storage:");
+
       for (const item of listResult.items) {
-        console.log('Nome do arquivo:', item.name);
-        lastFile = item.name
-        console.log('Caminho do arquivo:', item.fullPath);
-        console.log('----');
+        console.log("Nome do arquivo:", item.name);
+        lastFile = item.name;
+        console.log("Caminho do arquivo:", item.fullPath);
+        console.log("----");
       }
     } catch (error) {
-      console.error('Erro ao recuperar a lista de arquivos:', error);
+      console.error("Erro ao recuperar a lista de arquivos:", error);
     }
   };
 
   useEffect(() => {
     getLastUploadedFile();
-  })
-
-  const keyExtractor = (item) => item.id;
+    //runClassification()
+  });
 
   const toggleSwitch = () => {
     if (isEnable) {
@@ -76,7 +96,6 @@ export default function SpeechToText() {
       Speech.speak("A ouvir comandos", {
         voice: "pt-pt-x-sfs-network",
       });
-
     }
     setIsEnable((previousState) => !previousState);
   };
@@ -129,7 +148,6 @@ export default function SpeechToText() {
     setResult("");
   };
 
-
   async function startRecording1(NomeAudio) {
     try {
       console.log("Requesting permissions..");
@@ -145,7 +163,7 @@ export default function SpeechToText() {
       );
       setRecording(recording);
       console.log("Recording started");
-      return NomeAudio
+      return NomeAudio;
     } catch (err) {
       console.error("Failed to start recording", err);
     }
@@ -176,7 +194,7 @@ export default function SpeechToText() {
     });
     setRecordings(updatedRecordings);
 
-    const response = await fetch(uri)
+    const response = await fetch(uri);
     const file = await response.blob([response.valueOf], {
       type: "audio/mp3",
     });
@@ -187,10 +205,11 @@ export default function SpeechToText() {
       const storageRef = ref(storage, `audio ${nomeC}/${nomeA}`);
 
       // Upload Blob file to Firebase
-      const snapshot = await uploadBytes(storageRef, file, "blob")
-        .then((snapshot) => {
+      const snapshot = await uploadBytes(storageRef, file, "blob").then(
+        (snapshot) => {
           console.log("Gravação criada com sucesso!");
-        });
+        }
+      );
 
       setSong(sound);
     } catch (error) {
@@ -198,18 +217,20 @@ export default function SpeechToText() {
     }
   }
 
-  const storage1 = firebase.storage()
+  const storage1 = firebase.storage();
   const onPlayPress = (nomeAudio) => {
-    storage1.ref(`apiario ${nomeApiario}/colmeia ${nomeCol}`).getDownloadURL()
+    storage1
+      .ref(`apiario ${nomeApiario}/colmeia ${nomeCol}`)
+      .getDownloadURL()
       .then(async (url) => {
-        console.log(`url de ${nomeAudio}->`, url)
+        console.log(`url de ${nomeAudio}->`, url);
         try {
           const { sound } = await Audio.Sound.createAsync({ uri: url });
           await sound.replayAsync();
         } catch (error) {
-          console.log('Erro ao reproduzir o audio: ', error);
+          console.log("Erro ao reproduzir o audio: ", error);
         }
-      })
+      });
   };
 
   useEffect(() => {
@@ -219,11 +240,11 @@ export default function SpeechToText() {
     // const dirInfo = FileSystem.getInfoAsync(
     //   `file:///data/user/0/com.luispedro.Apivoice/files/apiario eu/colmeia teste/`
     // );
-    
+
     //   const arquivosInfo = FileSystem.readDirectoryAsync(dirInfo.uri);
     //   setArquivos(arquivosInfo);
     //   console.log('teste',arquivos);
-    
+
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
@@ -309,7 +330,9 @@ export default function SpeechToText() {
       result.includes(`Selecionar colmeia`) ||
       result.includes(`selecionar colmeia`)
     ) {
-      nomeCol = result.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
+      nomeCol = result
+        .split("colmeia ")
+        [null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
 
       let ColRef = firebase
         .firestore()
@@ -335,34 +358,45 @@ export default function SpeechToText() {
     }
 
     // comando reproduzir ultima gravação
-    if(result.includes('reproduzir última gravação')){
+    if (result.includes("reproduzir última gravação")) {
       Speech.speak(`A reproduzir ultima gravação`, {
         voice: "pt-pt-x-sfs-network",
       });
-      onPlayPress(lastFile)
+      onPlayPress(lastFile);
     }
 
     // comando gravar
-    if (result.includes('nova gravação') || result.includes('novo áudio')) {
+    if (result.includes("nova gravação") || result.includes("novo áudio")) {
       navigation.navigate("Audio Recorder", {
-        nomeCol: NomeCol
-      })
+        nomeCol: NomeCol,
+      });
     }
-    if ((result.includes('Nome áudio') || result.includes('nome áudio'))) {
-      NomeAudio = result.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+    if (result.includes("Nome áudio") || result.includes("nome áudio")) {
+      NomeAudio = result
+        .split("áudio ")
+        [null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
       //NomeAudio = nomeaudio
-      navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
-      setNomeA(NomeAudio)
-      setNomeC(NomeCol)
+      navigation.navigate("Audio Recorder", {
+        NomeAudio: NomeAudio,
+        nomeCol: NomeCol,
+      });
+      setNomeA(NomeAudio);
+      setNomeC(NomeCol);
     }
-    if (result.includes('Começar a gravar') || result.includes('começar a gravar')) {
+    if (
+      result.includes("Começar a gravar") ||
+      result.includes("começar a gravar")
+    ) {
       clearInterval(intervalID);
       startRecording1();
     }
 
-    if (result.includes('Parar gravação') || result.includes('parar gravação')) {
+    if (
+      result.includes("Parar gravação") ||
+      result.includes("parar gravação")
+    ) {
       stopRecording1();
-      navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
+      navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi });
     }
 
     // comando voltar
@@ -385,11 +419,6 @@ export default function SpeechToText() {
 
   return (
     <View>
-      <Text>
-        {"  Resultado ->"} {result}
-      </Text>
-      <CustomButton text="Apagar" type="SECONDARY" onPress={clear} />
-      <CustomButton text="Teste?" type="SECONDARY" onPress={testevoz} />
 
       <View style={styles.comandos2}>
         <Text style={styles.comandos}>Comandos por voz</Text>

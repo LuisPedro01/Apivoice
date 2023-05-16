@@ -280,7 +280,7 @@ export default function Home({ item, route }) {
   };
   return (
     <View style={styles.container}>
-      <Header name={name.username} type="user" onPress={onUserPress} />
+      <Header name={name.username} type="user" onPress={onUserPress} showIcon={'true'}/>
       <View style={styles.buttons}>
         <CustomButton text={route.params.nomeApi1} type="HOME" />
 

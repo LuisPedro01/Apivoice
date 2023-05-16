@@ -43,7 +43,7 @@ export default function SignIn() {
           if (email === email1 && password === password1) {
             navigation.navigate("Apiario");
           } else {
-            console.log('hehehe')
+            console.log('erro')
           }
           // navigate to the main app screen
         } catch (e) {

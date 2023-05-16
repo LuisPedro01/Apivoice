@@ -99,7 +99,7 @@ export default function AlterarApiario({ route }) {
 
   return (
     <View style={styles.container}>
-      <Header name={"Lista de Apiários"} type="tool" />
+      <Header name={"Lista de Apiários"} type="tool" showIcon={'true'}/>
       <View style={styles.buttons}>
         <CustomButton text="Apiário Atual" type="ALTERAR" />
         <CustomButton text={buttonValue} type="APIARIO" />

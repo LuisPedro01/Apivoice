@@ -21,7 +21,7 @@ import SpeechToText from './SpeechToText';
 
 const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
 
-export default function Header({ name, type, onPress, route, item }) {
+export default function Header({ name, type, onPress, route, item, showIcon }) {
   const navigation = useNavigation();
   const [isEnable, setIsEnable] = useState(false);
   const [apiario, setApiario] = useState('')
@@ -341,7 +341,10 @@ export default function Header({ name, type, onPress, route, item }) {
     <LinearGradient colors={['#FFDAAE', 'white']}>
       <View style={styles.container}>
         <View style={styles.content}>
-          <Feather name={"chevron-left"} size={27} color="black" onPress={() => navigation.goBack()} />
+          {
+            showIcon &&
+            <Feather name={"chevron-left"} size={27} color="black" onPress={() => navigation.goBack()} />
+          }
           <Text style={styles.username}>{name || "Bem vindo!"}</Text>
           <TouchableOpacity style={styles.buttonUser}>
             <Feather name={`${type}`} size={27} color="black" onPress={onPress} />

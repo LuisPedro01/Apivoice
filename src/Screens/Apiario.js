@@ -121,7 +121,7 @@ export default function Apiario(item) {
 
   return (
     <View style={styles.container}>
-      <Header name={name.username} type="user" onPress={onUserPress} />
+      <Header name={"Olá, "+name.username+"!"} type="user" onPress={onUserPress} />
 
       <CustomButton text="Lista de apiários" type="COLMEIAS" />
 

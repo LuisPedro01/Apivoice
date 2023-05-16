@@ -113,7 +113,7 @@ const AudioRecorder = ({route}) => {
 
   return (
     <View style={styles.container}>
-      <Header name="Nova Gravação" type="upload" />
+      <Header name="Nova Gravação" type="upload" showIcon={'true'}/>
 
       <CustomButton text={route.params.nomeCol} type="COLMEIAS" />
 

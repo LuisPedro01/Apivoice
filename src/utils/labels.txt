@@ -1,0 +1,8 @@
+0 Background Noise
+1 Fim Gravação
+2 Gravar
+3 Parar
+4 Página inicial
+5 Selecionar apiário
+6 Selecionar colmeia
+7 Voltar

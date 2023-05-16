@@ -45,7 +45,8 @@ export default function SignUp() {
         const errorMessage = error.message;
         if (errorCode === "auth/email-already-in-use")
           alert("Este mail já está ser usado!");
-        if (errorCode === "auth/invalid-email") alert("Email inválido!");
+        if (errorCode === "auth/invalid-email") 
+          alert("Email inválido!");
         if (errorCode === "auth/Operation-not-allowed")
           alert("Operação inválida!");
         if (errorCode === "auth/weak-password")
