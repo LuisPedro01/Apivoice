@@ -41,7 +41,7 @@ export default function SignIn() {
               
           // compare user authentication information with current user
           if (email === email1 && password === password1) {
-            navigation.navigate("Apiario");
+            navigation.navigate("Página Inicial");
           } else {
             console.log('erro')
           }
@@ -49,7 +49,7 @@ export default function SignIn() {
         } catch (e) {
           console.log('Error storing user authentication information:', e);
         }
-        navigation.navigate("Apiario");
+        navigation.navigate("Página Inicial");
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -74,13 +74,6 @@ export default function SignIn() {
     navigation.navigate("Sign Up");
   };
 
-  const onSignInFacebook = () => {
-    console.warn("Facebook");
-  };
-
-  const onSignInGoogle = () => {
-    console.warn("Google");
-  };
   return (
     <ScrollView>
       <View style={styles.root}>

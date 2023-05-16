@@ -25,13 +25,13 @@ export default function Navigation() {
             <Stack.Screen name="Animated" component={Animated} />
             <Stack.Screen name="Sign In" component={SignIn} />
             <Stack.Screen name="Sign Up" component={SignUp} />
-            <Stack.Screen name="Home" component={Home} />
+            <Stack.Screen name="Colmeia" component={Home} />
             <Stack.Screen name="Audio Play" component={AudioPlay} />
             <Stack.Screen name="Audio Recorder" component={AudioRecorder} />
             <Stack.Screen name="Nova Colmeia" component={NovaColmeia} />
-            <Stack.Screen name="Colmeia" component={Colmeia} />
+            <Stack.Screen name="Gravações" component={Colmeia} />
             <Stack.Screen name="Perfil" component={Perfil} />
-            <Stack.Screen name="Apiario" component={Apiario} />
+            <Stack.Screen name="Página Inicial" component={Apiario} />
             <Stack.Screen name="Novo Apiario" component={NovoApiario} />
             <Stack.Screen name="Alterar Apiario" component={AlterarApiario} />
 

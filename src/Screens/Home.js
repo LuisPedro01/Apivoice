@@ -109,7 +109,7 @@ export default function Home({ item, route }) {
                   text={item}
                   type="COLMEIA"
                   onPress={() =>
-                    navigation.navigate("Colmeia", {
+                    navigation.navigate("Gravações", {
                       nomeCol: item,
                       nomeApi: route.params.nomeApi,
                     })
@@ -149,7 +149,7 @@ export default function Home({ item, route }) {
                   text={item.nomeColmeia}
                   type="COLMEIA"
                   onPress={() =>
-                    navigation.navigate("Colmeia", {
+                    navigation.navigate("Gravações", {
                       nomeCol: item,
                       nomeApi: route.params.nomeApi,
                     })

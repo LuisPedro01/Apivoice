@@ -10,11 +10,11 @@ import {
 import Voice from "@react-native-voice/voice";
 import CustomButton from "../components/CustomButton";
 import * as Speech from "expo-speech";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { firebase, storage } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 import { Audio } from "expo-av";
-import { classifyAudio } from '../teste/classifyAudio'; // Substitua pelo caminho correto para seus arquivos utilitários
+import { classifyAudio } from "../teste/classifyAudio"; // Substitua pelo caminho correto para seus arquivos utilitários
 import * as FileSystem from "expo-file-system";
 
 export default function SpeechToText() {
@@ -44,18 +44,20 @@ export default function SpeechToText() {
   const runClassification = async () => {
     try {
       // Carregue o modelo TensorFlow Lite
-      const modelPath = './soundclassifier_with_metadata.tflite';
+      const modelPath = "./soundclassifier_with_metadata.tflite";
       const modelBuffer = await FileSystem.readFile(modelPath);
-      const model = new Tensor(modelPath, 'float32');
+      const model = new Tensor(modelPath, "float32");
 
       // Classifique o áudio
-      const { sound } = await Audio.Recording.createAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+      const { sound } = await Audio.Recording.createAsync(
+        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+      );
       const audioData = await sound.exportAsync();
-    
+
       const result = await classifyAudio(audioData, model);
-      console.log('Resultado da classificação de áudio:', result);
+      console.log("Resultado da classificação de áudio:", result);
     } catch (error) {
-      console.error('Erro na classificação de áudio:', error);
+      console.error("Erro na classificação de áudio:", error);
     }
   };
 
@@ -237,6 +239,7 @@ export default function SpeechToText() {
     Voice.onSpeechStart = speechStartHandler;
     Voice.onSpeechEnd = speechEndHandler;
     Voice.onSpeechResults = speechResultsHandler;
+
     // const dirInfo = FileSystem.getInfoAsync(
     //   `file:///data/user/0/com.luispedro.Apivoice/files/apiario eu/colmeia teste/`
     // );
@@ -244,7 +247,6 @@ export default function SpeechToText() {
     //   const arquivosInfo = FileSystem.readDirectoryAsync(dirInfo.uri);
     //   setArquivos(arquivosInfo);
     //   console.log('teste',arquivos);
-
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
@@ -276,21 +278,28 @@ export default function SpeechToText() {
   };
 
   if (isEnable) {
+    if(result.includes("página atual")){
+      const route = useRoute();
+      const currentRoute = route.name;
+      Speech.speak(`Encontra-se na página ${currentRoute}`, {
+        voice: "pt-pt-x-sfs-network",
+      });
+      setResult("");
+      setLoading(true);
+    }
+
     if (result.includes("página inicial")) {
       Speech.speak("A dirécionar para a página inicial", {
         voice: "pt-pt-x-sfs-network",
       });
-      navigation.navigate("Apiario");
+      navigation.navigate("Página Inicial");
       setResult("");
+      setLoading(true);
     }
 
     // comando selecionar apiario (tratar de quando for offline)
     if (
       result.includes(`selecionar apiário`) ||
-      result.includes(`Selecionar apiário`) ||
-      result.includes(`Selecionar diário`) ||
-      result.includes(`Selecionar pior`) ||
-      result.includes(`Selecionar piário`) ||
       result.includes(`selecionar diário`) ||
       result.includes(`selecionar pior`) ||
       result.includes(`selecionar piário`) ||
@@ -307,22 +316,26 @@ export default function SpeechToText() {
 
       const nomeApiario = palavras[palavras.length - 1];
 
-      // ApiRef.where("nome", "==", nomeApiario)
-      //   .get()
-      //   .then((querySnapshot) => {
-      //     querySnapshot.forEach((doc) => {
-      //       keyExtractor(doc);
-      //       navigation.navigate("Home", {
-      //         nomeApi1: doc.data().nome,
-      //         nomeApi: doc,
-      //       });
-      //       RouteApi = doc.id;
-      //       nomeApi = doc.data().nome;
-      //       Speech.speak(`Apiário ${nomeApiario} selecionado`, {
-      //         voice: "pt-pt-x-sfs-network",
-      //       });
-      //     });
-      //   });
+      console.log(nomeApiario)
+
+      ApiRef.where("nome", "==", nomeApiario)
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            keyExtractor(doc);
+            navigation.navigate("Colmeia", {
+              nomeApi1: doc.data().nome,
+              nomeApi: doc,
+            });
+            RouteApi = doc.id;
+            nomeApi = doc.data().nome;
+            Speech.speak(`Apiário ${nomeApiario} selecionado`, {
+              voice: "pt-pt-x-sfs-network",
+            });
+          });
+        });
+      setResult("");
+      setLoading(true);
     }
 
     // comando selecionar colmeia (tratar de quando for offline)
@@ -345,7 +358,7 @@ export default function SpeechToText() {
           querySnapshot.forEach((doc) => {
             keyExtractor(doc);
             NomeCol = doc.data().nomeColmeia;
-            navigation.navigate("Colmeia", {
+            navigation.navigate("Gravações", {
               nomeCol: doc.data(),
               nomeApi: nomeApi,
             });
@@ -406,6 +419,7 @@ export default function SpeechToText() {
         voice: "pt-pt-x-sfs-network",
       });
       setResult("");
+      setLoading(true);
     }
 
     if (result.includes("parar") || result.includes("parar")) {
@@ -414,12 +428,12 @@ export default function SpeechToText() {
       Speech.speak("Comandos desligados", {
         voice: "pt-pt-x-sfs-network",
       });
+      setResult("");
     }
   }
 
   return (
     <View>
-
       <View style={styles.comandos2}>
         <Text style={styles.comandos}>Comandos por voz</Text>
         <View>
