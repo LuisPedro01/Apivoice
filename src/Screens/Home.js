@@ -69,8 +69,8 @@ export default function Home({ item, route }) {
       .doc(route.params.nomeApi.id)
       .delete()
       .then(() => {
-        Alert.alert("Apiário apagado!", "Apiário apagado com sucesso!");
-        navigation.navigate("Apiario");
+        Alert.alert("Apiário apagado!", "Apiário apagado com sucesso da base de dados!");
+        navigation.navigate("Página Inicial");
       })
       .catch((error) => console.log(error));
 
@@ -78,8 +78,8 @@ export default function Home({ item, route }) {
     try {
       FileSystem.deleteAsync(fileUri);
       console.log("Arquivo excluído com sucesso.");
-      navigation.navigate("Apiario");
-      Alert.alert("Apiário apagado!", "Apiário apagado com sucesso!");
+      navigation.navigate("Página Inicial");
+      Alert.alert("Apiário apagado!", "Apiário apagado com sucesso localmente!");
     } catch (error) {
       console.log(`Erro ao excluir o arquivo: ${error.message}`);
     }

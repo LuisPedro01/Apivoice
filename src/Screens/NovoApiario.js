@@ -13,70 +13,99 @@ import * as FileSystem from "expo-file-system";
 
 export default function NovoApiario({ item, route }) {
   const navigation = useNavigation();
-  const [nome, setNome] = useState('');
-  const [localizaçao, setLocalizaçao] = useState('');
-  const [text, setText] = useState("")
-  const [nomeApi, SetNomeApi] = useState('')
-  const [localizaçãoApi, SetLocalizaçãoApi] = useState('')
+  const [nome, setNome] = useState("");
+  const [localizaçao, setLocalizaçao] = useState("");
+  const [text, setText] = useState("");
+  const [nomeApi, SetNomeApi] = useState("");
+  const [localizaçãoApi, SetLocalizaçãoApi] = useState("");
   const userId = firebase.auth().currentUser.uid;
-
+  const [Name, setName] = useState("");
 
   const Create = () => {
-    if (nome.trim() != '' && localizaçao.trim() != '') {
+    if (nome.trim() != "" && localizaçao.trim() != "") {
+      if (Name != null) {
+        // Criar apiarios na base de dados
+        const myCol = collection(db, "apiarios");
+        const colData = {
+          nome: nome,
+          localizacao: localizaçao,
+          createdAt: Date(),
+          userId: userId,
+        };
 
-
-      // Criar apiarios na base de dados
-      const myCol = collection(db, "apiarios");
-      const colData = {
-        nome: nome,
-        localizacao: localizaçao,
-        createdAt: Date(),
-        userId: userId
-      };
-
-      addDoc(myCol, colData)
-        .then(() => {
-          Alert.alert("Apiario criado!", "Novo apiário criado com sucesso!");
-          navigation.navigate("Apiario");
-          return
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
-
-      //criar offline
-      try {
-        const directory = FileSystem.documentDirectory;
-        const filePath = `${directory}apiario ${nome}`;
-        const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`
-        FileSystem.makeDirectoryAsync(filePath, conteudo)
-        console.log('Arquivo guardado localmente em, ', filePath)
-        Alert.alert("Apiario criado!", "Novo apiário criado com sucesso!");
-        navigation.navigate("Apiario");
-      } catch (error) {
-        console.log(`Erro: ${error.message}`);
+        addDoc(myCol, colData)
+          .then(() => {
+            Alert.alert(
+              "Apiario criado!",
+              "Novo apiário criado com sucesso na base de dados!"
+            );
+            navigation.navigate("Página Inicial");
+            return;
+          })
+          .catch((error) => {
+            alert(error.message);
+          });
+      } else {
+        //criar offline
+        try {
+          const directory = FileSystem.documentDirectory;
+          const filePath = `${directory}apiario ${nome}`;
+          const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`;
+          FileSystem.makeDirectoryAsync(filePath, conteudo);
+          console.log("Arquivo guardado localmente em, ", filePath);
+          Alert.alert(
+            "Apiario criado!",
+            "Novo apiário criado com sucesso localmente!"
+          );
+          navigation.navigate("Página Inicial");
+        } catch (error) {
+          console.log(`Erro: ${error.message}`);
+        }
       }
+    } else {
+      Alert.alert(
+        "Campos obrigatórios!",
+        'Os campos de "Nome" e de "Localização" são obrigatórios!'
+      );
     }
-    else {
-      Alert.alert('Campos obrigatórios!', 'Os campos de "Nome" e de "Localização" são obrigatórios!')
-    }
-
   };
 
+  const getDadosNomes = () => {
+    firebase
+      .firestore()
+      .collection("Nomes")
+      .doc(firebase.auth().currentUser.uid)
+      .get()
+      .then((snapshot) => {
+        if (snapshot.exists) {
+          setName(snapshot.data());
+        } else {
+          console.log("User does not exists");
+        }
+      });
+  };
 
   useEffect(() => {
-    SetNomeApi(route.params.NomeApi)
-    SetLocalizaçãoApi(route.params.LocalApi)
-  })
-
+    SetNomeApi(route.params.NomeApi);
+    SetLocalizaçãoApi(route.params.LocalApi);
+    getDadosNomes();
+  });
 
   return (
     <View style={styles.container}>
-      <Header name={"Novo Apiário"} type="plus-circle" showIcon={'true'}/>
+      <Header name={"Novo Apiário"} type="plus-circle" showIcon={"true"} />
 
       <View style={styles.list}>
-        <CustomInput placeholder='Nome' value={nome || nomeApi} setValue={setNome} />
-        <CustomInput placeholder="Localização" value={localizaçao || localizaçãoApi} setValue={setLocalizaçao} />
+        <CustomInput
+          placeholder="Nome"
+          value={nome || nomeApi}
+          setValue={setNome}
+        />
+        <CustomInput
+          placeholder="Localização"
+          value={localizaçao || localizaçãoApi}
+          setValue={setLocalizaçao}
+        />
       </View>
       <CustomButton text="Adicionar" type="NOVACOLMEIA" onPress={Create} />
     </View>
