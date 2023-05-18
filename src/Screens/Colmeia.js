@@ -146,7 +146,7 @@ export default function NovaColmeia({ item, route }) {
     console.log("Loading Sound");
 
     const directory = FileSystem.documentDirectory;
-    const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}/${item}`;
+    const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/colmeia${route.params.nomeCol}/${item}`;
     
     try {
       const { sound } = await Audio.Sound.createAsync({ uri: filePath });

@@ -48,16 +48,16 @@ export default function NovaColmeia({ route }) {
       } else {
         //criar offline
         try {
-          const directory = FileSystem.documentDirectory;
-          const filePath = `${directory}apiario ${route.params.nomeApi.nome}/colmeia ${nome}`;
-          const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`;
-          FileSystem.makeDirectoryAsync(filePath, conteudo);
-          console.log("Arquivo guardado localmente em, ", filePath);
           Alert.alert(
             "Colmeia criada!",
             "Nova colmeia criada com sucesso localmente!"
           );
           navigation.navigate("Página Inicial");
+          const directory = FileSystem.documentDirectory;
+          const filePath = `${directory}apiario ${route.params.nomeApi.nome}/colmeia ${nome}`;
+          const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`;
+          FileSystem.makeDirectoryAsync(filePath, conteudo);
+          console.log("Arquivo guardado localmente em, ", filePath);
           return;
         } catch (error) {
           console.log(`Erro: ${error.message}`);

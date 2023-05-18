@@ -48,16 +48,16 @@ export default function NovoApiario({ item, route }) {
       } else {
         //criar offline
         try {
-          const directory = FileSystem.documentDirectory;
-          const filePath = `${directory}apiario ${nome}`;
-          const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`;
-          FileSystem.makeDirectoryAsync(filePath, conteudo);
-          console.log("Arquivo guardado localmente em, ", filePath);
           Alert.alert(
             "Apiario criado!",
             "Novo apiário criado com sucesso localmente!"
           );
           navigation.navigate("Página Inicial");
+          const directory = FileSystem.documentDirectory;
+          const filePath = `${directory}apiario ${nome}`;
+          const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`;
+          FileSystem.makeDirectoryAsync(filePath, conteudo);
+          console.log("Arquivo guardado localmente em, ", filePath);
         } catch (error) {
           console.log(`Erro: ${error.message}`);
         }

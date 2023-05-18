@@ -74,7 +74,7 @@ export default function Home({ item, route }) {
       })
       .catch((error) => console.log(error));
 
-    const fileUri = `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}`;
+    const fileUri = `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/`;
     try {
       FileSystem.deleteAsync(fileUri);
       console.log("Arquivo excluído com sucesso.");
@@ -198,7 +198,7 @@ export default function Home({ item, route }) {
   const listarArquivos1 = async () => {
     try {
       const dirInfo = await FileSystem.getInfoAsync(
-        `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}`
+        `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/`
       );
       if (dirInfo.exists && dirInfo.isDirectory) {
         const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
