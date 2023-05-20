@@ -28,9 +28,27 @@ export default function NovaColmeia({ item, route }) {
   );
   const [userDocOff, setUserDocOff] = useState([]);
   const [arquivos, setArquivos] = useState([]);
+  const [name, setName] = useState("");
+
+
+  const getDadosNomes = () => {
+    firebase
+      .firestore()
+      .collection("Nomes")
+      .doc(firebase.auth().currentUser.uid)
+      .get()
+      .then((snapshot) => {
+        if (snapshot.exists) {
+          setName(snapshot.data());
+        } else {
+          console.log("User does not exists");
+        }
+      });
+  };
 
   useEffect(() => {
     listGrav();
+    getDadosNomes();
     if (Grav.length === 0) {
       listarArquivos1();
     }
@@ -55,7 +73,7 @@ export default function NovaColmeia({ item, route }) {
     const directory = FileSystem.cacheDirectory;
     const filename = 'recording-d8d2803f-d5d9-465f-9d69-97e638e1bbcb.m4a';
     const filePath = `${directory}Audio/${filename}`;
-    
+
     const fileInfo = await FileSystem.getInfoAsync(filePath);
     if (fileInfo.exists) {
       console.log('Arquivo encontrado no diretório:', filePath);
@@ -65,24 +83,27 @@ export default function NovaColmeia({ item, route }) {
   };
 
   const deleteColmeia = async () => {
-    //online
-    const subCollection = firebase
-      .firestore()
-      .collection("apiarios")
-      .doc(route.params.nomeApi.id)
-      .collection("colmeia");
-    subCollection
-      .doc(route.params.nomeCol.id)
-      .delete()
-      .then(() => {
-        Alert.alert("Colmeia apagada!", "Colmeia apagada com sucesso na base de dados!");
-        navigation.navigate("Página Inicial");
-        console.log(userDocOff);
-        setUserDocOff("");
-      })
-      .catch((error) => {
-        console.error("Error deleting document: ", error);
-      });
+    if (name != null) {
+      //online
+      const subCollection = firebase
+        .firestore()
+        .collection("apiarios")
+        .doc(route.params.nomeApi.id)
+        .collection("colmeia");
+      subCollection
+        .doc(route.params.nomeCol.id)
+        .delete()
+        .then(() => {
+          Alert.alert("Colmeia apagada!", "Colmeia apagada com sucesso na base de dados!");
+          navigation.navigate("Página Inicial");
+          console.log(userDocOff);
+          setUserDocOff("");
+        })
+        .catch((error) => {
+          console.error("Error deleting document: ", error);
+        });
+    }
+    else {
       //offline
       const directory = FileSystem.documentDirectory;
       const filePath = `${directory}apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`;
@@ -94,6 +115,7 @@ export default function NovaColmeia({ item, route }) {
       } catch (error) {
         console.log(`Erro ao excluir o arquivo: ${error.message}`);
       }
+    }
   };
 
   const alterarApi = () => {
@@ -147,7 +169,7 @@ export default function NovaColmeia({ item, route }) {
 
     const directory = FileSystem.documentDirectory;
     const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/colmeia${route.params.nomeCol}/${item}`;
-    
+
     try {
       const { sound } = await Audio.Sound.createAsync({ uri: filePath });
       await sound.replayAsync();
@@ -206,7 +228,7 @@ export default function NovaColmeia({ item, route }) {
 
   return (
     <View style={styles.container}>
-      <Header name={"Gravações"} type="music" showIcon={'true'}/>
+      <Header name={"Gravações"} type="music" showIcon={'true'} />
       <CustomButton
         text={
           route.params.nomeCol.nomeColmeia +

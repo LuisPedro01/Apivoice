@@ -63,25 +63,30 @@ export default function Home({ item, route }) {
   };
 
   const deleteApi = async () => {
-    firebase
-      .firestore()
-      .collection("apiarios")
-      .doc(route.params.nomeApi.id)
-      .delete()
-      .then(() => {
-        Alert.alert("Apiário apagado!", "Apiário apagado com sucesso da base de dados!");
+    if (name != null) {
+      //Online
+      firebase
+        .firestore()
+        .collection("apiarios")
+        .doc(route.params.nomeApi.id)
+        .delete()
+        .then(() => {
+          Alert.alert("Apiário apagado!", "Apiário apagado com sucesso da base de dados!");
+          navigation.navigate("Página Inicial");
+        })
+        .catch((error) => console.log(error));
+    }
+    else {
+      //offline
+      const fileUri = `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/`;
+      try {
+        FileSystem.deleteAsync(fileUri);
+        console.log("Arquivo excluído com sucesso.");
         navigation.navigate("Página Inicial");
-      })
-      .catch((error) => console.log(error));
-
-    const fileUri = `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/`;
-    try {
-      FileSystem.deleteAsync(fileUri);
-      console.log("Arquivo excluído com sucesso.");
-      navigation.navigate("Página Inicial");
-      Alert.alert("Apiário apagado!", "Apiário apagado com sucesso localmente!");
-    } catch (error) {
-      console.log(`Erro ao excluir o arquivo: ${error.message}`);
+        Alert.alert("Apiário apagado!", "Apiário apagado com sucesso localmente!");
+      } catch (error) {
+        console.log(`Erro ao excluir o arquivo: ${error.message}`);
+      }
     }
   };
 
@@ -280,7 +285,7 @@ export default function Home({ item, route }) {
   };
   return (
     <View style={styles.container}>
-      <Header name={name.username} type="user" onPress={onUserPress} showIcon={'true'}/>
+      <Header name={name.username} type="user" onPress={onUserPress} showIcon={'true'} />
       <View style={styles.buttons}>
         <CustomButton text={route.params.nomeApi1} type="HOME" />
 

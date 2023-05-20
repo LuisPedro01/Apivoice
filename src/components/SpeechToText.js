@@ -14,7 +14,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { firebase, storage } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 import { Audio } from "expo-av";
-import { classifyAudio } from "../teste/classifyAudio"; // Substitua pelo caminho correto para seus arquivos utilitários
+//import { classifyAudio } from "../teste/classifyAudio"; // Substitua pelo caminho correto para seus arquivos utilitários
 import * as FileSystem from "expo-file-system";
 
 export default function SpeechToText() {
@@ -68,7 +68,6 @@ export default function SpeechToText() {
         .ref(`apiario ${nomeApiario}/colmeia ${nomeCol}`); // Referência para o diretório raiz do Firebase Storage
       const listResult = await reference.list(); // Recupera uma lista de todos os itens no diretório raiz
 
-      //console.log("Lista de arquivos no Firebase Storage:");
 
       for (const item of listResult.items) {
         console.log("Nome do arquivo:", item.name);
