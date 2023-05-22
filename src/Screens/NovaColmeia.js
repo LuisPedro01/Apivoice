@@ -21,48 +21,53 @@ export default function NovaColmeia({ route }) {
 
   const CreateCol = () => {
     if (nome.trim() != "" && localizaçao.trim() != "") {
-      if (Name != null) {
-        //criar online
-        const subCollection = firebase
-          .firestore()
-          .collection("apiarios")
-          .doc(route.params.nomeApi.id)
-          .collection("colmeia");
-        subCollection
-          .add({
-            nomeColmeia: nome,
-            localizacao: localizaçao,
-            createdAt: Date(),
-          })
-          .then(() => {
-            Alert.alert(
-              "Colmeia criada!",
-              "Nova colmeia criada com sucesso na base de dados!"
-            );
-            navigation.navigate("Página Inicial");
-            return;
-          })
-          .catch((error) => {
-            alert(error.message);
-          });
-      } else {
+      // if (Name != null) {
+      //   //criar online
+      //   const subCollection = firebase
+      //     .firestore()
+      //     .collection("apiarios")
+      //     .doc(route.params.nomeApi.id)
+      //     .collection("colmeia");
+      //   subCollection
+      //     .add({
+      //       nomeColmeia: nome,
+      //       localizacao: localizaçao,
+      //       createdAt: Date(),
+      //     })
+      //     .then(() => {
+      //       Alert.alert(
+      //         "Colmeia criada!",
+      //         "Nova colmeia criada com sucesso na base de dados!"
+      //       );
+      //       navigation.navigate("Página Inicial");
+      //       return;
+      //     })
+      //     .catch((error) => {
+      //       alert(error.message);
+      //     });
+      // } else {
         //criar offline
         try {
+          const createObjectLocally = async (objectKey, object) => {
+            try {
+              await AsyncStorage.setItem(objectKey, JSON.stringify(object));
+              console.log('Objeto criado localmente com sucesso!');
+            } catch (error) {
+              console.log('Erro ao criar o objeto localmente:', error);
+            }
+          };
+          const objectToCreate = { nome: nome, localizacao: localizaçao, createdAt: Date(), tipo: 'Colmeia' };
+          const objectKey = nome;
+          createObjectLocally(objectKey, objectToCreate);
           Alert.alert(
             "Colmeia criada!",
             "Nova colmeia criada com sucesso localmente!"
           );
           navigation.navigate("Página Inicial");
-          const directory = FileSystem.documentDirectory;
-          const filePath = `${directory}apiario ${route.params.nomeApi.nome}/colmeia ${nome}`;
-          const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`;
-          FileSystem.makeDirectoryAsync(filePath, conteudo);
-          console.log("Arquivo guardado localmente em, ", filePath);
-          return;
         } catch (error) {
           console.log(`Erro: ${error.message}`);
         }
-      }
+      //}
     } else {
       Alert.alert(
         "Campos obrigatórios!",

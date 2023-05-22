@@ -21,6 +21,7 @@ export default function Home({ item, route }) {
   const [userDoc, setUserDoc] = useState([]);
   const [userDocOff, setUserDocOff] = useState([]);
   const [name, setName] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   const getDados = () => {
     firebase
@@ -58,6 +59,37 @@ export default function Home({ item, route }) {
       });
   };
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    getObjectsLocally()
+    setRefreshing(false)
+  };
+
+  const getObjectsLocally = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const objects = await AsyncStorage.multiGet(keys);
+
+      // Converter os objetos de string para JSON
+      const parsedObjects = objects.map(([key, value]) => {
+        try {
+          return key, JSON.parse(value);
+        } catch (error) {
+          console.log(`Erro ao fazer o parsing do objeto com chave ${key}:`, error);
+          return [key, null];
+        }
+      });
+
+      setArquivos(parsedObjects)
+      console.log(parsedObjects)
+      return parsedObjects;
+    } catch (error) {
+      console.log('Erro ao recuperar a lista de objetos:', error);
+      return [];
+    }
+  };
+
+
   const onUserPress = () => {
     navigation.navigate("Perfil");
   };
@@ -78,15 +110,25 @@ export default function Home({ item, route }) {
     }
     else {
       //offline
-      const fileUri = `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/`;
       try {
-        FileSystem.deleteAsync(fileUri);
-        console.log("Arquivo excluído com sucesso.");
+        removeObjectLocally();
         navigation.navigate("Página Inicial");
         Alert.alert("Apiário apagado!", "Apiário apagado com sucesso localmente!");
       } catch (error) {
         console.log(`Erro ao excluir o arquivo: ${error.message}`);
       }
+    }
+
+  };
+
+  const removeObjectLocally = () => {
+    const objectKey = route.params.nomeApi1
+    try {
+      AsyncStorage.removeItem(objectKey);
+      console.log('Objeto removido com sucesso!');
+      navigation.navigate("Página Inicial");
+    } catch (error) {
+      console.log('Erro ao remover o objeto:', error);
     }
   };
 
@@ -193,8 +235,8 @@ export default function Home({ item, route }) {
   useEffect(() => {
     getDadosNomes();
     getDados();
+    getObjectsLocally();
     if (userDoc.length === 0) {
-      listarArquivos1();
     }
   }, []);
 

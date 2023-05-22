@@ -96,7 +96,6 @@ export default function NovaColmeia({ item, route }) {
         .then(() => {
           Alert.alert("Colmeia apagada!", "Colmeia apagada com sucesso na base de dados!");
           navigation.navigate("Página Inicial");
-          console.log(userDocOff);
           setUserDocOff("");
         })
         .catch((error) => {

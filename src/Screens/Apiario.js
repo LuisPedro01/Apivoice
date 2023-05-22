@@ -5,6 +5,7 @@ import {
   View,
   FlatList,
   TouchableOpacity,
+  RefreshControl
 } from "react-native";
 import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
@@ -17,6 +18,7 @@ import { firebase, storage } from "../services/firebase";
 import { onValue, ref } from "firebase/database";
 import { FirebaseError } from "firebase/app";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
 
 export default function Apiario(item) {
   const route = useRoute();
@@ -25,49 +27,13 @@ export default function Apiario(item) {
   const ApiRef = firebase.firestore().collection("apiarios");
   const [name, setName] = useState("");
   const [data, setData] = useState(null);
-  
-
-  const checkAuthentication = async () => {
-    // get user authentication information from local storage
-    const email = await AsyncStorage.getItem('email');
-    const password = await AsyncStorage.getItem('password');
-    const user = await AsyncStorage.getItem('user');
-
-  
-    // compare user authentication information with current user
-    if (email === route.params.email && password === route.email.params) {
-      // user is authenticated
-    } else {
-      // user is not authenticated
-    }
-  };
-
-
-  // // Sincronização dos dados do Firestore com a aplicação
-  // ApiRef.onSnapshot((querySnapshot) => {
-  //   const apiarios = querySnapshot.docs.map((doc) => doc.data());
-  //   console.log("dados do firestore:", apiarios);
-  //   // AsyncStorage.setItem("off", apiarios)
-  //   //   .then(() => {
-  //   //     // Recupera o valor da chave "foo" no AsyncStorage
-  //   //     return AsyncStorage.getItem("off");
-  //   //   })
-  //   //   .then((value) => {
-  //   //     console.log("Valor recuperado do AsyncStorage:", value);
-  //   //   })
-  //   //   .catch((err) => {
-  //   //     console.error("Erro ao usar o AsyncStorage:", err);
-  //   //   });
-  // });
-
-  // // Define um valor no AsyncStorage com a chave "foo" e o valor "bar"
-
-
+  const [arquivos, setArquivos] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
 
   const getDadosApi = () => {
     const userAtual = firebase.auth().currentUser.uid
-    const docsUser =  ApiRef.where('userId', '==', userAtual)
+    const docsUser = ApiRef.where('userId', '==', userAtual)
 
     docsUser.onSnapshot((querySnapshot) => {
       const userDoc = [];
@@ -101,11 +67,10 @@ export default function Apiario(item) {
   useEffect(() => {
     getDadosApi();
     getDadosNomes();
+    getObjectsLocally();
+    if (userDoc.length === 0) {
+    }
   }, []);
-
-  const onUserPress = () => {
-    navigation.navigate("Perfil");
-  };
 
   const onNovoApiarioPress = () => {
     navigation.navigate("Novo Apiario", { NomeApi: "", LocalApi: "" });
@@ -119,9 +84,130 @@ export default function Apiario(item) {
     );
   };
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    getObjectsLocally()
+    setRefreshing(false)
+  };
+
+  const renderFlatList = () => {
+    if (userDoc.length === 0) {
+      return (
+        <FlatList
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          data={arquivos}
+          ListEmptyComponent={EmptyListMessage}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />
+          }
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.container}>
+              <CustomButton
+                text={item.nome + " - " + item.localizacao}
+                type="COLMEIA"
+                onPress={() =>
+                  navigation.navigate("Colmeia", {
+                    nomeApi: item,
+                    nomeApi1: item.nome,
+                  })
+                }
+              />
+            </TouchableOpacity>
+          )}
+        />
+      );
+    } else {
+      return (
+        <FlatList
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          data={userDoc}
+          ListEmptyComponent={EmptyListMessage}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.container}>
+              <CustomButton
+                text={item.nome + " - " + item.localizacao}
+                type="COLMEIA"
+                onPress={() =>
+                  navigation.navigate("Colmeia", {
+                    nomeApi: item,
+                    nomeApi1: item.nome,
+                  })
+                }
+              />
+            </TouchableOpacity>
+          )}
+        />
+      );
+    }
+  };
+
+  const getObjectLocally = async () => {
+    try {
+      const object = await AsyncStorage.getItem('myObject');
+      if (object !== null) {
+        // Fazer algo com o objeto recuperado
+        console.log('Objeto recuperado:', JSON.parse(object));
+      } else {
+        console.log('Objeto não encontrado com a chave fornecida:', 'myObject');
+      }
+    } catch (error) {
+      console.log('Erro ao recuperar o objeto:', error);
+    }
+  };
+
+  const getObjectsLocally = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const objects = await AsyncStorage.multiGet(keys);
+
+      // Converter os objetos de string para JSON
+       // Converter os objetos de string para JSON
+    const parsedObjects = objects.map(([key, value]) => {
+      try {
+        return key,JSON.parse(value);
+      }  catch (error) {
+          console.log(`Erro ao fazer o parsing do objeto com chave ${key}:`, error);
+          return [key, null];
+        }
+      });
+      const apiarios = parsedObjects.filter(obj => obj.tipo === 'Apiário');
+      setArquivos(apiarios)
+      console.log(apiarios)
+      return parsedObjects;
+    } catch (error) {
+      console.log('Erro ao recuperar a lista de objetos:', error);
+      return [];
+    }
+  };
+
+  const eli = () => {
+    FileSystem.deleteAsync(`file:///data/user/0/com.luispedro.Apivoice/files/`)
+  }
+
+  const onUserPress = () => {
+    navigation.navigate("Perfil");
+  };
+
+
+  const removeAllObjectsLocally = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      await AsyncStorage.multiRemove(keys);
+      console.log('Todos os objetos foram removidos com sucesso!');
+    } catch (error) {
+      console.log('Erro ao remover os objetos:', error);
+    }
+  };
   return (
     <View style={styles.container}>
-      <Header name={"Olá, "+name.username+"!"} type="user" onPress={onUserPress} />
+      <Header name={"Olá, " + name.username + "!"} type="user" onPress={onUserPress} />
 
       <CustomButton text="Lista de apiários" type="COLMEIAS" />
 
@@ -135,27 +221,8 @@ export default function Apiario(item) {
         }}
       />
 
-      <FlatList
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
-        data={userDoc}
-        ListEmptyComponent={EmptyListMessage}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.container}>
-            <CustomButton
-              text={item.nome + " - " + item.localizacao}
-              type="COLMEIA"
-              onPress={() =>
-                navigation.navigate("Colmeia", {
-                  nomeApi: item,
-                  nomeApi1: item.nome,
-                })
-              }
-            />
-          </TouchableOpacity>
-        )}
-      />
+      {renderFlatList()}
+
       <CustomButton
         text="Novo apiario"
         type="NOVACOLMEIA"

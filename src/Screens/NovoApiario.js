@@ -10,6 +10,7 @@ import { db } from "../services/firebase";
 import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import { firebase } from "../services/firebase";
 import * as FileSystem from "expo-file-system";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function NovoApiario({ item, route }) {
   const navigation = useNavigation();
@@ -21,47 +22,54 @@ export default function NovoApiario({ item, route }) {
   const userId = firebase.auth().currentUser.uid;
   const [Name, setName] = useState("");
 
-  const Create = () => {
+  const Create = async () => {
     if (nome.trim() != "" && localizaçao.trim() != "") {
-      if (Name != null) {
-        // Criar apiarios na base de dados
-        const myCol = collection(db, "apiarios");
-        const colData = {
-          nome: nome,
-          localizacao: localizaçao,
-          createdAt: Date(),
-          userId: userId,
-        };
+      // if (Name.length != 0) {
+      //   // Criar apiarios na base de dados
+      //   const myCol = collection(db, "apiarios");
+      //   const colData = {
+      //     nome: nome,
+      //     localizacao: localizaçao,
+      //     createdAt: Date(),
+      //     userId: userId,
+      //   };
 
-        addDoc(myCol, colData)
-          .then(() => {
-            Alert.alert(
-              "Apiario criado!",
-              "Novo apiário criado com sucesso na base de dados!"
-            );
-            navigation.navigate("Página Inicial");
-            return;
-          })
-          .catch((error) => {
-            alert(error.message);
-          });
-      } else {
-        //criar offline
-        try {
-          Alert.alert(
-            "Apiario criado!",
-            "Novo apiário criado com sucesso localmente!"
-          );
-          navigation.navigate("Página Inicial");
-          const directory = FileSystem.documentDirectory;
-          const filePath = `${directory}apiario ${nome}`;
-          const conteudo = `nome: ${nome}, localizacao: ${localizaçao}, createdAt: ${Date()}`;
-          FileSystem.makeDirectoryAsync(filePath, conteudo);
-          console.log("Arquivo guardado localmente em, ", filePath);
-        } catch (error) {
-          console.log(`Erro: ${error.message}`);
-        }
+      //   addDoc(myCol, colData)
+      //     .then(() => {
+      //       Alert.alert(
+      //         "Apiario criado!",
+      //         "Novo apiário criado com sucesso na base de dados!"
+      //       );
+      //       navigation.navigate("Página Inicial");
+      //       return;
+      //     })
+      //     .catch((error) => {
+      //       alert(error.message);
+      //     });
+      // } else {
+      //criar offline
+      try {
+        const createObjectLocally = async (objectKey, object) => {
+          try {
+            await AsyncStorage.setItem(objectKey, JSON.stringify(object));
+            console.log('Objeto criado localmente com sucesso!');
+          } catch (error) {
+            console.log('Erro ao criar o objeto localmente:', error);
+          }
+        };
+        const objectToCreate = { nome: nome, localizacao: localizaçao, createdAt: Date(), userId: userId, tipo:'Apiário' };
+        const objectKey = nome;
+        createObjectLocally(objectKey, objectToCreate);
+        Alert.alert(
+          "Apiario criado!",
+          "Novo apiário criado com sucesso localmente!"
+        );
+        navigation.navigate("Página Inicial");
+
+      } catch (error) {
+        console.log(`Erro: ${error.message}`);
       }
+      //}
     } else {
       Alert.alert(
         "Campos obrigatórios!",
@@ -69,6 +77,7 @@ export default function NovoApiario({ item, route }) {
       );
     }
   };
+
 
   const getDadosNomes = () => {
     firebase
