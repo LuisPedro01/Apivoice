@@ -59,7 +59,7 @@ export default function NovoApiario({ item, route }) {
             }
           };
           const id = `${Date.now()}-${Math.random()}`
-          const objectToCreate = { nome: nome, localizacao: localizaçao, createdAt: Date(), id: id, tipo: 'Apiário' };
+          const objectToCreate = { nome: nome, localizacao: localizaçao, createdAt: Date(), id: id, tipo: 'Apiário', userId:userId };
           const objectKey = nome;
           createObjectLocally(objectKey, objectToCreate); 
           Alert.alert(
