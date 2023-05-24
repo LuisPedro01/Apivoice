@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
+  RefreshControl
 } from "react-native";
 import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
@@ -19,9 +20,10 @@ import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 export default function Home({ item, route }) {
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
-  const [userDocOff, setUserDocOff] = useState([]);
+  const [arquivos, setArquivos] = useState([]);
   const [name, setName] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const combinedData = [...userDoc.map(item => ({ type: 'userDoc', item })), ...arquivos.map(item => ({ type: 'arquivos', item }))];
 
   const getDados = () => {
     firebase
@@ -61,14 +63,30 @@ export default function Home({ item, route }) {
 
   const onRefresh = () => {
     setRefreshing(true);
-    getObjectsLocally()
+    getDadosNomes();
+    getDados();
+    getObjectsLocally();
+    if (userDoc.length === 0) {
+    }
     setRefreshing(false)
+  };
+
+  const removeAllObjects = async () => {
+    try {
+      await AsyncStorage.clear();
+      console.log('Todos os objetos foram removidos do armazenamento.');
+    } catch (error) {
+      console.log('Erro ao remover objetos:', error);
+    }
   };
 
   const getObjectsLocally = async () => {
     try {
       const keys = await AsyncStorage.getAllKeys();
       const objects = await AsyncStorage.multiGet(keys);
+      console.log('keys', keys);
+      const filteredKeys = keys.filter(key => key.includes('email') || key.includes('password'));
+      await AsyncStorage.multiRemove(filteredKeys);
 
       // Converter os objetos de string para JSON
       const parsedObjects = objects.map(([key, value]) => {
@@ -76,26 +94,36 @@ export default function Home({ item, route }) {
           return key, JSON.parse(value);
         } catch (error) {
           console.log(`Erro ao fazer o parsing do objeto com chave ${key}:`, error);
-          return [key, null];
+          return { key, parsedValue: null };
         }
       });
 
-      setArquivos(parsedObjects)
-      console.log(parsedObjects)
-      return parsedObjects;
+      const colmeias = parsedObjects.filter(obj => obj.tipo === "Colmeia" && obj.apiario === route.params.nomeApi1)
+      setArquivos(colmeias);
+      console.log('colmeias', colmeias);
+
+      return colmeias;
     } catch (error) {
       console.log('Erro ao recuperar a lista de objetos:', error);
       return [];
     }
   };
 
+  const removeKeys = async (keys) => {
+    try {
+      await AsyncStorage.multiRemove(keys);
+      console.log('Chaves removidas com sucesso:', keys);
+    } catch (error) {
+      console.log('Erro ao remover chaves:', error);
+    }
+  };
 
   const onUserPress = () => {
     navigation.navigate("Perfil");
   };
 
   const deleteApi = async () => {
-    if (name != null) {
+    if (name != null && route.params.TipoDeApi != 'arquivos') {
       //Online
       firebase
         .firestore()
@@ -111,7 +139,7 @@ export default function Home({ item, route }) {
     else {
       //offline
       try {
-        removeObjectLocally();
+        removeObjectLocally(route.params.nomeApi1);
         navigation.navigate("Página Inicial");
         Alert.alert("Apiário apagado!", "Apiário apagado com sucesso localmente!");
       } catch (error) {
@@ -121,10 +149,9 @@ export default function Home({ item, route }) {
 
   };
 
-  const removeObjectLocally = () => {
-    const objectKey = route.params.nomeApi1
+  const removeObjectLocally = (key) => {
     try {
-      AsyncStorage.removeItem(objectKey);
+      AsyncStorage.removeItem(key);
       console.log('Objeto removido com sucesso!');
       navigation.navigate("Página Inicial");
     } catch (error) {
@@ -141,7 +168,7 @@ export default function Home({ item, route }) {
   };
 
   const renderFlatList = () => {
-    if (userDoc.length === 0) {
+    if (userDoc.length === 0 && route.params.TipoDeApi != 'arquivos') {
       return (
         <View style={styles.container}>
           <FlatList
@@ -150,6 +177,12 @@ export default function Home({ item, route }) {
             showsVerticalScrollIndicator={false}
             data={arquivos}
             ListEmptyComponent={EmptyListMessage}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+              />
+            }
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.container}>
                 <CustomButton
@@ -190,6 +223,12 @@ export default function Home({ item, route }) {
             showsVerticalScrollIndicator={false}
             data={userDoc}
             ListEmptyComponent={EmptyListMessage}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+              />
+            }
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.container}>
                 <CustomButton
@@ -240,7 +279,6 @@ export default function Home({ item, route }) {
     }
   }, []);
 
-  const [arquivos, setArquivos] = useState([]);
 
   const listarArquivos1 = async () => {
     try {
@@ -321,7 +359,6 @@ export default function Home({ item, route }) {
       "O apiário encontra-se agora disponível offline."
     );
   }
-
   const teste = () => {
     console.log(arquivos);
   };
@@ -356,8 +393,62 @@ export default function Home({ item, route }) {
         }}
       />
 
-      {renderFlatList()}
-    </View>
+      <View style={styles.container}>
+        <FlatList
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          data={combinedData}
+          ListEmptyComponent={EmptyListMessage}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />
+          }
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.container}>
+              <CustomButton
+                text={item.item.nomeColmeia || item.item.nome}
+                type="COLMEIA"
+                onPress={() =>
+                  navigation.navigate("Gravações", {
+                    nomeCol: item.item.nomeColmeia,
+                    nomeCol1: item.item.nome,
+                    localCol: item.item.localizacao,
+                    nomeApi: route.params.nomeApi1,
+                    TipoDeApi: route.params.TipoDeApi,
+
+                  })
+                }
+              />
+            </TouchableOpacity>
+          )}
+        />
+
+        <View style={styles.buttons1}>
+          <CustomButton
+            text="Nova colmeia"
+            type="teste1"
+            onPress={() =>
+              navigation.navigate("Nova Colmeia", {
+                nomeApi: route.params.nomeApi,
+                NomeCol: "",
+                LocalApi: "",
+              })
+            }
+          />
+
+          <CustomButton
+            text="Disponivel off-line"
+            type="teste"
+            onPress={() =>
+              baixarArquivos(`apiario ${route.params.nomeApi.nome}/`)
+            }
+          />
+        </View>
+      </View>    
+      </View>
   );
 }
 

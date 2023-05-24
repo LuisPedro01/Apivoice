@@ -12,9 +12,9 @@ import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import { firebase, db } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
-import { collection, deleteDoc, getDocs } from "firebase/firestore";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function NovaColmeia({ item, route }) {
   const navigation = useNavigation();
@@ -24,7 +24,7 @@ export default function NovaColmeia({ item, route }) {
   const storage1 = firebase.storage();
   var listRef = ref(
     storage,
-    `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}`
+    `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`
   );
   const [userDocOff, setUserDocOff] = useState([]);
   const [arquivos, setArquivos] = useState([]);
@@ -57,7 +57,7 @@ export default function NovaColmeia({ item, route }) {
   const listarArquivos1 = async () => {
     try {
       const dirInfo = await FileSystem.getInfoAsync(
-        `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`
+        `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi1}/${route.params.nomeCol}`
       );
 
       if (dirInfo.exists && dirInfo.isDirectory) {
@@ -83,7 +83,7 @@ export default function NovaColmeia({ item, route }) {
   };
 
   const deleteColmeia = async () => {
-    if (name != null) {
+    if (name != null && route.params.TipoDeApi != 'arquivos') {
       //online
       const subCollection = firebase
         .firestore()
@@ -104,16 +104,23 @@ export default function NovaColmeia({ item, route }) {
     }
     else {
       //offline
-      const directory = FileSystem.documentDirectory;
-      const filePath = `${directory}apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}`;
       try {
-        await FileSystem.deleteAsync(filePath);
-        console.log('Arquivo excluído com sucesso.');
-        Alert.alert("Colmeia apagada!", "Colmeia apagada com sucesso localmente!");
+        removeObjectLocally(route.params.nomeCol1);
         navigation.navigate("Página Inicial");
+        Alert.alert("Apiário apagado!", "Apiário apagado com sucesso localmente!");
       } catch (error) {
         console.log(`Erro ao excluir o arquivo: ${error.message}`);
       }
+    }
+  };
+
+  const removeObjectLocally = (key) => {
+    try {
+      AsyncStorage.removeItem(key);
+      console.log('Objeto removido com sucesso!');
+      navigation.navigate("Página Inicial");
+    } catch (error) {
+      console.log('Erro ao remover o objeto:', error);
     }
   };
 
@@ -141,15 +148,15 @@ export default function NovaColmeia({ item, route }) {
 
   const NovaGravacaoPress = () => {
     navigation.navigate("Audio Recorder", {
-      nomeCol: route.params.nomeCol.nomeColmeia,
-      nomeApi: route.params.nomeApi.nome,
+      nomeCol: route.params.nomeCol,
+      nomeApi: route.params.nomeApi,
     });
   };
 
   const onPlayPress = (item) => {
     storage1
       .ref(
-        `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol.nomeColmeia}/${item}`
+        `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/${item}`
       )
       .getDownloadURL()
       .then(async (url) => {
@@ -230,9 +237,9 @@ export default function NovaColmeia({ item, route }) {
       <Header name={"Gravações"} type="music" showIcon={'true'} />
       <CustomButton
         text={
-          route.params.nomeCol.nomeColmeia +
+          route.params.nomeCol || route.params.nomeCol1 +
           " - " +
-          route.params.nomeCol.localizacao
+          route.params.localCol
         }
         type="COLMEIAS"
         onPress={teste}

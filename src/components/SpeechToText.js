@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Switch,
   LogBox,
+  Platform,
 } from "react-native";
 import Voice from "@react-native-voice/voice";
 import CustomButton from "../components/CustomButton";
@@ -14,8 +15,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { firebase, storage } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 import { Audio } from "expo-av";
-//import { classifyAudio } from "../teste/classifyAudio"; // Substitua pelo caminho correto para seus arquivos utilitários
 import * as FileSystem from "expo-file-system";
+
 
 export default function SpeechToText() {
   const navigation = useNavigation();
@@ -37,9 +38,67 @@ export default function SpeechToText() {
   let nomeCol;
   let lastFile;
 
-  //Users/luisrodrigues/Desktop/Projects/ApiVoice/Apivoice/src/model/model.json
-  //src/model/model.json
-  //src/components/soundclassifier_with_metadata.tflite
+
+  useEffect(() => {
+    getLastUploadedFile();
+    //runClassification()
+    //getLastFileUrl()
+    if (isEnable) {
+      const intervalID = setInterval(() => {
+        startRecording();
+        console.log('resultado->',result)
+      }, 5000);
+      return () => clearInterval(intervalID);
+    }
+  });
+
+  const startRecording = async () => {
+    setLoading(true);
+    try {
+      Voice.start("pt-PT");
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      await Voice.stop();
+      setLoading(false);
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  const toggleSwitch = () => {
+    if (isEnable) {
+      Speech.speak("Comandos desligados", {
+        voice: "pt-pt-x-sfs-network",
+      });
+      stopRecording();
+    } else {
+      Speech.speak("A ouvir comandos", {
+        voice: "pt-pt-x-sfs-network",
+      });
+    }
+    setIsEnable((previousState) => !previousState);
+  };
+
+  const speechStartHandler = (e) => {
+    //console.log("speechStart successful", e);
+  };
+
+  const speechEndHandler = (e) => {
+    setLoading(false);
+    //console.log("stop handler", e);
+  };
+
+  const speechResultsHandler = (e) => {
+    const text = e.value[0];
+    const text1 = text.toLowerCase();
+    setResult(text1);
+    console.log(text1)
+  };
 
   const runClassification = async () => {
     try {
@@ -77,71 +136,6 @@ export default function SpeechToText() {
       }
     } catch (error) {
       console.error("Erro ao recuperar a lista de arquivos:", error);
-    }
-  };
-
-  useEffect(() => {
-    getLastUploadedFile();
-    //runClassification()
-  });
-
-  const toggleSwitch = () => {
-    if (isEnable) {
-      //parar o fetch
-      Speech.speak("Comandos desligados", {
-        voice: "pt-pt-x-sfs-network",
-      });
-      stopRecording();
-    } else {
-      //fazer o fetch
-      Speech.speak("A ouvir comandos", {
-        voice: "pt-pt-x-sfs-network",
-      });
-    }
-    setIsEnable((previousState) => !previousState);
-  };
-
-  const speechStartHandler = (e) => {
-    console.log("speechStart successful", e);
-  };
-
-  const speechEndHandler = (e) => {
-    setLoading(false);
-    console.log("stop handler", e);
-  };
-
-  const speechResultsHandler = (e) => {
-    const text = e.value[0];
-    const text1 = text.toLowerCase();
-    setResult(text1);
-  };
-
-  useEffect(() => {
-    //getLastFileUrl()
-
-    if (isEnable) {
-      const intervalID = setInterval(() => {
-        startRecording();
-      }, 8000);
-      return () => clearInterval(intervalID);
-    }
-  });
-
-  const startRecording = async () => {
-    setLoading(true);
-    try {
-      Voice.start("pt-PT");
-    } catch (error) {
-      console.log("error", error);
-    }
-  };
-
-  const stopRecording = async () => {
-    try {
-      await Voice.stop();
-      setLoading(false);
-    } catch (error) {
-      console.log("error", error);
     }
   };
 
@@ -239,6 +233,7 @@ export default function SpeechToText() {
     Voice.onSpeechEnd = speechEndHandler;
     Voice.onSpeechResults = speechResultsHandler;
 
+
     // const dirInfo = FileSystem.getInfoAsync(
     //   `file:///data/user/0/com.luispedro.Apivoice/files/apiario eu/colmeia teste/`
     // );
@@ -270,14 +265,8 @@ export default function SpeechToText() {
   //   }
   // };
 
-  const testevoz = () => {
-    Speech.speak("teste", {
-      voice: "pt-pt-x-sfs-network",
-    });
-  };
 
-  if (isEnable) {
-    if(result.includes("página atual")){
+    if (result.includes("página atual")) {
       const route = useRoute();
       const currentRoute = route.name;
       Speech.speak(`Encontra-se na página ${currentRoute}`, {
@@ -303,7 +292,8 @@ export default function SpeechToText() {
       result.includes(`selecionar pior`) ||
       result.includes(`selecionar piário`) ||
       result.includes(`selecionar a piário`) ||
-      result.includes(`selecionar a diário`)
+      result.includes(`selecionar a diário`) ||
+      result.includes('aviário teste')
     ) {
       // const nome =
       //   result.split("diário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0] ||
@@ -344,7 +334,7 @@ export default function SpeechToText() {
     ) {
       nomeCol = result
         .split("colmeia ")
-        [null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
+      [null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
 
       let ColRef = firebase
         .firestore()
@@ -367,6 +357,8 @@ export default function SpeechToText() {
           });
         })
         .catch((error) => console.log(error));
+      setResult("");
+      setLoading(true);
     }
 
     // comando reproduzir ultima gravação
@@ -386,7 +378,7 @@ export default function SpeechToText() {
     if (result.includes("Nome áudio") || result.includes("nome áudio")) {
       NomeAudio = result
         .split("áudio ")
-        [null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
+      [null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
       //NomeAudio = nomeaudio
       navigation.navigate("Audio Recorder", {
         NomeAudio: NomeAudio,
@@ -429,7 +421,7 @@ export default function SpeechToText() {
       });
       setResult("");
     }
-  }
+  
 
   return (
     <View>

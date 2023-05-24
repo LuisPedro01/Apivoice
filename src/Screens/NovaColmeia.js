@@ -9,6 +9,7 @@ import CustomInput from "../components/CustomInput";
 import { db, firebase } from "../services/firebase";
 import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import * as FileSystem from "expo-file-system";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function NovaColmeia({ route }) {
   const navigation = useNavigation();
@@ -18,34 +19,36 @@ export default function NovaColmeia({ route }) {
   const [nomeCol, SetNomeCol] = useState("");
   const [localizaçãoCol, SetLocalizaçãoCol] = useState("");
   const [Name, setName] = useState("");
+  const userId = firebase.auth().currentUser.uid;
+
 
   const CreateCol = () => {
     if (nome.trim() != "" && localizaçao.trim() != "") {
-      // if (Name != null) {
-      //   //criar online
-      //   const subCollection = firebase
-      //     .firestore()
-      //     .collection("apiarios")
-      //     .doc(route.params.nomeApi.id)
-      //     .collection("colmeia");
-      //   subCollection
-      //     .add({
-      //       nomeColmeia: nome,
-      //       localizacao: localizaçao,
-      //       createdAt: Date(),
-      //     })
-      //     .then(() => {
-      //       Alert.alert(
-      //         "Colmeia criada!",
-      //         "Nova colmeia criada com sucesso na base de dados!"
-      //       );
-      //       navigation.navigate("Página Inicial");
-      //       return;
-      //     })
-      //     .catch((error) => {
-      //       alert(error.message);
-      //     });
-      // } else {
+      if (Name != 0) {
+        //criar online
+        const subCollection = firebase
+          .firestore()
+          .collection("apiarios")
+          .doc(route.params.nomeApi.id)
+          .collection("colmeia");
+        subCollection
+          .add({
+            nomeColmeia: nome,
+            localizacao: localizaçao,
+            createdAt: Date(),
+          })
+          .then(() => {
+            Alert.alert(
+              "Colmeia criada!",
+              "Nova colmeia criada com sucesso na base de dados!"
+            );
+            navigation.navigate("Página Inicial");
+            return;
+          })
+          .catch((error) => {
+            alert(error.message);
+          });
+      } else {
         //criar offline
         try {
           const createObjectLocally = async (objectKey, object) => {
@@ -56,7 +59,8 @@ export default function NovaColmeia({ route }) {
               console.log('Erro ao criar o objeto localmente:', error);
             }
           };
-          const objectToCreate = { nome: nome, localizacao: localizaçao, createdAt: Date(), tipo: 'Colmeia' };
+          const id = `${Date.now()}-${Math.random()}`
+          const objectToCreate = { nome: nome, localizacao: localizaçao, createdAt: Date(), id: id, tipo: 'Colmeia', apiario: route.params.nomeApi.nome };
           const objectKey = nome;
           createObjectLocally(objectKey, objectToCreate);
           Alert.alert(
@@ -64,10 +68,11 @@ export default function NovaColmeia({ route }) {
             "Nova colmeia criada com sucesso localmente!"
           );
           navigation.navigate("Página Inicial");
+          console.log(objectToCreate)
         } catch (error) {
-          console.log(`Erro: ${error.message}`);
+          console.log(`Erro: ${error.message}`); 
         }
-      //}
+      }
     } else {
       Alert.alert(
         "Campos obrigatórios!",

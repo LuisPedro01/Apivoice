@@ -11,12 +11,7 @@ import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
-import { db } from "../services/firebase";
-import { uid } from "uid";
-import { deleteDoc, doc, getDoc, setDoc, getDocs } from "firebase/firestore";
 import { firebase, storage } from "../services/firebase";
-import { onValue, ref } from "firebase/database";
-import { FirebaseError } from "firebase/app";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system";
 
@@ -26,7 +21,6 @@ export default function Apiario(item) {
   const [userDoc, setUserDoc] = useState([]);
   const ApiRef = firebase.firestore().collection("apiarios");
   const [name, setName] = useState("");
-  const [data, setData] = useState(null);
   const [arquivos, setArquivos] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -63,6 +57,7 @@ export default function Apiario(item) {
         }
       });
   };
+  const combinedData = [...userDoc.map(item => ({ type: 'userDoc', item })), ...arquivos.map(item => ({ type: 'arquivos', item }))];
 
   useEffect(() => {
     getDadosApi();
@@ -86,98 +81,30 @@ export default function Apiario(item) {
 
   const onRefresh = () => {
     setRefreshing(true);
-    getObjectsLocally()
+    getDadosApi();
+    getDadosNomes();
+    getObjectsLocally();
     setRefreshing(false)
-  };
-
-  const renderFlatList = () => {
-    if (userDoc.length === 0) {
-      return (
-        <FlatList
-          keyExtractor={(item) => item.id}
-          style={styles.list}
-          showsVerticalScrollIndicator={false}
-          data={arquivos}
-          ListEmptyComponent={EmptyListMessage}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-            />
-          }
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.container}>
-              <CustomButton
-                text={item.nome + " - " + item.localizacao}
-                type="COLMEIA"
-                onPress={() =>
-                  navigation.navigate("Colmeia", {
-                    nomeApi: item,
-                    nomeApi1: item.nome,
-                  })
-                }
-              />
-            </TouchableOpacity>
-          )}
-        />
-      );
-    } else {
-      return (
-        <FlatList
-          keyExtractor={(item) => item.id}
-          style={styles.list}
-          showsVerticalScrollIndicator={false}
-          data={userDoc}
-          ListEmptyComponent={EmptyListMessage}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.container}>
-              <CustomButton
-                text={item.nome + " - " + item.localizacao}
-                type="COLMEIA"
-                onPress={() =>
-                  navigation.navigate("Colmeia", {
-                    nomeApi: item,
-                    nomeApi1: item.nome,
-                  })
-                }
-              />
-            </TouchableOpacity>
-          )}
-        />
-      );
-    }
-  };
-
-  const getObjectLocally = async () => {
-    try {
-      const object = await AsyncStorage.getItem('myObject');
-      if (object !== null) {
-        // Fazer algo com o objeto recuperado
-        console.log('Objeto recuperado:', JSON.parse(object));
-      } else {
-        console.log('Objeto não encontrado com a chave fornecida:', 'myObject');
-      }
-    } catch (error) {
-      console.log('Erro ao recuperar o objeto:', error);
-    }
   };
 
   const getObjectsLocally = async () => {
     try {
       const keys = await AsyncStorage.getAllKeys();
+      console.log(keys)
       const objects = await AsyncStorage.multiGet(keys);
+      const filteredKeys = keys.filter(key => key.includes('email') || key.includes('password'));
+      await AsyncStorage.multiRemove(filteredKeys);
 
       // Converter os objetos de string para JSON
-       // Converter os objetos de string para JSON
-    const parsedObjects = objects.map(([key, value]) => {
-      try {
-        return key,JSON.parse(value);
-      }  catch (error) {
+      const parsedObjects = objects.map(([key, value]) => {
+        try {
+          return key, JSON.parse(value);
+        } catch (error) {
           console.log(`Erro ao fazer o parsing do objeto com chave ${key}:`, error);
           return [key, null];
         }
       });
-      const apiarios = parsedObjects.filter(obj => obj.tipo === 'Apiário');
+      const apiarios = parsedObjects.filter(obj => obj.tipo === "Apiário");
       setArquivos(apiarios)
       console.log(apiarios)
       return parsedObjects;
@@ -195,11 +122,12 @@ export default function Apiario(item) {
     navigation.navigate("Perfil");
   };
 
-
   const removeAllObjectsLocally = async () => {
     try {
       const keys = await AsyncStorage.getAllKeys();
-      await AsyncStorage.multiRemove(keys);
+      const objetosSemColmeias = parsedObjects.filter(obj => obj.tipo === 'Colmeia');
+
+      await AsyncStorage.multiRemove(objetosSemColmeias);
       console.log('Todos os objetos foram removidos com sucesso!');
     } catch (error) {
       console.log('Erro ao remover os objetos:', error);
@@ -221,8 +149,35 @@ export default function Apiario(item) {
         }}
       />
 
-      {renderFlatList()}
-
+        <FlatList
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          data={combinedData}
+          ListEmptyComponent={EmptyListMessage}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />
+          }
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.container}>
+              <CustomButton
+                text={item.item.nome + " - " + item.item.localizacao}
+                type="COLMEIA"
+                onPress={() =>
+                  navigation.navigate("Colmeia", {
+                    nomeApi: item.item,
+                    nomeApi1: item.item.nome,
+                    IdLocal: item.item.id,
+                    TipoDeApi: item.type
+                  })
+                }
+              />
+            </TouchableOpacity>
+          )}
+        />
       <CustomButton
         text="Novo apiario"
         type="NOVACOLMEIA"
