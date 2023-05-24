@@ -1,29 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, FlatList, Button, TouchableOpacity, Alert } from "react-native";
 import Header from "../components/Header";
-import Gravacoes from "../components/Gravacoes";
-import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
-import CustomInput from "../components/CustomInput";
-import { db } from "../services/firebase";
-import { addDoc, collection, doc, documentId, getDoc, setDoc } from "firebase/firestore";
-import { uid } from "uid";
 import { firebase } from "../services/firebase";
 
 
 export default function AlterarApiario({ route }) {
   //const route = useRoute();
   const navigation = useNavigation();
-  const [nome, setNome] = useState('');
-  const [localizaçao, setLocalizaçao] = useState('');
-  const [buttonValue, setButtonValue] = useState(route.params.nomeApi.nome);
+  const [buttonValue, setButtonValue] = useState(route.params.nomeApi);
   const ApiRef = firebase.firestore().collection("apiarios");
   const [userDoc, setUserDoc] = useState([]);
-  const nomeApi = route.params.nomeApi.nome
-  const idApi = route.params.nomeApi.id
-  const idCol = route.params.nomeCol.id
-  const [newDocRef, setNewDocRef] = useState(route.params.nomeApi.id)
+  const nomeApi = route.params.nomeApi
+  const idApi = route.params.idApi
+  const idCol = route.params.idCol
+  const [newDocRef, setNewDocRef] = useState(route.params.nomeApi)
 
   const originalDocRef = firebase.firestore().collection("apiarios").doc(idApi)
   const originalSubCollectionRef = originalDocRef.collection("colmeia").doc(idCol)

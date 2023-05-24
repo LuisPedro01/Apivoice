@@ -14,7 +14,6 @@ import { firebase, db } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function NovaColmeia({ item, route }) {
   const navigation = useNavigation();
@@ -128,6 +127,9 @@ export default function NovaColmeia({ item, route }) {
     navigation.navigate("Alterar Apiario", {
       nomeApi: route.params.nomeApi,
       nomeCol: route.params.nomeCol,
+      nomeCol1: route.params.nomeCol1,
+      IdApi: route.params.IdApi,
+      IdCol: route.params.IdCol
     });
   };
 

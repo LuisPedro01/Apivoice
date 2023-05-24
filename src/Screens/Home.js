@@ -418,7 +418,8 @@ export default function Home({ item, route }) {
                     localCol: item.item.localizacao,
                     nomeApi: route.params.nomeApi1,
                     TipoDeApi: route.params.TipoDeApi,
-
+                    IdCol: item.item.id,
+                    IdApi: route.params.IdLocal
                   })
                 }
               />
