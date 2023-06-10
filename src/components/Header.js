@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
-  Platform, 
+  Platform,
   NativeModules
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -21,6 +21,7 @@ import { getDownloadURL, getStorage, listAll, ref, uploadBytes } from "firebase/
 import { Audio } from "expo-av";
 import * as Speech from "expo-speech";
 import axios from 'axios';
+import stringSimilarity from 'string-similarity';
 
 const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
 
@@ -48,6 +49,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   const [nomeA, setNomeA] = useState('')
   const [nomeC, setNomeC] = useState('')
   const [timerId, setTimerId] = useState(null);
+  let comando = ""
 
   const keyExtractor = (item) => item.id
 
@@ -56,6 +58,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       Speech.speak("Comandos desligados", {
         language: 'pt-PT'
       });
+      stopRecording()
     } else {
       Speech.speak("A ouvir comandos", {
         language: 'pt-PT'
@@ -155,6 +158,23 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       })
   };
 
+  const checkCommandSimilarity = (command, keywords) => {
+    const match = keywords.find((keyword) => {
+      const similarity = stringSimilarity.compareTwoStrings(command, keyword);
+      const similarityPercentage = similarity * 100;
+      return similarityPercentage >= 80;
+    });
+
+    return match !== undefined;
+  };
+
+  // Comandos Válidos
+  const paginaInicialKeywords = ['página inicial', 'inicial'];
+  const pararKeywords = ['parar', 'parar comandos', 'desligar comandos'];
+  const voltarKeywords = ['voltar', 'página anterior'];
+  const selecionarApiario = ['selecionar apiário', 'apiário']
+  const selecionarColmeia = ['selecionar colmeia', 'colmeia']
+
 
   const startRecording = async () => {
     try {
@@ -183,17 +203,88 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       setRecording(recording);
       console.log('Recording started');
 
+      setTimeout(async () => {
+        await recording.stopAndUnloadAsync();
+        const uri = recording.getURI();
+        console.log('Recording stopped', uri);
+        sendAudioToServer(uri);
+        startRecording()
+      }, 5000)
+
+      //pagina incial
+      if (checkCommandSimilarity(comando, paginaInicialKeywords)) {
+        Speech.speak("A dirécionar para página inicial", {
+          language: 'pt-PT'
+        });
+        navigation.navigate('Página Inicial')
+        comando = ""
+      }
+
+      //parar
+      if (checkCommandSimilarity(comando, pararKeywords)) {
+        Speech.speak("Comandos desligados", {
+          language: 'pt-PT'
+        });
+        clearTimeout()
+        stopRecording()
+        setIsEnable(false)
+        comando = ""
+      }
+
+      //voltar
+      if (checkCommandSimilarity(comando, voltarKeywords)) {
+        Speech.speak("A navegar para página anterior", {
+          language: 'pt-PT'
+        });
+        navigation.goBack()
+        comando = ""
+      }
+
+      //selecionar apiário
+      if (checkCommandSimilarity(comando, selecionarApiario)) {
+        const nome = comando.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+        ApiRef.where('nome', '==', nome).get()
+          .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              keyExtractor(doc)
+              navigation.navigate("Colmeia", { nomeApi1: doc.data().nome, nomeApi: doc })
+              Speech.speak(`A navegar para apiário ${nome}`, {
+                language: 'pt-PT'
+              });
+              RouteApi = doc.id
+              nomeApi = doc.data().nome
+              comando = ""
+            })
+          })
+      }
+
+      //selecionar colmeia
+      if (checkCommandSimilarity(comando, selecionarColmeia)) {
+        const nome = comando.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+        let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
+        ColRef.where('nomeColmeia', '==', nome)
+          .get()
+          .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              keyExtractor(doc)
+              NomeCol = doc.data().nomeColmeia
+              navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
+            })
+          })
+          .catch((error) => console.log(error));
+      }
+
+
     } catch (error) {
       console.log('Failed to start recording', error);
     }
   };
 
-
   const vozes = () => {
     Speech.getAvailableVoicesAsync().then(voices => {
       console.log(voices);
     });
-  }  
+  }
 
   const stopRecording = async () => {
     try {
@@ -227,6 +318,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       });
 
       console.log('Server response:', response.data.text);
+      comando = response.data.text
     } catch (error) {
       console.log('Failed to send audio to server', error);
     }
@@ -246,18 +338,16 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     getAudioPermission();
   }, []);
 
-  useEffect(()=>{
-    if(isEnable){
+  useEffect(() => {
+    if (isEnable) {
       startRecording()
-      const id = setInterval(startRecording, 10000);
-      setTimerId(id);
-      stopRecording();
 
-    }else {
-      clearInterval(timerId);
+    } else {
       stopRecording();
     }
   }, [isEnable])
+
+
 
   // useEffect(() => {
   //   if (isEnable) {
