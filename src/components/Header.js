@@ -6,7 +6,9 @@ import {
   StatusBar,
   TouchableOpacity,
   Switch,
-  Alert
+  Alert,
+  Platform, 
+  NativeModules
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from '@expo/vector-icons'
@@ -17,24 +19,21 @@ import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref, uploadBytes } from "firebase/storage";
 import { Audio } from "expo-av";
-import SpeechToText from './SpeechToText';
+import * as Speech from "expo-speech";
+import axios from 'axios';
 
 const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
 
 export default function Header({ name, type, onPress, route, item, showIcon }) {
   const navigation = useNavigation();
   const [isEnable, setIsEnable] = useState(false);
-  const [apiario, setApiario] = useState('')
-  const [colmeia, setColmeia] = useState('')
+
   //const [nomeapi, SetNomeApi] = useState('')
   //const [localizaçãoApi, SetLocalizaçãoApi] = useState("")
-  const [nomeCol, SetNomeCol] = useState('')
-  const [localizaçãoCol, SetLocalizaçãoCol] = useState('')
-  const [nomeAudio, SetNomeAudio] = useState('')
+
   const [recording, setRecording] = useState();
   const [recordings, setRecordings] = useState([]);
   const [song, setSong] = useState();
-  const [nome, setNome] = useState("");
   const ApiRef = firebase.firestore().collection("apiarios");
   const storage1 = firebase.storage()
   let RouteApi;
@@ -48,52 +47,24 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   let localCol1;
   const [nomeA, setNomeA] = useState('')
   const [nomeC, setNomeC] = useState('')
+  const [timerId, setTimerId] = useState(null);
 
   const keyExtractor = (item) => item.id
 
-
-  //++++++++++++++
-  //Criar apiarios
-  //++++++++++++++
-  const CreateApi = () => {
-    // Criar apiarios na base de dados
-    const myCol = collection(db, "apiarios");
-    const colData = {
-      nome: nomeApi1,
-      localizacao: localapi1,
-      createdAt: Date()
-    };
-
-    addDoc(myCol, colData)
-      .then(() => {
-        console.log('apiario criado')
-        navigation.navigate("Apiario");
-      })
-      .catch((error) => {
-        alert(error.message);
+  const toggleSwitch = () => {
+    if (isEnable) {
+      Speech.speak("Comandos desligados", {
+        language: 'pt-PT'
       });
-
+    } else {
+      Speech.speak("A ouvir comandos", {
+        language: 'pt-PT'
+      });
+    }
+    setIsEnable((previousState) => !previousState);
   };
 
-  //++++++++++++++
-  //Criar colmeias
-  //++++++++++++++
-  const CreateCol = () => {
-    const subCollection = firebase.firestore().collection('apiarios').doc(RouteApi).collection('colmeia')
-    subCollection
-      .add({
-        nomeColmeia: nomeCol1,
-        localizacao: localCol1,
-        createdAt: Date()
-      })
-      .then(() => {
-        console.log('Colmeia criada')
-        navigation.navigate("Apiario");
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
-  }
+
 
   //+++++++++++++++
   //Começar a gravar
@@ -184,158 +155,231 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       })
   };
 
-  useEffect(() => {
-    if (isEnable) {
-      const intervalID = setInterval(() => {
-        console.log('A ouvir o comando')
-        fetch("http://192.168.1.106:5000", {
-          method: "GET",
-          headers: {
-            Accept: "application/json, text/plain",
-            "Content-Type": "application/json",
-          },
-        })
-          .then((resp) => resp.text())
-          .then((data1) => {
-            console.log("Voce disse: ", data1);
-            if (data1.includes('Página inicial') || data1.includes('página inicial')) {
-              navigation.navigate('Apiario')
-            }
-            //++++++++++++++++
-            // comando parar +
-            //++++++++++++++++
-            if (data1 === 'parar' || data1 === 'Parar' || data1.includes('STOP') || data1.includes('stop') || data1.includes('Stop')) {
-              clearInterval(intervalID);
-              console.log('Comandos parados!')
-              Alert.alert('Comandos parados!', "Para voltar a ativar os comandos, ative-os no botão.")
-              setIsEnable(false)
-            }
 
-            //++++++++++
-            //+ Gravar +
-            //++++++++++
-            if (data1.includes('nova gravação') || data1.includes('novo áudio')) {
-              navigation.navigate("Audio Recorder", {
-                nomeCol: NomeCol
-              })
-            }
-            if ((data1.includes('Nome áudio') || data1.includes('nome áudio'))) {
-              NomeAudio = data1.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              //NomeAudio = nomeaudio
-              navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
-              setNomeA(NomeAudio)
-              setNomeC(NomeCol)
-            }
-            if (data1.includes('Começar a gravar') || data1.includes('começar a gravar')) {
-              clearInterval(intervalID);
-              startRecording1();
-            }
-
-            if (data1.includes('Parar gravação') || data1.includes('parar gravação')) {
-              stopRecording1();
-              navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
-            }
-
-            //+++++++++++++++++
-            // comando voltar +
-            //+++++++++++++++++    
-            if ((data1.includes('voltar') || data1.includes('Voltar'))) {
-              navigation.goBack()
-            }
-
-            //++++++++++++++++++++++++++++++
-            //+ comando selecionar apiario +
-            //++++++++++++++++++++++++++++++
-            if (data1.includes(`Selecionar apiário`) || data1.includes(`selecionar apiário`)) {
-              const nome = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              ApiRef.where('nome', '==', nome).get()
-                .then((querySnapshot) => {
-                  querySnapshot.forEach((doc) => {
-                    keyExtractor(doc)
-                    navigation.navigate("Home", { nomeApi1: doc.data().nome, nomeApi: doc })
-                    RouteApi = doc.id
-                    nomeApi = doc.data().nome
-                  })
-                })
-            }
-
-            //++++++++++++++++++++++++++++++
-            //+ comando selecionar colmeia +
-            //++++++++++++++++++++++++++++++
-            if (data1.includes(`Selecionar colmeia`) || data1.includes(`selecionar colmeia`)) {
-              const nome = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
-              ColRef.where('nomeColmeia', '==', nome)
-                .get()
-                .then((querySnapshot) => {
-                  querySnapshot.forEach((doc) => {
-                    keyExtractor(doc)
-                    NomeCol = doc.data().nomeColmeia
-                    navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
-                  })
-                })
-                .catch((error) => console.log(error));
-            }
-
-            //++++++++++++++++++++++++++++++
-            //+ comando criar novo apiario +
-            //++++++++++++++++++++++++++++++
-            if (data1.includes('criar novo apiário') || data1.includes('Criar novo apiário') || data1.includes('novo apiário')) {
-              navigation.navigate("Novo Apiario", { NomeApi: '', LocalApi: '' })
-              console.log("criar novo apiário")
-            }
-            if ((data1.includes(`Nome apiário`) || data1.includes(`nome apiário`))) {
-              const nomeapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              nomeApi1=nomeapi
-              navigation.navigate("Novo Apiario", { NomeApi: nomeApi1, LocalApi: '' })
-            }
-            if ((data1.includes(`Localização apiário`) || data1.includes(`localização apiário`))) {
-              const localapi = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
-              localapi1=localapi
-              navigation.navigate("Novo Apiario", { NomeApi: nomeApi1, LocalApi: localapi1 })
-            }
-            if (data1.includes('Criar apiário') || data1.includes('criar apiário')) {
-              CreateApi();
-              navigation.navigate('Apiario')
-            }
-
-            //++++++++++++++++++++++++++++++
-            //+ comando criar nova colmeia +
-            //++++++++++++++++++++++++++++++
-            if (data1.includes('criar nova colmeia') || data1.includes('Criar nova colmeia')) {
-              navigation.navigate("Nova Colmeia", { NomeCol: '', LocalCol: '' })
-              console.log("criar nova colmeia")
-            }
-            if ((data1.includes(`Nome colmeia`) || data1.includes(`nome colmeia`))) {
-              const nomecol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-              nomeCol1=nomecol
-              navigation.navigate("Nova Colmeia", { NomeCol: nomeCol1, LocalCol: '' })
-            }
-            if ((data1.includes(`Localização colmeia`) || data1.includes(`localização colmeia`))) {
-              const localcol = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
-              localCol1=localcol
-              navigation.navigate("Nova Colmeia", { NomeCol: nomeCol1, LocalCol: localCol1 })
-            }
-            if (data1.includes('Criar colmeia') || data1.includes('criar colmeia')) {
-              CreateCol();
-            }
-
-            //++++++++++++++++++++++++
-            //Comando reproduzir audio
-            //++++++++++++++++++++++++
-            if (data1.includes('Reproduzir gravação') || data1.includes('reproduzir gravação')) {
-              const nomeAudio = data1.split("gravação ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
-              onPlayPress(nomeAudio)
-            }
-
-          })
-          .catch((error) => console.log("error", error));
-      }, 10000);
-      return () => {
-        clearInterval(intervalID);
+  const startRecording = async () => {
+    try {
+      const recordingOptions = {
+        android: {
+          extension: '.m4a',
+          outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
+          audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+        },
+        ios: {
+          extension: '.caf',
+          audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
       };
+
+      const { recording } = await Audio.Recording.createAsync(recordingOptions);
+      setRecording(recording);
+      console.log('Recording started');
+
+    } catch (error) {
+      console.log('Failed to start recording', error);
     }
-  })
+  };
+
+
+  const vozes = () => {
+    Speech.getAvailableVoicesAsync().then(voices => {
+      console.log(voices);
+    });
+  }  
+
+  const stopRecording = async () => {
+    try {
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      console.log('Recording stopped', uri);
+      sendAudioToServer(uri);
+    } catch (error) {
+      console.log('Failed to stop recording', error);
+    }
+  };
+
+  const sendAudioToServer = async (uri) => {
+    const fileType = Platform.select({
+      android: { type: 'audio/m4a', extension: '.m4a' },
+      ios: { type: 'audio/x-caf', extension: '.caf' },
+    });
+
+    const formData = new FormData();
+    formData.append('audio', {
+      uri,
+      type: fileType.type,
+      name: `recording${fileType.extension}`,
+    });
+
+    try {
+      const response = await axios.post('https://luis21121.pythonanywhere.com/rota-de-receber-audio', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Server response:', response.data.text);
+    } catch (error) {
+      console.log('Failed to send audio to server', error);
+    }
+  };
+
+  const getAudioPermission = async () => {
+    const { status } = await Audio.requestPermissionsAsync();
+    if (status === 'granted') {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true
+      })
+    }
+  };
+
+  useEffect(() => {
+    getAudioPermission();
+  }, []);
+
+  useEffect(()=>{
+    if(isEnable){
+      startRecording()
+      const id = setInterval(startRecording, 10000);
+      setTimerId(id);
+      stopRecording();
+
+    }else {
+      clearInterval(timerId);
+      stopRecording();
+    }
+  }, [isEnable])
+
+  // useEffect(() => {
+  //   if (isEnable) {
+  //     const intervalID = setInterval(() => {
+  //       console.log('A ouvir o comando')
+  //       Audio.requestPermissionsAsync();
+  //       startRecording();
+
+  //       startRecording()
+  //       // fetch("http://192.168.1.7:5000", {
+  //       //   method: "GET",
+  //       //   headers: {
+  //       //     Accept: "application/json, text/plain",
+  //       //     "Content-Type": "application/json",
+  //       //   },
+  //       // })
+  //       // .then((resp) => resp.text())
+  //       // .then((data1) => {
+  //       //   console.log("Voce disse: ", data1);
+
+  //       //   //+++++++++++++++++++++++++
+  //       //   // comando página inicial +
+  //       //   //+++++++++++++++++++++++++
+  //       //   if (data1.includes('Página inicial') || data1.includes('página inicial')) {
+  //       //     navigation.navigate('Apiario')
+  //       //   }
+  //       //   //++++++++++++++++
+  //       //   // comando parar +
+  //       //   //++++++++++++++++
+  //       //   if (data1 === 'parar' || data1 === 'Parar' || data1.includes('STOP') || data1.includes('stop') || data1.includes('Stop')) {
+  //       //     clearInterval(intervalID);
+  //       //     console.log('Comandos parados!')
+  //       //     Alert.alert('Comandos parados!', "Para voltar a ativar os comandos, ative-os no botão.")
+  //       //     Speech.speak("Comandos desligados", {
+  //       //       voice: "pt-pt-x-sfs-network",
+  //       //     });
+  //       //     setIsEnable(false)
+  //       //   }
+
+  //       //   //++++++++++
+  //       //   //+ Gravar +
+  //       //   //++++++++++
+  //       //   if (data1.includes('nova gravação') || data1.includes('novo áudio')) {
+  //       //     navigation.navigate("Audio Recorder", {
+  //       //       nomeCol: NomeCol
+  //       //     })
+  //       //   }
+  //       //   if ((data1.includes('Nome áudio') || data1.includes('nome áudio'))) {
+  //       //     NomeAudio = data1.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+  //       //     //NomeAudio = nomeaudio
+  //       //     navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
+  //       //     setNomeA(NomeAudio)
+  //       //     setNomeC(NomeCol)
+  //       //   }
+  //       //   if (data1.includes('Começar a gravar') || data1.includes('começar a gravar')) {
+  //       //     clearInterval(intervalID);
+  //       //     startRecording1();
+  //       //   }
+
+  //       //   if (data1.includes('Parar gravação') || data1.includes('parar gravação')) {
+  //       //     stopRecording1();
+  //       //     navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
+  //       //   }
+
+  //       //   //+++++++++++++++++
+  //       //   // comando voltar +
+  //       //   //+++++++++++++++++    
+  //       //   if ((data1.includes('voltar') || data1.includes('Voltar'))) {
+  //       //     navigation.goBack()
+  //       //   }
+
+  //       //   //++++++++++++++++++++++++++++++
+  //       //   //+ comando selecionar apiario +
+  //       //   //++++++++++++++++++++++++++++++
+  //       //   if (data1.includes(`Selecionar apiário`) || data1.includes(`selecionar apiário`)) {
+  //       //     const nome = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+  //       //     ApiRef.where('nome', '==', nome).get()
+  //       //       .then((querySnapshot) => {
+  //       //         querySnapshot.forEach((doc) => {
+  //       //           keyExtractor(doc)
+  //       //           navigation.navigate("Home", { nomeApi1: doc.data().nome, nomeApi: doc })
+  //       //           RouteApi = doc.id
+  //       //           nomeApi = doc.data().nome
+  //       //         })
+  //       //       })
+  //       //   }
+
+  //       //   //++++++++++++++++++++++++++++++
+  //       //   //+ comando selecionar colmeia +
+  //       //   //++++++++++++++++++++++++++++++
+  //       //   if (data1.includes(`Selecionar colmeia`) || data1.includes(`selecionar colmeia`)) {
+  //       //     const nome = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+  //       //     let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
+  //       //     ColRef.where('nomeColmeia', '==', nome)
+  //       //       .get()
+  //       //       .then((querySnapshot) => {
+  //       //         querySnapshot.forEach((doc) => {
+  //       //           keyExtractor(doc)
+  //       //           NomeCol = doc.data().nomeColmeia
+  //       //           navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
+  //       //         })
+  //       //       })
+  //       //       .catch((error) => console.log(error));
+  //       //   }
+
+  //       //   //++++++++++++++++++++++++
+  //       //   //Comando reproduzir audio
+  //       //   //++++++++++++++++++++++++
+  //       //   if (data1.includes('Reproduzir gravação') || data1.includes('reproduzir gravação')) {
+  //       //     const nomeAudio = data1.split("gravação ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
+  //       //     onPlayPress(nomeAudio)
+  //       //   }
+
+  //       // })
+  //       //.catch((error) => console.log("error", error));
+  //       stopRecording()
+  //     }, 10000);
+  //     return () => {
+  //       clearInterval(intervalID);
+  //     };
+  //   }
+  // })
 
   return (
     <LinearGradient colors={['#FFDAAE', 'white']}>
@@ -347,11 +391,25 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
           }
           <Text style={styles.username}>{name || "Bem vindo!"}</Text>
           <TouchableOpacity style={styles.buttonUser}>
-            <Feather name={`${type}`} size={27} color="black" onPress={onPress} />
+            <Feather name={`${type}`} size={27} color="black" onPress={vozes} />
           </TouchableOpacity>
         </View>
       </View>
-      <SpeechToText/>
+
+      <View style={styles.comandos2}>
+        <Text style={styles.comandos}>Comandos por voz</Text>
+        <View>
+          <Switch
+            style={styles.switch}
+            trackColor={{ false: "grey", true: "#FFDAAE" }}
+            thumbColor={isEnable ? "#FFDAAE" : "white"}
+            ios_background="grey"
+            onValueChange={toggleSwitch}
+            value={isEnable}
+          />
+        </View>
+      </View>
+
     </LinearGradient>
   )
 }

@@ -15,7 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../services/firebase";
 import { set, ref } from "firebase/database";
-import { uid } from "uid";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
 import { firebase } from "../services/firebase";
 
@@ -71,7 +71,7 @@ export default function SignUp() {
     console.warn("Google");
   };
   return (
-    <ScrollView>
+    <KeyboardAwareScrollView extraHeight={180} enableOnAndroid={true}>
       <View style={styles.root}>
         <Image
           source={Logo}
@@ -79,19 +79,7 @@ export default function SignUp() {
           resizeMode="contain"
         />
         <Text style={styles.name}>Sign Up</Text>
-        {/* <View style={{ flexDirection: "row" }}>
-          <CustomButton
-            text="Facebook"
-            onPress={onSignInFacebook}
-            type="TERTIARY"
-          />
-          <CustomButton
-            text="Google"
-            onPress={onSignInGoogle}
-            type="TERTIARY"
-          />
-        </View>
-        <Text style={{ marginBottom: 20 }}>Or, Sign Up with...</Text> */}
+
         <CustomInput
           placeholder="Username"
           value={username}
@@ -112,7 +100,7 @@ export default function SignUp() {
           </Text>
         </Text>
       </View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 

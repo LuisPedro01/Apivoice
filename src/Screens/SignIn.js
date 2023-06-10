@@ -18,6 +18,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../services/firebase";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 
 export default function SignIn() {
@@ -75,14 +76,14 @@ export default function SignIn() {
   };
 
   return (
-    <ScrollView>
+    <KeyboardAwareScrollView extraHeight={180} enableOnAndroid={true}>
       <View style={styles.root}>
         <Image
           source={Logo}
           style={[styles.logo, { height: height * 0.3 }]}
           resizeMode="contain"
         />
-        <Text style={styles.name}>Speek2Bees</Text>
+        <Text style={styles.name}>ApiVoice</Text>
         <CustomInput placeholder="Email" value={email} setValue={setEmail} />
         <CustomInput
           placeholder="Password"
@@ -98,7 +99,7 @@ export default function SignIn() {
           </Text>
         </Text>
       </View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 

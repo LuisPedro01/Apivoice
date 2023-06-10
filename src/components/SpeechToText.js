@@ -85,12 +85,12 @@ export default function SpeechToText() {
   };
 
   const speechStartHandler = (e) => {
-    //console.log("speechStart successful", e);
+    console.log("speechStart successful", e);
   };
 
   const speechEndHandler = (e) => {
-    setLoading(false);
-    //console.log("stop handler", e);
+    //setLoading(false);
+    console.log("stop handler", e);
   };
 
   const speechResultsHandler = (e) => {
@@ -319,7 +319,7 @@ export default function SpeechToText() {
             RouteApi = doc.id;
             nomeApi = doc.data().nome;
             Speech.speak(`Apiário ${nomeApiario} selecionado`, {
-              voice: "pt-pt-x-sfs-network",
+              voice: "pt-pt-x-sfs-local",
             });
           });
         });
