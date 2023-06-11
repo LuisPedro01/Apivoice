@@ -172,8 +172,12 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   const paginaInicialKeywords = ['página inicial', 'inicial'];
   const pararKeywords = ['parar', 'parar comandos', 'desligar comandos'];
   const voltarKeywords = ['voltar', 'página anterior'];
-  const selecionarApiario = ['selecionar apiário', 'apiário']
-  const selecionarColmeia = ['selecionar colmeia', 'colmeia']
+  const selecionarApiarioKeywords = ['selecionar apiário', 'apiário']
+  const selecionarColmeiaKeywords = ['selecionar colmeia', 'colmeia']
+  const NovaGravaçãoKeywords = ['nova gravação', 'novo áudio']
+  const NomeAudioKeywords = ['nome áudio', 'nome gravação']
+  const ComeçarGravarKeywords = ['começar gravação', 'começar a gravar']
+  const PararGravarKeywords = ['parar gravação', 'parar de gravar']
 
 
   const startRecording = async () => {
@@ -241,7 +245,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       }
 
       //selecionar apiário
-      if (checkCommandSimilarity(comando, selecionarApiario)) {
+      if (checkCommandSimilarity(comando, selecionarApiarioKeywords)) {
         const nome = comando.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
         ApiRef.where('nome', '==', nome).get()
           .then((querySnapshot) => {
@@ -259,7 +263,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       }
 
       //selecionar colmeia
-      if (checkCommandSimilarity(comando, selecionarColmeia)) {
+      if (checkCommandSimilarity(comando, selecionarColmeiaKeywords)) {
         const nome = comando.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
         let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
         ColRef.where('nomeColmeia', '==', nome)
@@ -272,6 +276,29 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
             })
           })
           .catch((error) => console.log(error));
+      }
+
+      //gravar
+      if (checkCommandSimilarity(comando, NovaGravaçãoKeywords)) {
+        navigation.navigate("Audio Recorder", {
+          nomeCol: NomeCol
+        })
+      }
+      if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
+        NomeAudio = comando.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+        //NomeAudio = nomeaudio
+        navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
+        setNomeA(NomeAudio)
+        setNomeC(NomeCol)
+      }
+      if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
+        clearTimeout()
+        startRecording1();
+      }
+
+      if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
+        stopRecording1();
+        navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
       }
 
 
