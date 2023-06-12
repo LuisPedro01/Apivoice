@@ -57,12 +57,18 @@ export default function Apiario(item) {
         }
       });
   };
-  const combinedData = [...userDoc.map(item => ({ type: 'userDoc', item })), ...arquivos.map(item => ({ type: 'arquivos', item }))];
+  const combinedData = [
+    ...userDoc.map((item, index) => ({ key: `userDoc_${index}`, type: 'userDoc', item })),
+    ...arquivos.map((item, index) => ({ key: `arquivos_${index}`, type: 'arquivos', item }))
+  ];
+  
 
   useEffect(() => {
     getDadosApi();
     getDadosNomes();
+    //limparAsyncStorage()
     getObjectsLocally();
+    console.log('userDoc->',userDoc)
     if (userDoc.length === 0) {
     }
   }, []);
@@ -84,21 +90,22 @@ export default function Apiario(item) {
     getDadosApi();
     getDadosNomes();
     getObjectsLocally();
+    console.log('userDoc id->',userDoc.map(obj=>obj.id))
     setRefreshing(false)
   };
 
   const getObjectsLocally = async () => {
     try {
       const keys = await AsyncStorage.getAllKeys();
-      console.log(keys)
+      console.log('keys->',keys)
       const objects = await AsyncStorage.multiGet(keys);
       const filteredKeys = keys.filter(key => key.includes('email') || key.includes('password'));
       await AsyncStorage.multiRemove(filteredKeys);
 
-      // Converter os objetos de string para JSON
+      // Converter os objetos de string para JSON                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
       const parsedObjects = objects.map(([key, value]) => {
         try {
-          return key, JSON.parse(value);
+          return  { key, ...JSON.parse(value) };
         } catch (error) {
           console.log(`Erro ao fazer o parsing do objeto com chave ${key}:`, error);
           return [key, null];
@@ -122,17 +129,21 @@ export default function Apiario(item) {
     navigation.navigate("Perfil");
   };
 
-  const removeAllObjectsLocally = async () => {
+  async function limparAsyncStorage() {
     try {
-      const keys = await AsyncStorage.getAllKeys();
-      const objetosSemColmeias = parsedObjects.filter(obj => obj.tipo === 'Colmeia');
-
-      await AsyncStorage.multiRemove(objetosSemColmeias);
-      console.log('Todos os objetos foram removidos com sucesso!');
+      const chaves = await AsyncStorage.getAllKeys();
+  
+      if (chaves.length > 0) {
+        await AsyncStorage.multiRemove(chaves);
+        console.log('Todas as chaves foram removidas com sucesso.');
+      } else {
+        console.log('Não há chaves armazenadas para remover.');
+      }
     } catch (error) {
-      console.log('Erro ao remover os objetos:', error);
+      console.error('Ocorreu um erro ao remover as chaves:', error);
     }
-  };
+  }
+  
   return (
     <View style={styles.container}>
       <Header name={"Olá, " + name.username + "!"} type="user" onPress={onUserPress} />
@@ -150,7 +161,7 @@ export default function Apiario(item) {
       />
 
         <FlatList
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.key}
           style={styles.list}
           showsVerticalScrollIndicator={false}
           data={combinedData}

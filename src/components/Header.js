@@ -23,6 +23,7 @@ import * as Speech from "expo-speech";
 import axios from 'axios';
 import stringSimilarity from 'string-similarity';
 
+
 const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
 
 export default function Header({ name, type, onPress, route, item, showIcon }) {
@@ -53,7 +54,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
 
   const keyExtractor = (item) => item.id
 
-  const toggleSwitch = () => {
+  const toggleSwitch = async (value) => {
     if (isEnable) {
       Speech.speak("Comandos desligados", {
         language: 'pt-PT'
@@ -66,7 +67,6 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     }
     setIsEnable((previousState) => !previousState);
   };
-
 
 
   //+++++++++++++++
@@ -162,7 +162,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     const match = keywords.find((keyword) => {
       const similarity = stringSimilarity.compareTwoStrings(command, keyword);
       const similarityPercentage = similarity * 100;
-      return similarityPercentage >= 80;
+      return similarityPercentage >= 70;
     });
 
     return match !== undefined;
@@ -173,11 +173,11 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   const pararKeywords = ['parar', 'parar comandos', 'desligar comandos'];
   const voltarKeywords = ['voltar', 'página anterior'];
   const selecionarApiarioKeywords = ['selecionar apiário', 'apiário']
-  const selecionarColmeiaKeywords = ['selecionar colmeia', 'colmeia']
+  const selecionarColmeiaKeywords = ['selecionar colmeia', 'colmeia', 'selecionar Colmeia', 'Colmeia', 'como é', 'columeia']
   const NovaGravaçãoKeywords = ['nova gravação', 'novo áudio']
   const NomeAudioKeywords = ['nome áudio', 'nome gravação']
   const ComeçarGravarKeywords = ['começar gravação', 'começar a gravar']
-  const PararGravarKeywords = ['parar gravação', 'parar de gravar']
+  const PararGravarKeywords = ['parar gravação', 'parar de gravar', 'horário', 'arara']
 
 
   const startRecording = async () => {
@@ -213,94 +213,110 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         console.log('Recording stopped', uri);
         sendAudioToServer(uri);
         startRecording()
+
+
+
+        //pagina incial
+        if (checkCommandSimilarity(comando, paginaInicialKeywords)) {
+          Speech.speak("A dirécionar para página inicial", {
+            language: 'pt-PT'
+          });
+          navigation.navigate('Página Inicial')
+          comando = ""
+        }
+
+        //parar
+        if (checkCommandSimilarity(comando, pararKeywords)) {
+          Speech.speak("Comandos desligados", {
+            language: 'pt-PT'
+          });
+          clearTimeout()
+          stopRecording()
+          setIsEnable(false)
+          comando = ""
+        }
+
+        //voltar
+        if (checkCommandSimilarity(comando, voltarKeywords)) {
+          Speech.speak("A navegar para página anterior", {
+            language: 'pt-PT'
+          });
+          navigation.goBack()
+          comando = ""
+        }
+
+        //selecionar apiário
+        if (checkCommandSimilarity(comando, selecionarApiarioKeywords)) {
+          const nome = comando.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+          ApiRef.where('nome', '==', nome).get()
+            .then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                keyExtractor(doc)
+                navigation.navigate("Colmeia", { nomeApi1: doc.data().nome, nomeApi: doc })
+                Speech.speak(`A navegar para apiário ${nome}`, {
+                  language: 'pt-PT'
+                });
+                RouteApi = doc.id
+                nomeApi = doc.data().nome
+                comando = ""
+              })
+            })
+        }
+
+        // Função para extrair o nome da colmeia do comando
+        const extractColmeiaName = (command) => {
+          const regex = /colmeia (.+)/i;
+          const match = command.match(regex);
+          return match ? match[1] : null;
+        };
+
+        //selecionar colmeia
+        if (checkCommandSimilarity(comando, selecionarColmeiaKeywords)) {
+          console.log('chegou aqui')
+          //const palavras = comando.split(" ");
+          //const nome = palavras[palavras.length - 1];
+          //const nome = comando.split("Colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+          const nome = extractColmeiaName(comando)
+          console.log(nome)
+          let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
+          ColRef.where('nomeColmeia', '==', nome).get()
+            .then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                keyExtractor(doc)
+                NomeCol = doc.data().nomeColmeia
+                navigation.navigate("Gravações", { nomeCol: doc.data(), nomeApi: nomeApi })
+                Speech.speak(`A navegar para colmeia ${nome}`, {
+                  language: 'pt-PT'
+                });
+              })
+            })
+            .catch((error) => console.log(error));
+          comando = ""
+        }
+
+        //gravar
+        if (checkCommandSimilarity(comando, NovaGravaçãoKeywords)) {
+          navigation.navigate("Audio Recorder", {
+            nomeCol: NomeCol
+          })
+        }
+        if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
+          NomeAudio = comando.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+          //NomeAudio = nomeaudio
+          navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
+          setNomeA(NomeAudio)
+          setNomeC(NomeCol)
+        }
+        if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
+          clearTimeout()
+          startRecording1();
+        }
+
+        if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
+          stopRecording1();
+          navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
+        }
       }, 5000)
-
-      //pagina incial
-      if (checkCommandSimilarity(comando, paginaInicialKeywords)) {
-        Speech.speak("A dirécionar para página inicial", {
-          language: 'pt-PT'
-        });
-        navigation.navigate('Página Inicial')
-        comando = ""
-      }
-
-      //parar
-      if (checkCommandSimilarity(comando, pararKeywords)) {
-        Speech.speak("Comandos desligados", {
-          language: 'pt-PT'
-        });
-        clearTimeout()
-        stopRecording()
-        setIsEnable(false)
-        comando = ""
-      }
-
-      //voltar
-      if (checkCommandSimilarity(comando, voltarKeywords)) {
-        Speech.speak("A navegar para página anterior", {
-          language: 'pt-PT'
-        });
-        navigation.goBack()
-        comando = ""
-      }
-
-      //selecionar apiário
-      if (checkCommandSimilarity(comando, selecionarApiarioKeywords)) {
-        const nome = comando.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-        ApiRef.where('nome', '==', nome).get()
-          .then((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-              keyExtractor(doc)
-              navigation.navigate("Colmeia", { nomeApi1: doc.data().nome, nomeApi: doc })
-              Speech.speak(`A navegar para apiário ${nome}`, {
-                language: 'pt-PT'
-              });
-              RouteApi = doc.id
-              nomeApi = doc.data().nome
-              comando = ""
-            })
-          })
-      }
-
-      //selecionar colmeia
-      if (checkCommandSimilarity(comando, selecionarColmeiaKeywords)) {
-        const nome = comando.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-        let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
-        ColRef.where('nomeColmeia', '==', nome)
-          .get()
-          .then((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-              keyExtractor(doc)
-              NomeCol = doc.data().nomeColmeia
-              navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
-            })
-          })
-          .catch((error) => console.log(error));
-      }
-
-      //gravar
-      if (checkCommandSimilarity(comando, NovaGravaçãoKeywords)) {
-        navigation.navigate("Audio Recorder", {
-          nomeCol: NomeCol
-        })
-      }
-      if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
-        NomeAudio = comando.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-        //NomeAudio = nomeaudio
-        navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
-        setNomeA(NomeAudio)
-        setNomeC(NomeCol)
-      }
-      if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
-        clearTimeout()
-        startRecording1();
-      }
-
-      if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
-        stopRecording1();
-        navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
-      }
-
 
     } catch (error) {
       console.log('Failed to start recording', error);
@@ -508,7 +524,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
           }
           <Text style={styles.username}>{name || "Bem vindo!"}</Text>
           <TouchableOpacity style={styles.buttonUser}>
-            <Feather name={`${type}`} size={27} color="black" onPress={vozes} />
+            <Feather name={`${type}`} size={27} color="black" onPress={onPress} />
           </TouchableOpacity>
         </View>
       </View>

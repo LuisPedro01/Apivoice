@@ -23,7 +23,7 @@ export default function NovaColmeia({ item, route }) {
   const storage1 = firebase.storage();
   var listRef = ref(
     storage,
-    `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`
+    `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}`
   );
   const [userDocOff, setUserDocOff] = useState([]);
   const [arquivos, setArquivos] = useState([]);
@@ -49,7 +49,7 @@ export default function NovaColmeia({ item, route }) {
     listGrav();
     getDadosNomes();
     if (Grav.length === 0) {
-      listarArquivos1();
+      //listarArquivos1();
     }
   }, []);
 
@@ -201,7 +201,7 @@ export default function NovaColmeia({ item, route }) {
           style={styles.list}
           ListEmptyComponent={EmptyListMessage}
           showsVerticalScrollIndicator={false}
-          data={arquivos}
+          data={Grav}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.container}>
               <CustomButton
@@ -270,7 +270,21 @@ export default function NovaColmeia({ item, route }) {
         }}
       />
 
-      {renderFlatList()}
+      <FlatList
+        style={styles.list}
+        ListEmptyComponent={EmptyListMessage}
+        showsVerticalScrollIndicator={false}
+        data={Grav}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.container}>
+            <CustomButton
+              text={item}
+              type="COLMEIA"
+              onPress={() => onPlayPress(item)}
+            />
+          </TouchableOpacity>
+        )}
+      />
 
       <CustomButton
         text={"Nova gravação"}
