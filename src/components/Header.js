@@ -323,23 +323,6 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     });
   }
 
-  const teste = () => {
-    const nome = 'exemplo'
-    let ColRef = firebase.firestore().collection("apiarios").doc('FDcfFLrSZXzcouR2nGM1').collection("colmeia")
-    ColRef.where('nomeColmeia', '==', nome).get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          keyExtractor(doc)
-          NomeCol = doc.data().nomeColmeia
-          navigation.navigate("Gravações", { nomeCol: NomeCol, nomeApi: nomeApi })
-          Speech.speak(`A navegar para colmeia ${nome}`, {
-            language: 'pt-PT'
-          });
-        })
-      })
-      .catch((error) => console.log(error));
-  }
-
   const stopRecording = async () => {
     try {
       await recording.stopAndUnloadAsync();
@@ -535,7 +518,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
           }
           <Text style={styles.username}>{name || "Bem vindo!"}</Text>
           <TouchableOpacity style={styles.buttonUser}>
-            <Feather name={`${type}`} size={27} color="black" onPress={teste} />
+            <Feather name={`${type}`} size={27} color="black" onPress={onPress} />
           </TouchableOpacity>
         </View>
       </View>
