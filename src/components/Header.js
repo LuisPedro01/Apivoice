@@ -206,15 +206,12 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       const { recording } = await Audio.Recording.createAsync(recordingOptions);
       setRecording(recording);
       console.log('Recording started');
-
       setTimeout(async () => {
         await recording.stopAndUnloadAsync();
         const uri = recording.getURI();
         console.log('Recording stopped', uri);
         sendAudioToServer(uri);
         startRecording()
-
-
 
         //pagina incial
         if (checkCommandSimilarity(comando, paginaInicialKeywords)) {
@@ -273,9 +270,6 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         //selecionar colmeia
         if (checkCommandSimilarity(comando, selecionarColmeiaKeywords)) {
           console.log('chegou aqui')
-          //const palavras = comando.split(" ");
-          //const nome = palavras[palavras.length - 1];
-          //const nome = comando.split("Colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
           const nome = extractColmeiaName(comando)
           console.log(nome)
           let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
@@ -284,7 +278,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
               querySnapshot.forEach((doc) => {
                 keyExtractor(doc)
                 NomeCol = doc.data().nomeColmeia
-                navigation.navigate("Gravações", { nomeCol: doc.data(), nomeApi: nomeApi })
+                navigation.navigate("Gravações", { nomeCol: NomeCol, nomeApi: doc })
                 Speech.speak(`A navegar para colmeia ${nome}`, {
                   language: 'pt-PT'
                 });
@@ -327,6 +321,23 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     Speech.getAvailableVoicesAsync().then(voices => {
       console.log(voices);
     });
+  }
+
+  const teste = () => {
+    const nome = 'exemplo'
+    let ColRef = firebase.firestore().collection("apiarios").doc('FDcfFLrSZXzcouR2nGM1').collection("colmeia")
+    ColRef.where('nomeColmeia', '==', nome).get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          keyExtractor(doc)
+          NomeCol = doc.data().nomeColmeia
+          navigation.navigate("Gravações", { nomeCol: NomeCol, nomeApi: nomeApi })
+          Speech.speak(`A navegar para colmeia ${nome}`, {
+            language: 'pt-PT'
+          });
+        })
+      })
+      .catch((error) => console.log(error));
   }
 
   const stopRecording = async () => {
@@ -524,7 +535,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
           }
           <Text style={styles.username}>{name || "Bem vindo!"}</Text>
           <TouchableOpacity style={styles.buttonUser}>
-            <Feather name={`${type}`} size={27} color="black" onPress={onPress} />
+            <Feather name={`${type}`} size={27} color="black" onPress={teste} />
           </TouchableOpacity>
         </View>
       </View>

@@ -6,7 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
-  RefreshControl
+  RefreshControl,
 } from "react-native";
 import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
@@ -23,7 +23,19 @@ export default function Home({ item, route }) {
   const [arquivos, setArquivos] = useState([]);
   const [name, setName] = useState("");
   const [refreshing, setRefreshing] = useState(false);
-  const combinedData = [...userDoc.map(item => ({ type: 'userDoc', item })), ...arquivos.map(item => ({ type: 'arquivos', item }))];
+
+  const combinedData = [
+    ...userDoc.map((item, index) => ({
+      key: `userDoc_${index}`,
+      type: "userDoc",
+      item,
+    })),
+    ...arquivos.map((item, index) => ({
+      key: `arquivos_${index}`,
+      type: "arquivos",
+      item,
+    })),
+  ];
 
   const getDados = () => {
     firebase
@@ -68,15 +80,15 @@ export default function Home({ item, route }) {
     getObjectsLocally();
     if (userDoc.length === 0) {
     }
-    setRefreshing(false)
+    setRefreshing(false);
   };
 
   const removeAllObjects = async () => {
     try {
       await AsyncStorage.clear();
-      console.log('Todos os objetos foram removidos do armazenamento.');
+      console.log("Todos os objetos foram removidos do armazenamento.");
     } catch (error) {
-      console.log('Erro ao remover objetos:', error);
+      console.log("Erro ao remover objetos:", error);
     }
   };
 
@@ -84,8 +96,10 @@ export default function Home({ item, route }) {
     try {
       const keys = await AsyncStorage.getAllKeys();
       const objects = await AsyncStorage.multiGet(keys);
-      console.log('keys', keys);
-      const filteredKeys = keys.filter(key => key.includes('email') || key.includes('password'));
+      console.log("keys", keys);
+      const filteredKeys = keys.filter(
+        (key) => key.includes("email") || key.includes("password")
+      );
       await AsyncStorage.multiRemove(filteredKeys);
 
       // Converter os objetos de string para JSON
@@ -93,18 +107,23 @@ export default function Home({ item, route }) {
         try {
           return key, JSON.parse(value);
         } catch (error) {
-          console.log(`Erro ao fazer o parsing do objeto com chave ${key}:`, error);
+          console.log(
+            `Erro ao fazer o parsing do objeto com chave ${key}:`,
+            error
+          );
           return { key, parsedValue: null };
         }
       });
 
-      const colmeias = parsedObjects.filter(obj => obj.tipo === "Colmeia" && obj.apiario === route.params.nomeApi1)
+      const colmeias = parsedObjects.filter(
+        (obj) => obj.tipo === "Colmeia" && obj.apiario === route.params.nomeApi1
+      );
       setArquivos(colmeias);
-      console.log('colmeias', colmeias);
+      console.log("colmeias", colmeias);
 
       return colmeias;
     } catch (error) {
-      console.log('Erro ao recuperar a lista de objetos:', error);
+      console.log("Erro ao recuperar a lista de objetos:", error);
       return [];
     }
   };
@@ -112,9 +131,9 @@ export default function Home({ item, route }) {
   const removeKeys = async (keys) => {
     try {
       await AsyncStorage.multiRemove(keys);
-      console.log('Chaves removidas com sucesso:', keys);
+      console.log("Chaves removidas com sucesso:", keys);
     } catch (error) {
-      console.log('Erro ao remover chaves:', error);
+      console.log("Erro ao remover chaves:", error);
     }
   };
 
@@ -123,7 +142,7 @@ export default function Home({ item, route }) {
   };
 
   const deleteApi = async () => {
-    if (name != null && route.params.TipoDeApi != 'arquivos') {
+    if (name != null && route.params.TipoDeApi != "arquivos") {
       //Online
       firebase
         .firestore()
@@ -131,31 +150,35 @@ export default function Home({ item, route }) {
         .doc(route.params.nomeApi.id)
         .delete()
         .then(() => {
-          Alert.alert("Apiário apagado!", "Apiário apagado com sucesso da base de dados!");
+          Alert.alert(
+            "Apiário apagado!",
+            "Apiário apagado com sucesso da base de dados!"
+          );
           navigation.navigate("Página Inicial");
         })
         .catch((error) => console.log(error));
-    }
-    else {
+    } else {
       //offline
       try {
         removeObjectLocally(route.params.nomeApi1);
         navigation.navigate("Página Inicial");
-        Alert.alert("Apiário apagado!", "Apiário apagado com sucesso localmente!");
+        Alert.alert(
+          "Apiário apagado!",
+          "Apiário apagado com sucesso localmente!"
+        );
       } catch (error) {
         console.log(`Erro ao excluir o arquivo: ${error.message}`);
       }
     }
-
   };
 
   const removeObjectLocally = (key) => {
     try {
       AsyncStorage.removeItem(key);
-      console.log('Objeto removido com sucesso!');
+      console.log("Objeto removido com sucesso!");
       navigation.navigate("Página Inicial");
     } catch (error) {
-      console.log('Erro ao remover o objeto:', error);
+      console.log("Erro ao remover o objeto:", error);
     }
   };
 
@@ -168,7 +191,7 @@ export default function Home({ item, route }) {
   };
 
   const renderFlatList = () => {
-    if (userDoc.length === 0 && route.params.TipoDeApi != 'arquivos') {
+    if (userDoc.length === 0 && route.params.TipoDeApi != "arquivos") {
       return (
         <View style={styles.container}>
           <FlatList
@@ -178,10 +201,7 @@ export default function Home({ item, route }) {
             data={arquivos}
             ListEmptyComponent={EmptyListMessage}
             refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-              />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.container}>
@@ -224,10 +244,7 @@ export default function Home({ item, route }) {
             data={userDoc}
             ListEmptyComponent={EmptyListMessage}
             refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-              />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.container}>
@@ -279,7 +296,6 @@ export default function Home({ item, route }) {
     }
   }, []);
 
-
   const listarArquivos1 = async () => {
     try {
       const dirInfo = await FileSystem.getInfoAsync(
@@ -288,7 +304,7 @@ export default function Home({ item, route }) {
       if (dirInfo.exists && dirInfo.isDirectory) {
         const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
         setArquivos(arquivosInfo);
-        console.log(arquivos)
+        console.log(arquivos);
       }
     } catch (error) {
       console.error(error);
@@ -364,7 +380,12 @@ export default function Home({ item, route }) {
   };
   return (
     <View style={styles.container}>
-      <Header name={name.username} type="user" onPress={onUserPress} showIcon={'true'} />
+      <Header
+        name={name.username}
+        type="user"
+        onPress={onUserPress}
+        showIcon={"true"}
+      />
       <View style={styles.buttons}>
         <CustomButton text={route.params.nomeApi1} type="HOME" />
 
@@ -395,16 +416,13 @@ export default function Home({ item, route }) {
 
       <View style={styles.container}>
         <FlatList
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.key}
           style={styles.list}
           showsVerticalScrollIndicator={false}
           data={combinedData}
           ListEmptyComponent={EmptyListMessage}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.container}>
@@ -419,7 +437,7 @@ export default function Home({ item, route }) {
                     nomeApi: route.params.nomeApi1,
                     TipoDeApi: route.params.TipoDeApi,
                     IdCol: item.item.id,
-                    IdApi: route.params.IdLocal
+                    IdApi: route.params.IdLocal,
                   })
                 }
               />
@@ -448,8 +466,8 @@ export default function Home({ item, route }) {
             }
           />
         </View>
-      </View>    
       </View>
+    </View>
   );
 }
 
