@@ -172,10 +172,10 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   const paginaInicialKeywords = ['página inicial', 'inicial'];
   const pararKeywords = ['parar', 'parar comandos', 'desligar comandos'];
   const voltarKeywords = ['voltar', 'página anterior'];
-  const selecionarApiarioKeywords = ['selecionar apiário', 'apiário']
-  const selecionarColmeiaKeywords = ['selecionar colmeia', 'colmeia', 'selecionar Colmeia', 'Colmeia', 'como é', 'columeia']
-  const NovaGravaçãoKeywords = ['nova gravação', 'novo áudio']
-  const NomeAudioKeywords = ['nome áudio', 'nome gravação']
+  const selecionarApiarioKeywords = ['selecionar apiário', 'apiário', 'selecionar diário']
+  const selecionarColmeiaKeywords = ['selecionar colmeia', 'colmeia', 'selecionar Colmeia', 'Colmeia', 'como é', 'columeia', 'selecionar columeia']
+  const NovaGravaçãoKeywords = ['nova gravação', 'novo áudio', 'nossa gravação']
+  const NomeAudioKeywords = ['nome áudio', 'nome gravação', 'áudio']
   const ComeçarGravarKeywords = ['começar gravação', 'começar a gravar']
   const PararGravarKeywords = ['parar gravação', 'parar de gravar', 'horário', 'arara']
 
@@ -255,9 +255,9 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
                 });
                 RouteApi = doc.id
                 nomeApi = doc.data().nome
-                comando = ""
               })
             })
+              comando = ""
         }
 
         // Função para extrair o nome da colmeia do comando
@@ -293,22 +293,35 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
           navigation.navigate("Audio Recorder", {
             nomeCol: NomeCol
           })
+          Speech.speak(`A navegar para nova gravação`, {
+            language: 'pt-PT'
+          });
+          comando= ""
         }
         if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
           NomeAudio = comando.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-          //NomeAudio = nomeaudio
+          console.log(NomeAudio)
           navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
+          Speech.speak(`nome audio ${NomeAudio}`, {
+            language: 'pt-PT'
+          });
           setNomeA(NomeAudio)
           setNomeC(NomeCol)
+          comando = ""
         }
-        if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
+        if (checkCommandSimilarity(comando, ComeçarGravarKeywords)) {
           clearTimeout()
           startRecording1();
+          comando = ""
         }
 
-        if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
+        if (checkCommandSimilarity(comando, PararGravarKeywords)) {
           stopRecording1();
-          navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
+          navigation.navigate("Colmeia", { nomeCol: NomeCol, nomeApi: nomeApi })
+          comando = ""
+        }
+        return ()=>{
+          clearInterval()
         }
       }, 5000)
 
