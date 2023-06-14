@@ -48,11 +48,8 @@ const AudioRecorder = ({route}) => {
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI();
     const novoUri = `${FileSystem.documentDirectory}${nome}`;
-
-
     let updatedRecordings = [...recordings];
     const { sound, status } = await recording.createNewLoadedSoundAsync();
-
     updatedRecordings.push({
       sound: sound,
       duration: getDurationFormated(status.durationMillis),
@@ -70,7 +67,7 @@ const AudioRecorder = ({route}) => {
     try {
       //Create the file reference
       const storage = getStorage();
-      const storageRef = ref(storage, `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/audio ${nome}`);
+      const storageRef = ref(storage, `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/audio ${nome}.mp3`);
 
       // Upload Blob file to Firebase
       const snapshot = await uploadBytes(storageRef, file, "blob")

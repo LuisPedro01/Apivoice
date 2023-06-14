@@ -6,17 +6,12 @@ import {
   StatusBar,
   TouchableOpacity,
   Switch,
-  Alert,
   Platform,
-  NativeModules
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient';
-import { Screen } from 'react-native-screens';
 import { firebase } from "../services/firebase";
-import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../services/firebase";
 import { getDownloadURL, getStorage, listAll, ref, uploadBytes } from "firebase/storage";
 import { Audio } from "expo-av";
 import * as Speech from "expo-speech";
@@ -29,10 +24,6 @@ const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 :
 export default function Header({ name, type, onPress, route, item, showIcon }) {
   const navigation = useNavigation();
   const [isEnable, setIsEnable] = useState(false);
-
-  //const [nomeapi, SetNomeApi] = useState('')
-  //const [localizaçãoApi, SetLocalizaçãoApi] = useState("")
-
   const [recording, setRecording] = useState();
   const [recordings, setRecordings] = useState([]);
   const [song, setSong] = useState();
@@ -43,14 +34,11 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   let NomeCol = '';
   let NomeAudio = ''
   let uri;
-  let nomeApi1;
-  let localapi1;
-  let nomeCol1;
-  let localCol1;
   const [nomeA, setNomeA] = useState('')
   const [nomeC, setNomeC] = useState('')
   const [timerId, setTimerId] = useState(null);
   let comando = ""
+  var isRecroding = false
 
   const keyExtractor = (item) => item.id
 
@@ -67,7 +55,6 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     }
     setIsEnable((previousState) => !previousState);
   };
-
 
   //+++++++++++++++
   //Começar a gravar
@@ -87,6 +74,17 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       );
       setRecording(recording);
       console.log("Recording started");
+
+      // Aguardar 30 segundos
+      await new Promise((resolve) => setTimeout(resolve, 30000));
+
+      console.log("Stopping recording..");
+      await stopRecording1();
+
+      Speech.speak(`áudio guardado na base de dados`, {
+        language: 'pt-PT'
+      });
+
       return NomeAudio
     } catch (err) {
       console.error("Failed to start recording", err);
@@ -146,7 +144,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   //Reproduzir audio
   //++++++++++++++++
   const onPlayPress = (nomeAudio) => {
-    storage1.ref(`audio ${NomeCol}/${nomeAudio}`).getDownloadURL()
+    storage1.ref(`apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/audio ${nomeAudio}.mp3`).getDownloadURL()
       .then(async (url) => {
         console.log(`url de ${nomeAudio}->`, url)
         try {
@@ -172,13 +170,15 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   const paginaInicialKeywords = ['página inicial', 'inicial'];
   const pararKeywords = ['parar', 'parar comandos', 'desligar comandos'];
   const voltarKeywords = ['voltar', 'página anterior'];
-  const selecionarApiarioKeywords = ['selecionar apiário', 'apiário', 'selecionar diário']
-  const selecionarColmeiaKeywords = ['selecionar colmeia', 'colmeia', 'selecionar Colmeia', 'Colmeia', 'como é', 'columeia', 'selecionar columeia']
+  const selecionarApiarioKeywords = ['selecionar apiário', 'apiário', 'selecionar diário', 'selecionar Aviário']
+  const selecionarColmeiaKeywords = ['selecionar']
   const NovaGravaçãoKeywords = ['nova gravação', 'novo áudio', 'nossa gravação']
-  const NomeAudioKeywords = ['nome áudio', 'nome gravação', 'áudio']
+  const NomeAudioKeywords = ['número áudio', 'número gravação', 'nome gravação', 'nome áudio', 'no áudio', 'nome audio', 'no audio']
   const ComeçarGravarKeywords = ['começar gravação', 'começar a gravar']
   const PararGravarKeywords = ['parar gravação', 'parar de gravar', 'horário', 'arara']
+  const ReproduzirAudioKeywords = ['reproduzir áudio']
 
+  var timeout
 
   const startRecording = async () => {
     try {
@@ -203,145 +203,161 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         },
       };
 
+      isRecroding = true
       const { recording } = await Audio.Recording.createAsync(recordingOptions);
       setRecording(recording);
       console.log('Recording started');
-      setTimeout(async () => {
+      timeout = setTimeout(async () => {
         await recording.stopAndUnloadAsync();
         const uri = recording.getURI();
         console.log('Recording stopped', uri);
         sendAudioToServer(uri);
         startRecording()
 
-        //pagina incial
-        if (checkCommandSimilarity(comando, paginaInicialKeywords)) {
-          Speech.speak("A dirécionar para página inicial", {
-            language: 'pt-PT'
-          });
-          navigation.navigate('Página Inicial')
-          comando = ""
-        }
+      }, 8000)
+      //pagina incial
+      if (checkCommandSimilarity(comando, paginaInicialKeywords)) {
+        Speech.speak("A dirécionar para página inicial", {
+          language: 'pt-PT'
+        });
+        navigation.navigate('Página Inicial')
+        comando = ""
+        setIsEnable(true)
 
-        //parar
-        if (checkCommandSimilarity(comando, pararKeywords)) {
-          Speech.speak("Comandos desligados", {
-            language: 'pt-PT'
-          });
-          clearTimeout()
-          stopRecording()
-          setIsEnable(false)
-          comando = ""
-        }
+      }
 
-        //voltar
-        if (checkCommandSimilarity(comando, voltarKeywords)) {
-          Speech.speak("A navegar para página anterior", {
-            language: 'pt-PT'
-          });
-          navigation.goBack()
-          comando = ""
-        }
+      //parar
+      if (checkCommandSimilarity(comando, pararKeywords)) {
+        Speech.speak("Comandos desligados", {
+          language: 'pt-PT'
+        });
+        clearTimeout(timeout);
+        setIsEnable(false)
+        comando = ""
+        return;
+      }
 
-        //selecionar apiário
-        if (checkCommandSimilarity(comando, selecionarApiarioKeywords)) {
-          const nome = comando.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-          ApiRef.where('nome', '==', nome).get()
-            .then((querySnapshot) => {
-              querySnapshot.forEach((doc) => {
-                keyExtractor(doc)
-                navigation.navigate("Colmeia", { nomeApi1: doc.data().nome, nomeApi: doc })
-                Speech.speak(`A navegar para apiário ${nome}`, {
-                  language: 'pt-PT'
-                });
-                RouteApi = doc.id
-                nomeApi = doc.data().nome
-              })
+      //voltar
+      if (checkCommandSimilarity(comando, voltarKeywords)) {
+        Speech.speak("A navegar para página anterior", {
+          language: 'pt-PT'
+        });
+        navigation.goBack()
+        comando = ""
+      }
+
+      //selecionar apiário
+      if (checkCommandSimilarity(comando, selecionarApiarioKeywords)) {
+        const nome = comando.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+        ApiRef.where('nome', '==', nome).get()
+          .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              keyExtractor(doc)
+              navigation.navigate("Colmeia", { nomeApi1: doc.data().nome, nomeApi: doc })
+              Speech.speak(`A navegar para apiário ${nome}`, {
+                language: 'pt-PT'
+              });
+              RouteApi = doc.id
+              nomeApi = doc.data().nome
             })
-              comando = ""
-        }
-
-        // Função para extrair o nome da colmeia do comando
-        const extractColmeiaName = (command) => {
-          const regex = /colmeia (.+)/i;
-          const match = command.match(regex);
-          return match ? match[1] : null;
-        };
-
-        //selecionar colmeia
-        if (checkCommandSimilarity(comando, selecionarColmeiaKeywords)) {
-          console.log('chegou aqui')
-          const nome = extractColmeiaName(comando)
-          console.log(nome)
-          let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
-          ColRef.where('nomeColmeia', '==', nome).get()
-            .then((querySnapshot) => {
-              querySnapshot.forEach((doc) => {
-                keyExtractor(doc)
-                NomeCol = doc.data().nomeColmeia
-                navigation.navigate("Gravações", { nomeCol: NomeCol, nomeApi: doc })
-                Speech.speak(`A navegar para colmeia ${nome}`, {
-                  language: 'pt-PT'
-                });
-              })
-            })
-            .catch((error) => console.log(error));
-          comando = ""
-        }
-
-        //gravar
-        if (checkCommandSimilarity(comando, NovaGravaçãoKeywords)) {
-          navigation.navigate("Audio Recorder", {
-            nomeCol: NomeCol
           })
-          Speech.speak(`A navegar para nova gravação`, {
-            language: 'pt-PT'
-          });
-          comando= ""
-        }
-        if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
-          NomeAudio = comando.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-          console.log(NomeAudio)
-          navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
-          Speech.speak(`nome audio ${NomeAudio}`, {
-            language: 'pt-PT'
-          });
-          setNomeA(NomeAudio)
-          setNomeC(NomeCol)
-          comando = ""
-        }
-        if (checkCommandSimilarity(comando, ComeçarGravarKeywords)) {
-          clearTimeout()
-          startRecording1();
-          comando = ""
-        }
+        comando = ""
+        setIsEnable(true)
+      }
 
-        if (checkCommandSimilarity(comando, PararGravarKeywords)) {
-          stopRecording1();
-          navigation.navigate("Colmeia", { nomeCol: NomeCol, nomeApi: nomeApi })
-          comando = ""
+      // Função para extrair o nome da colmeia do comando
+      const extractColmeiaName = (command) => {
+        const regex = /selecionar (.+)/i;
+        const match = command.match(regex);
+        return match ? match[1] : null;
+      };
+
+      //selecionar colmeia
+      if (checkCommandSimilarity(comando, selecionarColmeiaKeywords)) {
+        console.log('chegou aqui')
+        const nome = extractColmeiaName(comando)
+        console.log(nome)
+        let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
+        ColRef.where('nomeColmeia', '==', nome).get()
+          .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              keyExtractor(doc)
+              NomeCol = doc.data().nomeColmeia
+              navigation.navigate("Gravações", { nomeCol: NomeCol, nomeApi: doc })
+              Speech.speak(`A navegar para colmeia ${nome}`, {
+                language: 'pt-PT'
+              });
+            })
+          })
+          .catch((error) => console.log(error));
+        comando = ""
+      }
+
+      //gravar
+      if (checkCommandSimilarity(comando, NovaGravaçãoKeywords)) {
+        navigation.navigate("Audio Recorder", {
+          nomeCol: NomeCol
+        })
+        Speech.speak(`A navegar para nova gravação`, {
+          language: 'pt-PT'
+        });
+        comando = ""
+      }
+      if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
+        NomeAudio = comando.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+        //NomeAudio = comando.split("gravação ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+        console.log(NomeAudio)
+        navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
+        Speech.speak(`nome audio ${NomeAudio}`, {
+          language: 'pt-PT'
+        });
+        setNomeA(NomeAudio)
+        setNomeC(NomeCol)
+        comando = ""
+      }
+      if (checkCommandSimilarity(comando, ComeçarGravarKeywords)) {
+        Speech.speak(`a gravar nova gravação`, {
+          language: 'pt-PT'
+        });
+        clearTimeout(timeout)
+        comando = ""
+        // clearTimeout(timeout)
+        // await stopRecording()
+        // await startRecording1();
+        // await new Promise((resolve) => setTimeout(resolve, 30000));
+        // await stopRecording1();
+        // startRecording()
+        if (isRecroding === false) {
+          startRecording1()
         }
-        return ()=>{
-          clearInterval()
-        }
-      }, 5000)
+        startRecording()
+      }
+
+      if (checkCommandSimilarity(comando, PararGravarKeywords)) {
+        stopRecording1();
+        navigation.navigate("Colmeia", { nomeCol: NomeCol, nomeApi: nomeApi })
+        comando = ""
+      }
+
+      if (checkCommandSimilarity(comando, ReproduzirAudioKeywords)) {
+        const nomeAudio = comando.split("gravação ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
+        onPlayPress(nomeAudio)
+      }
+      return () => {
+        clearInterval()
+      }
 
     } catch (error) {
       console.log('Failed to start recording', error);
     }
   };
 
-  const vozes = () => {
-    Speech.getAvailableVoicesAsync().then(voices => {
-      console.log(voices);
-    });
-  }
-
   const stopRecording = async () => {
     try {
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       console.log('Recording stopped', uri);
-      sendAudioToServer(uri);
+      await sendAudioToServer(uri);
     } catch (error) {
       console.log('Failed to stop recording', error);
     }
@@ -372,6 +388,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     } catch (error) {
       console.log('Failed to send audio to server', error);
     }
+    isRecroding = false
   };
 
   const getAudioPermission = async () => {
@@ -392,50 +409,9 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     if (isEnable) {
       startRecording()
 
-    } else {
-      stopRecording();
-    }
+    } 
   }, [isEnable])
 
-
-
-  // useEffect(() => {
-  //   if (isEnable) {
-  //     const intervalID = setInterval(() => {
-  //       console.log('A ouvir o comando')
-  //       Audio.requestPermissionsAsync();
-  //       startRecording();
-
-  //       startRecording()
-  //       // fetch("http://192.168.1.7:5000", {
-  //       //   method: "GET",
-  //       //   headers: {
-  //       //     Accept: "application/json, text/plain",
-  //       //     "Content-Type": "application/json",
-  //       //   },
-  //       // })
-  //       // .then((resp) => resp.text())
-  //       // .then((data1) => {
-  //       //   console.log("Voce disse: ", data1);
-
-  //       //   //+++++++++++++++++++++++++
-  //       //   // comando página inicial +
-  //       //   //+++++++++++++++++++++++++
-  //       //   if (data1.includes('Página inicial') || data1.includes('página inicial')) {
-  //       //     navigation.navigate('Apiario')
-  //       //   }
-  //       //   //++++++++++++++++
-  //       //   // comando parar +
-  //       //   //++++++++++++++++
-  //       //   if (data1 === 'parar' || data1 === 'Parar' || data1.includes('STOP') || data1.includes('stop') || data1.includes('Stop')) {
-  //       //     clearInterval(intervalID);
-  //       //     console.log('Comandos parados!')
-  //       //     Alert.alert('Comandos parados!', "Para voltar a ativar os comandos, ative-os no botão.")
-  //       //     Speech.speak("Comandos desligados", {
-  //       //       voice: "pt-pt-x-sfs-network",
-  //       //     });
-  //       //     setIsEnable(false)
-  //       //   }
 
   //       //   //++++++++++
   //       //   //+ Gravar +
@@ -461,48 +437,6 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   //       //     stopRecording1();
   //       //     navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
   //       //   }
-
-  //       //   //+++++++++++++++++
-  //       //   // comando voltar +
-  //       //   //+++++++++++++++++    
-  //       //   if ((data1.includes('voltar') || data1.includes('Voltar'))) {
-  //       //     navigation.goBack()
-  //       //   }
-
-  //       //   //++++++++++++++++++++++++++++++
-  //       //   //+ comando selecionar apiario +
-  //       //   //++++++++++++++++++++++++++++++
-  //       //   if (data1.includes(`Selecionar apiário`) || data1.includes(`selecionar apiário`)) {
-  //       //     const nome = data1.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-  //       //     ApiRef.where('nome', '==', nome).get()
-  //       //       .then((querySnapshot) => {
-  //       //         querySnapshot.forEach((doc) => {
-  //       //           keyExtractor(doc)
-  //       //           navigation.navigate("Home", { nomeApi1: doc.data().nome, nomeApi: doc })
-  //       //           RouteApi = doc.id
-  //       //           nomeApi = doc.data().nome
-  //       //         })
-  //       //       })
-  //       //   }
-
-  //       //   //++++++++++++++++++++++++++++++
-  //       //   //+ comando selecionar colmeia +
-  //       //   //++++++++++++++++++++++++++++++
-  //       //   if (data1.includes(`Selecionar colmeia`) || data1.includes(`selecionar colmeia`)) {
-  //       //     const nome = data1.split("colmeia ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-  //       //     let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
-  //       //     ColRef.where('nomeColmeia', '==', nome)
-  //       //       .get()
-  //       //       .then((querySnapshot) => {
-  //       //         querySnapshot.forEach((doc) => {
-  //       //           keyExtractor(doc)
-  //       //           NomeCol = doc.data().nomeColmeia
-  //       //           navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
-  //       //         })
-  //       //       })
-  //       //       .catch((error) => console.log(error));
-  //       //   }
-
   //       //   //++++++++++++++++++++++++
   //       //   //Comando reproduzir audio
   //       //   //++++++++++++++++++++++++
@@ -511,15 +445,6 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   //       //     onPlayPress(nomeAudio)
   //       //   }
 
-  //       // })
-  //       //.catch((error) => console.log("error", error));
-  //       stopRecording()
-  //     }, 10000);
-  //     return () => {
-  //       clearInterval(intervalID);
-  //     };
-  //   }
-  // })
 
   return (
     <LinearGradient colors={['#FFDAAE', 'white']}>

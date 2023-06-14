@@ -6,6 +6,8 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
+  RefreshControl,
+  Platform
 } from "react-native";
 import Header from "../components/Header";
 import { useNavigation } from "@react-navigation/native";
@@ -28,6 +30,7 @@ export default function NovaColmeia({ item, route }) {
   const [userDocOff, setUserDocOff] = useState([]);
   const [arquivos, setArquivos] = useState([]);
   const [name, setName] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
 
   const getDadosNomes = () => {
@@ -52,6 +55,14 @@ export default function NovaColmeia({ item, route }) {
       //listarArquivos1();
     }
   }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    listGrav();
+    getDadosNomes();
+    setRefreshing(false)
+  };
+
 
   const listarArquivos1 = async () => {
     try {
@@ -157,15 +168,19 @@ export default function NovaColmeia({ item, route }) {
 
   const onPlayPress = (item) => {
     storage1
-      .ref(
-        `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/${item}`
-      )
+      .ref(`apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/${item}`)
       .getDownloadURL()
       .then(async (url) => {
         console.log(`url de ${item}->`, url);
         try {
-          const { sound } = await Audio.Sound.createAsync({ uri: url });
-          await sound.replayAsync();
+          if(Platform.OS=="android"){
+            const { sound } = await Audio.Sound.createAsync({ uri: url });
+            await sound.playAsync();
+          }
+          else{
+            const { sound } = await Audio.Sound.createAsync({ uri: url });
+            await sound.playAsync();
+          }
         } catch (error) {
           console.log("Erro ao reproduzir o audio: ", error);
         }
@@ -273,6 +288,12 @@ export default function NovaColmeia({ item, route }) {
       <FlatList
         style={styles.list}
         ListEmptyComponent={EmptyListMessage}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
         showsVerticalScrollIndicator={false}
         data={Grav}
         renderItem={({ item }) => (
