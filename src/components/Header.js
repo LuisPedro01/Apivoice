@@ -25,6 +25,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   const navigation = useNavigation();
   const [isEnable, setIsEnable] = useState(false);
   const [recording, setRecording] = useState();
+  const [recording1, setRecording1] = useState();
   const [recordings, setRecordings] = useState([]);
   const [song, setSong] = useState();
   const ApiRef = firebase.firestore().collection("apiarios");
@@ -39,18 +40,20 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   const [timerId, setTimerId] = useState(null);
   let comando = ""
   var isRecroding = false
+  let recordingInstance
 
   const keyExtractor = (item) => item.id
 
   const toggleSwitch = async (value) => {
     if (isEnable) {
       Speech.speak("Comandos desligados", {
-        language: 'pt-PT'
+        language: 'pt-PT',
+
       });
       stopRecording()
     } else {
       Speech.speak("A ouvir comandos", {
-        language: 'pt-PT'
+        language: 'pt-PT',
       });
     }
     setIsEnable((previousState) => !previousState);
@@ -75,17 +78,8 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       setRecording(recording);
       console.log("Recording started");
 
-      // Aguardar 30 segundos
-      await new Promise((resolve) => setTimeout(resolve, 30000));
-
-      console.log("Stopping recording..");
-      await stopRecording1();
-
-      Speech.speak(`áudio guardado na base de dados`, {
-        language: 'pt-PT'
-      });
-
-      return NomeAudio
+      recordingInstance=recording
+      return {recording,NomeAudio}
     } catch (err) {
       console.error("Failed to start recording", err);
     }
@@ -94,47 +88,30 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   //+++++++++++++++
   //Parar de gravar
   //+++++++++++++++
-  function getDurationFormated(millis) {
-    const minutes = millis / 1000 / 60;
-    const minutesDisplay = Math.floor(minutes);
-    const seconds = Math.round((minutes - minutesDisplay) * 60);
-    const secondsDisplay = seconds < 10 ? `0${seconds}` : seconds;
-    return `${minutesDisplay}:${secondsDisplay}`;
-  }
   async function stopRecording1() {
+    if (!recordingInstance) {
+      console.log("No recording instance found.");
+      return;
+    }
     console.log("Stopping recording..");
-    setRecording(undefined);
-    await recording.stopAndUnloadAsync();
-    uri = recording.getURI();
+    //setRecording(undefined);
+    console.log(recordingInstance)
+    recordingInstance.stopAndUnloadAsync();
+    const uri = recordingInstance.getURI();
     console.log("Recording stopped and stored at", uri);
 
-    let updatedRecordings = [...recordings];
-    const { sound, status } = await recording.createNewLoadedSoundAsync();
-
-    updatedRecordings.push({
-      sound: sound,
-      duration: getDurationFormated(status.durationMillis),
-      file: recording.getURI(),
-    });
-    setRecordings(updatedRecordings);
-
     const response = await fetch(uri)
-    const file = await response.blob([response.valueOf], {
-      type: "audio/mp3",
-    });
+    const file = await response.blob()
 
     try {
       //Create the file reference
       const storage = getStorage();
-      const storageRef = ref(storage, `audio ${nomeC}/${nomeA}`);
+      const storageRef = ref(storage, `apiario ${nomeApi}/colmeia ${NomeCol}/audio ${NomeAudio}`);
 
-      // Upload Blob file to Firebase
-      const snapshot = await uploadBytes(storageRef, file, "blob")
-        .then((snapshot) => {
-          console.log("Gravação criada com sucesso!");
-        });
+     // Upload Blob file to Firebase
+     const snapshot = await uploadBytes(storageRef, file);
+     console.log("Gravação criada com sucesso!");
 
-      setSong(sound);
     } catch (error) {
       console.log(error);
     }
@@ -144,7 +121,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   //Reproduzir audio
   //++++++++++++++++
   const onPlayPress = (nomeAudio) => {
-    storage1.ref(`apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/audio ${nomeAudio}.mp3`).getDownloadURL()
+    storage1.ref(`apiario ${nomeApi}/colmeia ${NomeCol}/audio ${nomeAudio}.mp3`).getDownloadURL()
       .then(async (url) => {
         console.log(`url de ${nomeAudio}->`, url)
         try {
@@ -177,7 +154,6 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   const ComeçarGravarKeywords = ['começar gravação', 'começar a gravar']
   const PararGravarKeywords = ['parar gravação', 'parar de gravar', 'horário', 'arara']
   const ReproduzirAudioKeywords = ['reproduzir áudio']
-
   var timeout
 
   const startRecording = async () => {
@@ -207,6 +183,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       const { recording } = await Audio.Recording.createAsync(recordingOptions);
       setRecording(recording);
       console.log('Recording started');
+
       timeout = setTimeout(async () => {
         await recording.stopAndUnloadAsync();
         const uri = recording.getURI();
@@ -232,6 +209,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
           language: 'pt-PT'
         });
         clearTimeout(timeout);
+        stopRecording()
         setIsEnable(false)
         comando = ""
         return;
@@ -264,7 +242,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         comando = ""
         setIsEnable(true)
       }
-
+      
       // Função para extrair o nome da colmeia do comando
       const extractColmeiaName = (command) => {
         const regex = /selecionar (.+)/i;
@@ -277,13 +255,16 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         console.log('chegou aqui')
         const nome = extractColmeiaName(comando)
         console.log(nome)
+        console.log('RouteApi2', RouteApi)
+
         let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
         ColRef.where('nomeColmeia', '==', nome).get()
           .then((querySnapshot) => {
             querySnapshot.forEach((doc) => {
               keyExtractor(doc)
               NomeCol = doc.data().nomeColmeia
-              navigation.navigate("Gravações", { nomeCol: NomeCol, nomeApi: doc })
+              console.log('nome apiario->', nomeApi)
+              navigation.navigate("Gravações", { nomeCol: NomeCol, nomeApi: nomeApi })
               Speech.speak(`A navegar para colmeia ${nome}`, {
                 language: 'pt-PT'
               });
@@ -316,35 +297,42 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         comando = ""
       }
       if (checkCommandSimilarity(comando, ComeçarGravarKeywords)) {
-        Speech.speak(`a gravar nova gravação`, {
+        Speech.speak(`a preparar nova gravação`, {
           language: 'pt-PT'
         });
         clearTimeout(timeout)
+        console.log('1')
+        setIsEnable(false)
+        // Aguardar 5 segundos
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        Speech.speak(`a gravar nova gravação`, {
+          language: 'pt-PT'
+        });
+        startRecording1()
         comando = ""
-        // clearTimeout(timeout)
-        // await stopRecording()
-        // await startRecording1();
-        // await new Promise((resolve) => setTimeout(resolve, 30000));
-        // await stopRecording1();
-        // startRecording()
-        if (isRecroding === false) {
-          startRecording1()
-        }
+
+        // Aguardar 30 segundos
+        await new Promise((resolve) => setTimeout(resolve, 30000));
+
+        console.log("Stopping recording..");
+        stopRecording1();
+
+        Speech.speak(`áudio guardado na base de dados`, {
+          language: 'pt-PT'
+        });
         startRecording()
       }
 
-      if (checkCommandSimilarity(comando, PararGravarKeywords)) {
-        stopRecording1();
-        navigation.navigate("Colmeia", { nomeCol: NomeCol, nomeApi: nomeApi })
-        comando = ""
+      //reproduzir audio
+      if (checkCommandSimilarity(comando, ReproduzirAudioKeywords)) {
+        const nomeAudio = comando.split("áudio ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
+        onPlayPress(nomeAudio)
+        console.log('Nome Audio->', nomeAudio)
+        comando=""
       }
 
-      if (checkCommandSimilarity(comando, ReproduzirAudioKeywords)) {
-        const nomeAudio = comando.split("gravação ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
-        onPlayPress(nomeAudio)
-      }
       return () => {
-        clearInterval()
+        clearTimeout(timeout)
       }
 
     } catch (error) {
@@ -409,7 +397,10 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     if (isEnable) {
       startRecording()
 
-    } 
+    }
+    else {
+      stopRecording()
+    }
   }, [isEnable])
 
 
