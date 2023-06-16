@@ -115,7 +115,7 @@ export default function NovaColmeia({ route }) {
         />
         <CustomInput
           placeholder="Localização"
-          value={localizaçao || localizaçãoCol}
+          value={localizaçao? localizaçao:route.params.LocalApi1 }
           setValue={setLocalizaçao}
           required={true}
         />

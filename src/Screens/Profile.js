@@ -7,6 +7,7 @@ import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
 import { firebase } from "../services/firebase";
 import { DocumentSnapshot } from "firebase/firestore";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 export default function Profile() {
   const route = useRoute();
@@ -70,41 +71,37 @@ export default function Profile() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Header name="Perfil" type="user" showIcon={'true'}/>
+    <KeyboardAwareScrollView>
+      <View style={styles.container}>
+        <Header name="Perfil" type="user" showIcon={'true'} />
 
-      <CustomButton text={name.username + ' - ' + name.cidade} type="COLMEIAS" />
+        <CustomButton text={name.username} type="COLMEIAS" />
 
-      <View
-        style={{
-          borderBottomColor: "#939393",
-          borderBottomWidth: 0.5,
-          margin: 20,
-          marginBottom: 0,
-          marginTop: 10,
-        }}
-      />
-      <View style={styles.list}>
-        <TextInput
-          style={styles.input}
-          placeholder="Nome"
-          value={userData ? userData.username : ""}
-          onChangeText={(txt) => setUserData({ ...userData, username: txt })}
+        <View
+          style={{
+            borderBottomColor: "#939393",
+            borderBottomWidth: 0.5,
+            margin: 20,
+            marginBottom: 0,
+            marginTop: 10,
+          }}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Localidade"
-          value={userData ? userData.cidade : ""}
-          onChangeText={(txt) => setUserData({ ...userData, cidade: txt })}
+        <View style={styles.list}>
+          <TextInput
+            style={styles.input}
+            placeholder="Nome"
+            value={userData ? userData.username : ""}
+            onChangeText={(txt) => setUserData({ ...userData, username: txt })}
+          />
+        </View>
+
+        <CustomButton
+          text="Alterar perfil"
+          type="ALTERAR"
+          onPress={() => userUpdate()}
         />
       </View>
-
-      <CustomButton
-        text="Alterar perfil"
-        type="NOVACOLMEIA"
-        onPress={() => userUpdate()}
-      />
-    </View>
+    </KeyboardAwareScrollView>
   );
 }
 

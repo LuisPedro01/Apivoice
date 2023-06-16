@@ -292,6 +292,7 @@ export default function Home({ item, route }) {
     getDadosNomes();
     getDados();
     getObjectsLocally();
+    console.log('localautomatico->', route.params.LocalApi)
     if (userDoc.length === 0) {
     }
   }, []);
@@ -437,7 +438,7 @@ export default function Home({ item, route }) {
                     nomeApi: route.params.nomeApi1,
                     TipoDeApi: route.params.TipoDeApi,
                     IdCol: item.item.id,
-                    IdApi: route.params.IdLocal,
+                    IdApi: route.params.IdLocal
                   })
                 }
               />
@@ -454,6 +455,7 @@ export default function Home({ item, route }) {
                 nomeApi: route.params.nomeApi,
                 NomeCol: "",
                 LocalApi: "",
+                LocalApi1: route.params.LocalApi
               })
             }
           />

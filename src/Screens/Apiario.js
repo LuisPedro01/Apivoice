@@ -182,7 +182,8 @@ export default function Apiario(item) {
                     nomeApi: item.item,
                     nomeApi1: item.item.nome,
                     IdLocal: item.item.id,
-                    TipoDeApi: item.type
+                    TipoDeApi: item.type,
+                    LocalApi: item.item.localizacao
                   })
                 }
               />
