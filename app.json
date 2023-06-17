@@ -27,6 +27,9 @@
       "**/*"
     ],
     "ios": {
+      "infoPlist": {
+        "NSFileProtectionKey": "NSFileProtectionNone"
+      },
       "supportsTablet": true,
       "bundleIdentifier": "com.luispedro.Apivoice"
     },
@@ -36,7 +39,9 @@
         "backgroundColor": "#FFFFFF"
       },
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE"
       ],
       "package": "com.luispedro.Apivoice"
     },

@@ -22,9 +22,23 @@ export default function NovaColmeia({ route }) {
   const userId = firebase.auth().currentUser.uid;
 
 
-  const CreateCol = () => {
-    if (nome.trim() != "" && localizaçao.trim() != "") {
-      if (Name != 0) {
+  const CreateCol = async () => {
+    if (nome.trim() != "") {
+      if (Name.length == 0) {
+        //criar offline
+        try {
+          const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;
+          const NovaColDirectory = `${localDirectory}/colmeia ${nome}`
+          await FileSystem.makeDirectoryAsync(NovaColDirectory, { intermediates: true });
+          Alert.alert(
+            "Colmeia criada!",
+            "Nova colmeia criada com sucesso localmente!"
+          );
+          navigation.navigate("Página Inicial");
+        } catch (error) {
+          console.log(`Erro: ${error.message}`); 
+        }
+      } else {        
         //criar online
         const subCollection = firebase
           .firestore()
@@ -48,35 +62,11 @@ export default function NovaColmeia({ route }) {
           .catch((error) => {
             alert(error.message);
           });
-      } else {
-        //criar offline
-        try {
-          const createObjectLocally = async (objectKey, object) => {
-            try {
-              await AsyncStorage.setItem(objectKey, JSON.stringify(object));
-              console.log('Objeto criado localmente com sucesso!');
-            } catch (error) {
-              console.log('Erro ao criar o objeto localmente:', error);
-            }
-          };
-          const id = `${Date.now()}-${Math.random()}`
-          const objectToCreate = { nome: nome, localizacao: localizaçao, createdAt: Date(), id: id, tipo: 'Colmeia', apiario: route.params.nomeApi.nome };
-          const objectKey = nome;
-          createObjectLocally(objectKey, objectToCreate);
-          Alert.alert(
-            "Colmeia criada!",
-            "Nova colmeia criada com sucesso localmente!"
-          );
-          navigation.navigate("Página Inicial");
-          console.log(objectToCreate)
-        } catch (error) {
-          console.log(`Erro: ${error.message}`); 
-        }
       }
     } else {
       Alert.alert(
         "Campos obrigatórios!",
-        'Os campos de "Nome" e de "Localização" são obrigatórios!'
+        'O campos "Nome" é obrigatórios!'
       );
     }
   };

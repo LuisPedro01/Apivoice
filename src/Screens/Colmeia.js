@@ -31,7 +31,7 @@ export default function NovaColmeia({ item, route }) {
   const [arquivos, setArquivos] = useState([]);
   const [name, setName] = useState("");
   const [refreshing, setRefreshing] = useState(false);
-
+  const [GravaçoesLocais, setGravaçoesLocais] = useState([])
 
   const getDadosNomes = () => {
     firebase
@@ -49,51 +49,37 @@ export default function NovaColmeia({ item, route }) {
   };
 
   useEffect(() => {
+    if (name.length == 0) {
+      listarGravacoesLocais()
+    }
     listGrav();
     getDadosNomes();
-    if (Grav.length === 0) {
-      //listarArquivos1();
-    }
+
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
+    if (name.length == 0) {
+      listarGravacoesLocais()
+    }
     listGrav();
     getDadosNomes();
     setRefreshing(false)
   };
 
-
-  const listarArquivos1 = async () => {
-    try {
-      const dirInfo = await FileSystem.getInfoAsync(
-        `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi1}/${route.params.nomeCol}`
-      );
-
-      if (dirInfo.exists && dirInfo.isDirectory) {
-        const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
-        setArquivos(arquivosInfo);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const teste = async () => {
-    const directory = FileSystem.cacheDirectory;
-    const filename = 'recording-d8d2803f-d5d9-465f-9d69-97e638e1bbcb.m4a';
-    const filePath = `${directory}Audio/${filename}`;
-
-    const fileInfo = await FileSystem.getInfoAsync(filePath);
-    if (fileInfo.exists) {
-      console.log('Arquivo encontrado no diretório:', filePath);
-    } else {
-      console.log('Arquivo não encontrado no diretório.');
-    }
-  };
-
+  //apagar colmeia base de dados e localmente
   const deleteColmeia = async () => {
-    if (name != null && route.params.TipoDeApi != 'arquivos') {
+    if (name.length === 0) {
+      //offline
+      try {
+        excluirArquivo()
+        navigation.navigate("Página Inicial");
+        Alert.alert("Apiário apagado!", "Apiário apagado com sucesso localmente!");
+      } catch (error) {
+        console.log(`Erro ao excluir o arquivo: ${error.message}`);
+      }
+    }
+    else {
       //online
       const subCollection = firebase
         .firestore()
@@ -109,41 +95,22 @@ export default function NovaColmeia({ item, route }) {
           setUserDocOff("");
         })
         .catch((error) => {
-          console.error("Error deleting document: ", error);
+          console.error("Erro ao eliminar colmeia: ", error);
         });
     }
-    else {
-      //offline
-      try {
-        removeObjectLocally(route.params.nomeCol1);
-        navigation.navigate("Página Inicial");
-        Alert.alert("Apiário apagado!", "Apiário apagado com sucesso localmente!");
-      } catch (error) {
-        console.log(`Erro ao excluir o arquivo: ${error.message}`);
-      }
-    }
   };
 
-  const removeObjectLocally = (key) => {
-    try {
-      AsyncStorage.removeItem(key);
-      console.log('Objeto removido com sucesso!');
-      navigation.navigate("Página Inicial");
-    } catch (error) {
-      console.log('Erro ao remover o objeto:', error);
-    }
-  };
-
+  //alterar colmeia de apiário
   const alterarApi = () => {
     navigation.navigate("Alterar Apiario", {
       nomeApi: route.params.nomeApi,
       nomeCol: route.params.nomeCol,
-      nomeCol1: route.params.nomeCol1,
       IdApi: route.params.IdApi,
       IdCol: route.params.IdCol
     });
   };
 
+  //obter gravações da base de dados
   const listGrav = () => {
     listAll(listRef)
       .then((res) => {
@@ -159,6 +126,7 @@ export default function NovaColmeia({ item, route }) {
       });
   };
 
+  //botão nova gravação pressionado
   const NovaGravacaoPress = () => {
     navigation.navigate("Audio Recorder", {
       nomeCol: route.params.nomeCol,
@@ -166,6 +134,7 @@ export default function NovaColmeia({ item, route }) {
     });
   };
 
+  //reproduzir audio da base de dados
   const onPlayPress = (item) => {
     storage1
       .ref(`apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/${item}`)
@@ -173,11 +142,11 @@ export default function NovaColmeia({ item, route }) {
       .then(async (url) => {
         console.log(`url de ${item}->`, url);
         try {
-          if(Platform.OS=="android"){
+          if (Platform.OS == "android") {
             const { sound } = await Audio.Sound.createAsync({ uri: url });
             await sound.playAsync();
           }
-          else{
+          else {
             const { sound } = await Audio.Sound.createAsync({ uri: url });
             await sound.playAsync();
           }
@@ -187,20 +156,24 @@ export default function NovaColmeia({ item, route }) {
       });
   };
 
+  //reproduzir audio localmente
   const onPlayPressOffline = async (item) => {
     console.log("Loading Sound");
 
     const directory = FileSystem.documentDirectory;
-    const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/colmeia${route.params.nomeCol}/${item}`;
+    const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}/${item}`;
 
     try {
+
       const { sound } = await Audio.Sound.createAsync({ uri: filePath });
       await sound.replayAsync();
+      console.log('audio reproduzido com sucesso')
     } catch (error) {
       console.log("Erro ao reproduzir o audio: ", error);
     }
   };
 
+  //mostrar mensagem quando nao houver mensagem
   const EmptyListMessage = ({ item }) => {
     return (
       <View style={styles.message}>
@@ -210,13 +183,16 @@ export default function NovaColmeia({ item, route }) {
   };
 
   const renderFlatList = () => {
-    if (Grav.length === 0) {
+    if (name.length == 0) {
       return (
         <FlatList
           style={styles.list}
           ListEmptyComponent={EmptyListMessage}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           showsVerticalScrollIndicator={false}
-          data={Grav}
+          data={GravaçoesLocais}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.container}>
               <CustomButton
@@ -233,6 +209,9 @@ export default function NovaColmeia({ item, route }) {
         <FlatList
           style={styles.list}
           ListEmptyComponent={EmptyListMessage}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           showsVerticalScrollIndicator={false}
           data={Grav}
           renderItem={({ item }) => (
@@ -249,6 +228,36 @@ export default function NovaColmeia({ item, route }) {
     }
   };
 
+  //listagem de gravaçoes locais
+  async function listarGravacoesLocais() {
+    const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
+    const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
+
+    // Verifique a existência do diretório da colmeia
+    const directoryInfo = await FileSystem.getInfoAsync(colmeiaDirectory);
+    if (!directoryInfo.exists || !directoryInfo.isDirectory) {
+      console.log('Diretório da colmeia não encontrado:', route.params.nomeCol);
+      return;
+    }
+
+    const gravacoes = await FileSystem.readDirectoryAsync(colmeiaDirectory);
+    console.log('Gravações locais da colmeia', route.params.nomeCol, ':', gravacoes);
+    setGravaçoesLocais(gravacoes)
+  }
+
+  //eliminar colmeia local
+  async function excluirArquivo() {
+    const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
+    const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
+    try {
+      await FileSystem.deleteAsync(colmeiaDirectory);
+      console.log('Arquivo excluído:', colmeiaDirectory);
+    } catch (error) {
+      console.log('Erro ao excluir o arquivo:', colmeiaDirectory);
+      console.error(error);
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Header name={"Gravações"} type="music" showIcon={'true'} />
@@ -259,7 +268,6 @@ export default function NovaColmeia({ item, route }) {
           route.params.localCol
         }
         type="COLMEIAS"
-        onPress={teste}
       />
       <View style={styles.buttons}>
         <CustomButton
@@ -285,27 +293,7 @@ export default function NovaColmeia({ item, route }) {
         }}
       />
 
-      <FlatList
-        style={styles.list}
-        ListEmptyComponent={EmptyListMessage}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-        data={Grav}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.container}>
-            <CustomButton
-              text={item}
-              type="COLMEIA"
-              onPress={() => onPlayPress(item)}
-            />
-          </TouchableOpacity>
-        )}
-      />
+      {renderFlatList()}
 
       <CustomButton
         text={"Nova gravação"}

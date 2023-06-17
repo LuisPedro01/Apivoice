@@ -23,20 +23,9 @@ export default function Home({ item, route }) {
   const [arquivos, setArquivos] = useState([]);
   const [name, setName] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [ColmeiasLocais, setColmeiasLocais] = useState([])
 
-  const combinedData = [
-    ...userDoc.map((item, index) => ({
-      key: `userDoc_${index}`,
-      type: "userDoc",
-      item,
-    })),
-    ...arquivos.map((item, index) => ({
-      key: `arquivos_${index}`,
-      type: "arquivos",
-      item,
-    })),
-  ];
-
+  //receber lista de colmeias
   const getDados = () => {
     firebase
       .firestore()
@@ -58,6 +47,7 @@ export default function Home({ item, route }) {
       });
   };
 
+  //receber nomes
   const getDadosNomes = () => {
     firebase
       .firestore()
@@ -73,74 +63,24 @@ export default function Home({ item, route }) {
       });
   };
 
+  //funçao do refresh
   const onRefresh = () => {
     setRefreshing(true);
     getDadosNomes();
     getDados();
-    getObjectsLocally();
-    if (userDoc.length === 0) {
+    getDocumentList()
+    if (name===null) {
+      listarColmeiasLocais()
     }
     setRefreshing(false);
   };
 
-  const removeAllObjects = async () => {
-    try {
-      await AsyncStorage.clear();
-      console.log("Todos os objetos foram removidos do armazenamento.");
-    } catch (error) {
-      console.log("Erro ao remover objetos:", error);
-    }
-  };
-
-  const getObjectsLocally = async () => {
-    try {
-      const keys = await AsyncStorage.getAllKeys();
-      const objects = await AsyncStorage.multiGet(keys);
-      console.log("keys", keys);
-      const filteredKeys = keys.filter(
-        (key) => key.includes("email") || key.includes("password")
-      );
-      await AsyncStorage.multiRemove(filteredKeys);
-
-      // Converter os objetos de string para JSON
-      const parsedObjects = objects.map(([key, value]) => {
-        try {
-          return key, JSON.parse(value);
-        } catch (error) {
-          console.log(
-            `Erro ao fazer o parsing do objeto com chave ${key}:`,
-            error
-          );
-          return { key, parsedValue: null };
-        }
-      });
-
-      const colmeias = parsedObjects.filter(
-        (obj) => obj.tipo === "Colmeia" && obj.apiario === route.params.nomeApi1
-      );
-      setArquivos(colmeias);
-      console.log("colmeias", colmeias);
-
-      return colmeias;
-    } catch (error) {
-      console.log("Erro ao recuperar a lista de objetos:", error);
-      return [];
-    }
-  };
-
-  const removeKeys = async (keys) => {
-    try {
-      await AsyncStorage.multiRemove(keys);
-      console.log("Chaves removidas com sucesso:", keys);
-    } catch (error) {
-      console.log("Erro ao remover chaves:", error);
-    }
-  };
-
+  //navegação para a pagina user
   const onUserPress = () => {
     navigation.navigate("Perfil");
   };
 
+  //eliminar apiário
   const deleteApi = async () => {
     if (name != null && route.params.TipoDeApi != "arquivos") {
       //Online
@@ -172,16 +112,7 @@ export default function Home({ item, route }) {
     }
   };
 
-  const removeObjectLocally = (key) => {
-    try {
-      AsyncStorage.removeItem(key);
-      console.log("Objeto removido com sucesso!");
-      navigation.navigate("Página Inicial");
-    } catch (error) {
-      console.log("Erro ao remover o objeto:", error);
-    }
-  };
-
+  //mostrar mensagem se nao tiver colmeias
   const EmptyListMessage = ({ item }) => {
     return (
       <View style={styles.message}>
@@ -190,15 +121,16 @@ export default function Home({ item, route }) {
     );
   };
 
+  //render flatlist(verificar se é necessário)
   const renderFlatList = () => {
-    if (userDoc.length === 0 && route.params.TipoDeApi != "arquivos") {
+    if (name.length==0) {
       return (
         <View style={styles.container}>
           <FlatList
             keyExtractor={(item) => item.id}
             style={styles.list}
             showsVerticalScrollIndicator={false}
-            data={arquivos}
+            data={ColmeiasLocais}
             ListEmptyComponent={EmptyListMessage}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -253,8 +185,12 @@ export default function Home({ item, route }) {
                   type="COLMEIA"
                   onPress={() =>
                     navigation.navigate("Gravações", {
-                      nomeCol: item,
-                      nomeApi: route.params.nomeApi,
+                      nomeCol: item.nomeColmeia,
+                      nomeCol1: item.nome,
+                      localCol: item.localizacao,
+                      nomeApi: route.params.nomeApi1,
+                      IdCol: item.id,
+                      IdApi: route.params.IdLocal
                     })
                   }
                 />
@@ -271,6 +207,7 @@ export default function Home({ item, route }) {
                   nomeApi: route.params.nomeApi,
                   NomeCol: "",
                   LocalApi: "",
+                  LocalApi1: route.params.LocalApi
                 })
               }
             />
@@ -279,7 +216,10 @@ export default function Home({ item, route }) {
               text="Disponivel off-line"
               type="teste"
               onPress={() =>
-                baixarArquivos(`apiario ${route.params.nomeApi.nome}/`)
+                downloadFiles(`apiario ${route.params.nomeApi.nome}/`)
+                //checkDirectoryExists(`apiario exemplo/colmeia teste`)
+                //getDocumentList()
+                //excluirArquivo(`${FileSystem.documentDirectory}apiario [object Object]`)
               }
             />
           </View>
@@ -291,94 +231,79 @@ export default function Home({ item, route }) {
   useEffect(() => {
     getDadosNomes();
     getDados();
-    getObjectsLocally();
-    console.log('localautomatico->', route.params.LocalApi)
-    if (userDoc.length === 0) {
+    if (name.length==0) {
+      listarColmeiasLocais()
     }
   }, []);
 
-  const listarArquivos1 = async () => {
+  const getDocumentList = async () => {
     try {
-      const dirInfo = await FileSystem.getInfoAsync(
-        `file:///data/user/0/com.luispedro.Apivoice/files/apiario ${route.params.nomeApi.nome}/`
-      );
-      if (dirInfo.exists && dirInfo.isDirectory) {
-        const arquivosInfo = await FileSystem.readDirectoryAsync(dirInfo.uri);
-        setArquivos(arquivosInfo);
-        console.log(arquivos);
-      }
+      const documentDirectory = FileSystem.documentDirectory + 'apiario exemplo'
+      const documentList = await FileSystem.readDirectoryAsync(documentDirectory);
+      console.log(documentList);
     } catch (error) {
-      console.error(error);
+      console.log('Erro ao obter a lista de documentos:', error);
+      return [];
     }
   };
 
-  const storage = getStorage();
-  var listRef = ref(storage, `apiario ${route.params.nomeApi.nome}/`);
-  const [URL, setURL] = useState("");
-  const [Grav, setGrav] = useState([]);
-
-  async function listarSubdiretorios(diretorio) {
-    const lista = await firebase.storage().ref(diretorio).listAll();
-    const subdiretorios = lista.prefixes.map((p) => p.fullPath);
-
-    const arquivos = lista.items.map((i) => i.fullPath);
-    for (const subdiretorio of lista.prefixes) {
-      const sublista = await listarArquivos(subdiretorio.fullPath);
-      arquivos.push(...sublista);
+  const checkDirectoryExists = async (directoryPath) => {
+    const fileInfo = await FileSystem.documentDirectory.getInfoAsync(directoryPath);
+    if (fileInfo.exists) {
+      console.log('EXISTE')
     }
-    console.log(arquivos);
+    else (
+      console.log('NAO EXISTE')
 
-    return arquivos;
-  }
+    )
+  };
 
-  async function listarArquivos(diretorio) {
-    const lista = await firebase.storage().ref(diretorio).listAll();
-    const arquivos = lista.items.map((i) => i.fullPath);
-    for (const subdiretorio of lista.prefixes) {
-      const sublista = await listarArquivos(subdiretorio.fullPath);
-      arquivos.push(...sublista);
-    }
-    return arquivos;
-  }
+  const downloadFiles = async (folderPath) => {
+    const apiarioRef = firebase.storage().ref(folderPath);
+    const apiarioSnapshot = await apiarioRef.listAll();
+    const colmeiasNomes = apiarioSnapshot.prefixes.map(colmeia => colmeia.name);
 
-  async function baixarArquivo(caminho) {
-    const referencia = firebase.storage().ref(caminho);
-    const url = await referencia.getDownloadURL();
-    const info = await FileSystem.getInfoAsync(
-      FileSystem.documentDirectory + caminho
-    );
-    if (!info.exists) {
-      const diretorio = caminho.substring(0, caminho.lastIndexOf("/"));
-      const diretorioLocal = FileSystem.documentDirectory + diretorio;
-      const infoDiretorio = await FileSystem.getInfoAsync(diretorioLocal);
-      if (!infoDiretorio.exists) {
-        await FileSystem.makeDirectoryAsync(diretorioLocal, {
-          intermediates: true,
-        });
+
+    const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;
+    for (const colmeiaNome of colmeiasNomes) {
+      const colmeiaDirectory = `${localDirectory}/${colmeiaNome}`;
+      await FileSystem.makeDirectoryAsync(colmeiaDirectory, { intermediates: true });
+
+      const colmeiaRef = apiarioRef.child(colmeiaNome);
+      const colmeiaSnapshot = await colmeiaRef.listAll();
+
+      const gravaçõesNomes = colmeiaSnapshot.items.map(item => item.name);
+
+      for (const gravaçãoNome of gravaçõesNomes) {
+        const gravaçãoRef = colmeiaRef.child(gravaçãoNome);
+        const downloadURL = await gravaçãoRef.getDownloadURL();
+
+        const fileUri = `${localDirectory}/${colmeiaNome}/${gravaçãoNome}`;
+        const downloadedFile = await FileSystem.downloadAsync(downloadURL, fileUri);
+
+        // Verifique a existência do arquivo baixado
+        const fileInfo = await FileSystem.getInfoAsync(downloadedFile.uri);
+        if (!fileInfo.exists) {
+          console.log('Erro ao baixar o arquivo:', downloadedFile.uri);
+          continue;
+        }
+
+        console.log('Arquivo baixado:', downloadedFile.uri);
       }
-      const arquivo = await FileSystem.downloadAsync(
-        url,
-        FileSystem.documentDirectory + caminho + ".m4a"
-      );
-      console.log("Arquivo baixado em: " + arquivo.uri);
-    } else {
-      console.log("Arquivo já existe localmente: " + info.uri);
+      // Liste os arquivos dentro do diretório da colmeia
+      const files = await FileSystem.readDirectoryAsync(colmeiaDirectory);
+      console.log('Arquivos na colmeia', colmeiaNome, ':', files);
     }
+
+  };
+
+  //listagem colmeias locais
+  async function listarColmeiasLocais() {
+    const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
+    const colmeias = await FileSystem.readDirectoryAsync(localDirectory);
+    setColmeiasLocais(colmeias)
   }
 
-  async function baixarArquivos(diretorio) {
-    const arquivos = await listarArquivos(diretorio);
-    for (const caminho of arquivos) {
-      await baixarArquivo(caminho);
-    }
-    Alert.alert(
-      "Download feito com sucesso!",
-      "O apiário encontra-se agora disponível offline."
-    );
-  }
-  const teste = () => {
-    console.log(arquivos);
-  };
   return (
     <View style={styles.container}>
       <Header
@@ -402,7 +327,6 @@ export default function Home({ item, route }) {
       <CustomButton
         text={"Lista de colmeias"}
         type="COLMEIAS"
-        onPress={teste}
       />
 
       <View
@@ -415,60 +339,7 @@ export default function Home({ item, route }) {
         }}
       />
 
-      <View style={styles.container}>
-        <FlatList
-          keyExtractor={(item) => item.key}
-          style={styles.list}
-          showsVerticalScrollIndicator={false}
-          data={combinedData}
-          ListEmptyComponent={EmptyListMessage}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.container}>
-              <CustomButton
-                text={item.item.nomeColmeia || item.item.nome}
-                type="COLMEIA"
-                onPress={() =>
-                  navigation.navigate("Gravações", {
-                    nomeCol: item.item.nomeColmeia,
-                    nomeCol1: item.item.nome,
-                    localCol: item.item.localizacao,
-                    nomeApi: route.params.nomeApi1,
-                    TipoDeApi: route.params.TipoDeApi,
-                    IdCol: item.item.id,
-                    IdApi: route.params.IdLocal
-                  })
-                }
-              />
-            </TouchableOpacity>
-          )}
-        />
-
-        <View style={styles.buttons1}>
-          <CustomButton
-            text="Nova colmeia"
-            type="teste1"
-            onPress={() =>
-              navigation.navigate("Nova Colmeia", {
-                nomeApi: route.params.nomeApi,
-                NomeCol: "",
-                LocalApi: "",
-                LocalApi1: route.params.LocalApi
-              })
-            }
-          />
-
-          <CustomButton
-            text="Disponivel off-line"
-            type="teste"
-            onPress={() =>
-              baixarArquivos(`apiario ${route.params.nomeApi.nome}/`)
-            }
-          />
-        </View>
-      </View>
+      {renderFlatList()}
     </View>
   );
 }

@@ -42,12 +42,14 @@ const AudioRecorder = ({route}) => {
     }
   }
 
+  const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
+  const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
   async function stopRecording1() {
     console.log("Stopping recording..");
     setRecording(undefined);
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI();
-    const novoUri = `${FileSystem.documentDirectory}${nome}`;
+    const novoUri = `${colmeiaDirectory}/audio ${nome}`;
     let updatedRecordings = [...recordings];
     const { sound, status } = await recording.createNewLoadedSoundAsync();
     updatedRecordings.push({
@@ -56,7 +58,7 @@ const AudioRecorder = ({route}) => {
       file: recording.getURI(),
     });
     setRecordings(updatedRecordings);
-    
+    await FileSystem.makeDirectoryAsync(colmeiaDirectory, { intermediates: true });
     await FileSystem.moveAsync({ from: uri, to: novoUri });
     const response = await fetch(novoUri)
     const file = await response.blob([response.valueOf], {
