@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,17 +9,24 @@ import {
   Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { Feather } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { firebase } from "../services/firebase";
-import { getDownloadURL, getStorage, listAll, ref, uploadBytes } from "firebase/storage";
+import {
+  getDownloadURL,
+  getStorage,
+  listAll,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
 import { Audio } from "expo-av";
 import * as Speech from "expo-speech";
-import axios from 'axios';
-import stringSimilarity from 'string-similarity';
+import axios from "axios";
+import stringSimilarity from "string-similarity";
 
-
-const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
+const StatusBarHeight = StatusBar.currentHeight
+  ? StatusBar.currentHeight + 22
+  : 64;
 
 export default function Header({ name, type, onPress, route, item, showIcon }) {
   const navigation = useNavigation();
@@ -29,31 +36,29 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   const [recordings, setRecordings] = useState([]);
   const [song, setSong] = useState();
   const ApiRef = firebase.firestore().collection("apiarios");
-  const storage1 = firebase.storage()
+  const storage1 = firebase.storage();
   let RouteApi;
   let nomeApi;
-  let NomeCol = '';
-  let NomeAudio = ''
+  let NomeCol = "";
+  let NomeAudio = "";
   let uri;
-  const [nomeA, setNomeA] = useState('')
-  const [nomeC, setNomeC] = useState('')
-  const [timerId, setTimerId] = useState(null);
-  let comando = ""
-  var isRecroding = false
-  let recordingInstance
+  const [nomeA, setNomeA] = useState("");
+  const [nomeC, setNomeC] = useState("");
+  let comando = "";
+  var isRecroding = false;
+  let recordingInstance;
 
-  const keyExtractor = (item) => item.id
+  const keyExtractor = (item) => item.id;
 
   const toggleSwitch = async (value) => {
     if (isEnable) {
       Speech.speak("Comandos desligados", {
-        language: 'pt-PT',
-
+        language: "pt-PT",
       });
-      stopRecording()
+      stopRecording();
     } else {
       Speech.speak("A ouvir comandos", {
-        language: 'pt-PT',
+        language: "pt-PT",
       });
     }
     setIsEnable((previousState) => !previousState);
@@ -62,26 +67,29 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   //+++++++++++++++
   //Começar a gravar
   //++++++++++++++++
-  async function startRecording1(NomeAudio) {
-    try {
-      console.log("Requesting permissions..");
-      await Audio.requestPermissionsAsync();
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
+  async function startRecording1() {
+    if (Platform.OS == "ios") {
+      try {
+        console.log("Requesting permissions..");
+        await Audio.requestPermissionsAsync();
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+        });
 
-      console.log("Starting recording..");
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
-      setRecording(recording);
+        console.log("Starting recording..");
+        const { recording } = await Audio.Recording.createAsync(
+          Audio.RecordingOptionsPresets.HIGH_QUALITY
+        );
+        setRecording1(recording);
+        console.log("Recording started");
+      } catch (err) {
+        console.error("Failed to start recording", err);
+      }
+    } else {
+      const { recording } = await Audio.Recording.createAsync( Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      setRecording1(recording);
       console.log("Recording started");
-
-      recordingInstance=recording
-      return {recording,NomeAudio}
-    } catch (err) {
-      console.error("Failed to start recording", err);
     }
   }
 
@@ -89,29 +97,26 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   //Parar de gravar
   //+++++++++++++++
   async function stopRecording1() {
-    if (!recordingInstance) {
-      console.log("No recording instance found.");
-      return;
-    }
     console.log("Stopping recording..");
-    //setRecording(undefined);
-    //console.log(recordingInstance)
-    await recording.stopAndUnloadAsync();
-    const uri = recording.getURI();
+    setRecording1(undefined);
+    console.log('recording->', recording1)
+    await recording1.stopAndUnloadAsync();
+    const uri = recording1.getURI();
     console.log("Recording stopped and stored at", uri);
 
-    const response = await fetch(uri)
-    const file = await response.blob()
+    const file = await response.blob();
 
     try {
       //Create the file reference
       const storage = getStorage();
-      const storageRef = ref(storage, `apiario ${nomeApi}/colmeia ${NomeCol}/audio ${NomeAudio}`);
+      const storageRef = ref(
+        storage,
+        `apiario ${nomeApi}/colmeia ${NomeCol}/audio ${NomeAudio}`
+      );
 
-     // Upload Blob file to Firebase
-     const snapshot = await uploadBytes(storageRef, file);
-     console.log("Gravação criada com sucesso!");
-
+      // Upload Blob file to Firebase
+      const snapshot = await uploadBytes(storageRef, file);
+      console.log("Gravação criada com sucesso!");
     } catch (error) {
       console.log(error);
     }
@@ -119,18 +124,20 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
 
   //++++++++++++++++
   //Reproduzir audio
-  //++++++++++++++++
+  //++++++++++++++++a
   const onPlayPress = (nomeAudio) => {
-    storage1.ref(`apiario ${nomeApi}/colmeia ${NomeCol}/audio ${nomeAudio}.mp3`).getDownloadURL()
+    storage1
+      .ref(`apiario ${nomeApi}/colmeia ${NomeCol}/audio ${nomeAudio}.mp3`)
+      .getDownloadURL()
       .then(async (url) => {
-        console.log(`url de ${nomeAudio}->`, url)
+        console.log(`url de ${nomeAudio}->`, url);
         try {
           const { sound } = await Audio.Sound.createAsync({ uri: url });
           await sound.replayAsync();
         } catch (error) {
-          console.log('Erro ao reproduzir o audio: ', error);
+          console.log("Erro ao reproduzir o audio: ", error);
         }
-      })
+      });
   };
 
   const checkCommandSimilarity = (command, keywords) => {
@@ -144,23 +151,45 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   };
 
   // Comandos Válidos
-  const paginaInicialKeywords = ['página inicial', 'inicial'];
-  const pararKeywords = ['parar', 'parar comandos', 'desligar comandos'];
-  const voltarKeywords = ['voltar', 'página anterior'];
-  const selecionarApiarioKeywords = ['selecionar apiário', 'apiário', 'selecionar diário', 'selecionar Aviário']
-  const selecionarColmeiaKeywords = ['selecionar']
-  const NovaGravaçãoKeywords = ['nova gravação', 'novo áudio', 'nossa gravação']
-  const NomeAudioKeywords = ['número áudio', 'número gravação', 'nome gravação', 'nome áudio', 'no áudio', 'nome audio', 'no audio']
-  const ComeçarGravarKeywords = ['começar gravação', 'começar a gravar']
-  const PararGravarKeywords = ['parar gravação', 'parar de gravar', 'horário', 'arara']
-  const ReproduzirAudioKeywords = ['reproduzir áudio']
-  var timeout
+  const paginaInicialKeywords = ["página inicial", "inicial"];
+  const pararKeywords = ["parar", "parar comandos", "desligar comandos"];
+  const voltarKeywords = ["voltar", "página anterior"];
+  const selecionarApiarioKeywords = [
+    "selecionar apiário",
+    "apiário",
+    "selecionar diário",
+    "selecionar Aviário",
+  ];
+  const selecionarColmeiaKeywords = ["selecionar"];
+  const NovaGravaçãoKeywords = [
+    "nova gravação",
+    "novo áudio",
+    "nossa gravação",
+  ];
+  const NomeAudioKeywords = [
+    "número áudio",
+    "número gravação",
+    "nome gravação",
+    "nome áudio",
+    "no áudio",
+    "nome audio",
+    "no audio",
+  ];
+  const ComeçarGravarKeywords = ["começar gravação", "começar a gravar"];
+  const PararGravarKeywords = [
+    "parar gravação",
+    "parar de gravar",
+    "horário",
+    "arara",
+  ];
+  const ReproduzirAudioKeywords = ["reproduzir áudio"];
+  var timeout;
 
   const startRecording = async () => {
     try {
       const recordingOptions = {
         android: {
-          extension: '.m4a',
+          extension: ".m4a",
           outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
           audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
           sampleRate: 44100,
@@ -168,7 +197,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
           bitRate: 128000,
         },
         ios: {
-          extension: '.caf',
+          extension: ".caf",
           audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
           sampleRate: 44100,
           numberOfChannels: 1,
@@ -179,70 +208,74 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         },
       };
 
-      isRecroding = true
+      isRecroding = true;
       const { recording } = await Audio.Recording.createAsync(recordingOptions);
       setRecording(recording);
-      console.log('Recording started');
+      console.log("Recording started");
 
       timeout = setTimeout(async () => {
         await recording.stopAndUnloadAsync();
         const uri = recording.getURI();
-        console.log('Recording stopped', uri);
+        console.log("Recording stopped", uri);
         sendAudioToServer(uri);
-        startRecording()
-
-      }, 8000)
+        startRecording();
+      }, 8000);
       //pagina incial
       if (checkCommandSimilarity(comando, paginaInicialKeywords)) {
         Speech.speak("A dirécionar para página inicial", {
-          language: 'pt-PT'
+          language: "pt-PT",
         });
-        navigation.navigate('Página Inicial')
-        comando = ""
-        setIsEnable(true)
-
+        navigation.navigate("Página Inicial");
+        comando = "";
+        setIsEnable(true);
       }
 
       //parar
       if (checkCommandSimilarity(comando, pararKeywords)) {
         Speech.speak("Comandos desligados", {
-          language: 'pt-PT'
+          language: "pt-PT",
         });
         clearTimeout(timeout);
-        stopRecording()
-        setIsEnable(false)
-        comando = ""
+        stopRecording();
+        setIsEnable(false);
+        comando = "";
         return;
       }
 
       //voltar
       if (checkCommandSimilarity(comando, voltarKeywords)) {
         Speech.speak("A navegar para página anterior", {
-          language: 'pt-PT'
+          language: "pt-PT",
         });
-        navigation.goBack()
-        comando = ""
+        navigation.goBack();
+        comando = "";
       }
 
       //selecionar apiário
       if (checkCommandSimilarity(comando, selecionarApiarioKeywords)) {
-        const nome = comando.split("apiário ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-        ApiRef.where('nome', '==', nome).get()
+        const nome = comando
+          .split("apiário ")
+          [null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
+        ApiRef.where("nome", "==", nome)
+          .get()
           .then((querySnapshot) => {
             querySnapshot.forEach((doc) => {
-              keyExtractor(doc)
-              navigation.navigate("Colmeia", { nomeApi1: doc.data().nome, nomeApi: doc })
-              Speech.speak(`A navegar para apiário ${nome}`, {
-                language: 'pt-PT'
+              keyExtractor(doc);
+              navigation.navigate("Colmeia", {
+                nomeApi1: doc.data().nome,
+                nomeApi: doc,
               });
-              RouteApi = doc.id
-              nomeApi = doc.data().nome
-            })
-          })
-        comando = ""
-        setIsEnable(true)
+              Speech.speak(`A navegar para apiário ${nome}`, {
+                language: "pt-PT",
+              });
+              RouteApi = doc.id;
+              nomeApi = doc.data().nome;
+            });
+          });
+        comando = "";
+        setIsEnable(true);
       }
-      
+
       // Função para extrair o nome da colmeia do comando
       const extractColmeiaName = (command) => {
         const regex = /selecionar (.+)/i;
@@ -252,64 +285,77 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
 
       //selecionar colmeia
       if (checkCommandSimilarity(comando, selecionarColmeiaKeywords)) {
-        console.log('chegou aqui')
-        const nome = extractColmeiaName(comando)
-        console.log(nome)
-        console.log('RouteApi2', RouteApi)
+        console.log("chegou aqui");
+        const nome = extractColmeiaName(comando);
+        console.log(nome);
+        console.log("RouteApi2", RouteApi);
 
-        let ColRef = firebase.firestore().collection("apiarios").doc(RouteApi).collection("colmeia")
-        ColRef.where('nomeColmeia', '==', nome).get()
+        let ColRef = firebase
+          .firestore()
+          .collection("apiarios")
+          .doc(RouteApi)
+          .collection("colmeia");
+        ColRef.where("nomeColmeia", "==", nome)
+          .get()
           .then((querySnapshot) => {
             querySnapshot.forEach((doc) => {
-              keyExtractor(doc)
-              NomeCol = doc.data().nomeColmeia
-              console.log('nome apiario->', nomeApi)
-              navigation.navigate("Gravações", { nomeCol: NomeCol, nomeApi: nomeApi })
-              Speech.speak(`A navegar para colmeia ${nome}`, {
-                language: 'pt-PT'
+              keyExtractor(doc);
+              NomeCol = doc.data().nomeColmeia;
+              console.log("nome apiario->", nomeApi);
+              navigation.navigate("Gravações", {
+                nomeCol: NomeCol,
+                nomeApi: nomeApi,
               });
-            })
+              Speech.speak(`A navegar para colmeia ${nome}`, {
+                language: "pt-PT",
+              });
+            });
           })
           .catch((error) => console.log(error));
-        comando = ""
+        comando = "";
       }
 
       //gravar
       if (checkCommandSimilarity(comando, NovaGravaçãoKeywords)) {
         navigation.navigate("Audio Recorder", {
-          nomeCol: NomeCol
-        })
+          nomeCol: NomeCol,
+        });
         Speech.speak(`A navegar para nova gravação`, {
-          language: 'pt-PT'
+          language: "pt-PT",
         });
-        comando = ""
+        comando = "";
       }
-      if (comando.startsWith('áudio')) {
-        NomeAudio = comando.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
+      if (comando.startsWith("áudio")) {
+        NomeAudio = comando
+          .split("áudio ")
+          [null || 1 || 2 || 3 || 4 || 5].split(" ")[0];
         //NomeAudio = comando.split("gravação ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-        console.log(NomeAudio)
-        navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
-        Speech.speak(`nome audio ${NomeAudio}`, {
-          language: 'pt-PT'
+        console.log(NomeAudio);
+        navigation.navigate("Audio Recorder", {
+          NomeAudio: NomeAudio,
+          nomeCol: NomeCol,
         });
-        setNomeA(NomeAudio)
-        setNomeC(NomeCol)
-        comando = ""
+        Speech.speak(`nome audio ${NomeAudio}`, {
+          language: "pt-PT",
+        });
+        setNomeA(NomeAudio);
+        setNomeC(NomeCol);
+        comando = "";
       }
       if (checkCommandSimilarity(comando, ComeçarGravarKeywords)) {
         Speech.speak(`a preparar nova gravação`, {
-          language: 'pt-PT'
+          language: "pt-PT",
         });
-        clearTimeout(timeout)
-        console.log('1')
-        setIsEnable(false)
+        clearTimeout(timeout);
+        console.log("1");
+        setIsEnable(false);
         // Aguardar 5 segundos
         await new Promise((resolve) => setTimeout(resolve, 5000));
         Speech.speak(`a gravar nova gravação`, {
-          language: 'pt-PT'
+          language: "pt-PT",
         });
-        startRecording1()
-        comando = ""
+        startRecording1();
+        comando = "";
 
         // Aguardar 30 segundos
         await new Promise((resolve) => setTimeout(resolve, 30000));
@@ -318,25 +364,31 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         stopRecording1();
 
         Speech.speak(`áudio guardado na base de dados`, {
-          language: 'pt-PT'
+          language: "pt-PT",
         });
-        startRecording()
+
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+
+        startRecording();
       }
 
       //reproduzir audio
       if (checkCommandSimilarity(comando, ReproduzirAudioKeywords)) {
-        const nomeAudio = comando.split("áudio ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
-        onPlayPress(nomeAudio)
-        console.log('Nome Audio->', nomeAudio)
-        comando=""
+        const nomeAudio = comando
+          .split("áudio ")
+          [null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(
+            " "
+          )[0];
+        onPlayPress(nomeAudio);
+        console.log("Nome Audio->", nomeAudio);
+        comando = "";
       }
 
       return () => {
-        clearTimeout(timeout)
-      }
-
+        clearTimeout(timeout);
+      };
     } catch (error) {
-      console.log('Failed to start recording', error);
+      console.log("Failed to start recording", error);
     }
   };
 
@@ -344,48 +396,52 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     try {
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
-      console.log('Recording stopped', uri);
+      console.log("Recording stopped", uri);
       await sendAudioToServer(uri);
     } catch (error) {
-      console.log('Failed to stop recording', error);
+      console.log("Failed to stop recording", error);
     }
   };
 
   const sendAudioToServer = async (uri) => {
     const fileType = Platform.select({
-      android: { type: 'audio/m4a', extension: '.m4a' },
-      ios: { type: 'audio/x-caf', extension: '.caf' },
+      android: { type: "audio/m4a", extension: ".m4a" },
+      ios: { type: "audio/x-caf", extension: ".caf" },
     });
 
     const formData = new FormData();
-    formData.append('audio', {
+    formData.append("audio", {
       uri,
       type: fileType.type,
       name: `recording${fileType.extension}`,
     });
 
     try {
-      const response = await axios.post('https://luis21121.pythonanywhere.com/rota-de-receber-audio', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.post(
+        "https://luis21121.pythonanywhere.com/rota-de-receber-audio",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
-      console.log('Server response:', response.data.text);
-      comando = response.data.text
+      console.log("Server response:", response.data.text);
+      comando = response.data.text;
     } catch (error) {
-      console.log('Failed to send audio to server', error);
+      console.log("Failed to send audio to server", error);
     }
-    isRecroding = false
+    isRecroding = false;
   };
 
   const getAudioPermission = async () => {
     const { status } = await Audio.requestPermissionsAsync();
-    if (status === 'granted') {
+    if (status === "granted") {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
-        playsInSilentModeIOS: true
-      })
+        playsInSilentModeIOS: true,
+      });
     }
   };
 
@@ -395,59 +451,32 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
 
   useEffect(() => {
     if (isEnable) {
-      startRecording()
-
+      startRecording();
+    } else {
+      stopRecording();
     }
-    else {
-      stopRecording()
-    }
-  }, [isEnable])
-
-
-  //       //   //++++++++++
-  //       //   //+ Gravar +
-  //       //   //++++++++++
-  //       //   if (data1.includes('nova gravação') || data1.includes('novo áudio')) {
-  //       //     navigation.navigate("Audio Recorder", {
-  //       //       nomeCol: NomeCol
-  //       //     })
-  //       //   }
-  //       //   if ((data1.includes('Nome áudio') || data1.includes('nome áudio'))) {
-  //       //     NomeAudio = data1.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
-  //       //     //NomeAudio = nomeaudio
-  //       //     navigation.navigate("Audio Recorder", { NomeAudio: NomeAudio, nomeCol: NomeCol })
-  //       //     setNomeA(NomeAudio)
-  //       //     setNomeC(NomeCol)
-  //       //   }
-  //       //   if (data1.includes('Começar a gravar') || data1.includes('começar a gravar')) {
-  //       //     clearInterval(intervalID);
-  //       //     startRecording1();
-  //       //   }
-
-  //       //   if (data1.includes('Parar gravação') || data1.includes('parar gravação')) {
-  //       //     stopRecording1();
-  //       //     navigation.navigate("Colmeia", { nomeCol: doc.data(), nomeApi: nomeApi })
-  //       //   }
-  //       //   //++++++++++++++++++++++++
-  //       //   //Comando reproduzir audio
-  //       //   //++++++++++++++++++++++++
-  //       //   if (data1.includes('Reproduzir gravação') || data1.includes('reproduzir gravação')) {
-  //       //     const nomeAudio = data1.split("gravação ")[null || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10].split(" ")[0]
-  //       //     onPlayPress(nomeAudio)
-  //       //   }
-
+  }, [isEnable]);
 
   return (
-    <LinearGradient colors={['#FFDAAE', 'white']}>
+    <LinearGradient colors={["#FFDAAE", "white"]}>
       <View style={styles.container}>
         <View style={styles.content}>
-          {
-            showIcon &&
-            <Feather name={"chevron-left"} size={27} color="black" onPress={() => navigation.goBack()} />
-          }
+          {showIcon && (
+            <Feather
+              name={"chevron-left"}
+              size={27}
+              color="black"
+              onPress={() => navigation.goBack()}
+            />
+          )}
           <Text style={styles.username}>{name || "Bem vindo!"}</Text>
           <TouchableOpacity style={styles.buttonUser}>
-            <Feather name={`${type}`} size={27} color="black" onPress={onPress} />
+            <Feather
+              name={`${type}`}
+              size={27}
+              color="black"
+              onPress={onPress}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -465,47 +494,46 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
           />
         </View>
       </View>
-
     </LinearGradient>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     paddingTop: StatusBarHeight,
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingStart: 16,
     paddingEnd: 16,
     paddingBottom: 25,
   },
   content: {
     flex: 1,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   username: {
     fontSize: 18,
-    color: 'black',
-    fontWeight: 'bold',
+    color: "black",
+    fontWeight: "bold",
   },
   comandos: {
     fontSize: 16,
-    color: 'black',
-    fontWeight: 'bold',
+    color: "black",
+    fontWeight: "bold",
   },
   comandos2: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: 10,
     paddingHorizontal: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonUser: {
     width: 44,
     height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 44 / 2,
   },
-})
+});
