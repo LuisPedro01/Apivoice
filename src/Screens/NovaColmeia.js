@@ -1,44 +1,66 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, FlatList, Button, Alert } from "react-native";
 import Header from "../components/Header";
-import Gravacoes from "../components/Gravacoes";
-import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
 import { db, firebase } from "../services/firebase";
-import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import * as FileSystem from "expo-file-system";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Permissions from 'expo-permissions';
+import { Platform } from "react-native";
 
 export default function NovaColmeia({ route }) {
   const navigation = useNavigation();
   const [nome, setNome] = useState("");
   const [localizaçao, setLocalizaçao] = useState("");
-  const [text, setText] = useState("");
-  const [nomeCol, SetNomeCol] = useState("");
-  const [localizaçãoCol, SetLocalizaçãoCol] = useState("");
   const [Name, setName] = useState("");
   const userId = firebase.auth().currentUser.uid;
 
+  const requestFilesystemPermission = async () => {
+    const { status } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permissão negada',
+        'Não foi possível obter permissão para acessar o sistema de arquivos. Verifique as configurações do seu dispositivo.'
+      );
+      return false;
+    }
+    return true;
+  };
 
   const CreateCol = async () => {
     if (nome.trim() != "") {
       if (Name.length == 0) {
         //criar offline
-        try {
-          const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;
-          const NovaColDirectory = `${localDirectory}/colmeia ${nome}`
-          await FileSystem.makeDirectoryAsync(NovaColDirectory, { intermediates: true });
-          Alert.alert(
-            "Colmeia criada!",
-            "Nova colmeia criada com sucesso localmente!"
-          );
-          navigation.navigate("Página Inicial");
-        } catch (error) {
-          console.log(`Erro: ${error.message}`); 
+        if (Platform.OS == "android") {
+          try {
+            const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;
+            const NovaColDirectory = `${localDirectory}/colmeia ${nome}`
+            await FileSystem.makeDirectoryAsync(NovaColDirectory, { intermediates: true });
+            Alert.alert(
+              "Colmeia criada!",
+              "Nova colmeia criada com sucesso localmente!"
+            );
+            navigation.navigate("Página Inicial");
+          } catch (error) {
+            console.log(`Erro: ${error.message}`);
+          }
         }
-      } else {        
+        else {
+          try {
+            const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;
+            const NovaColDirectory = `${localDirectory}/colmeia_${nome}`
+            await FileSystem.makeDirectoryAsync(NovaColDirectory, { intermediates: true });
+            Alert.alert(
+              "Colmeia criada!",
+              "Nova colmeia criada com sucesso localmente!"
+            );
+            navigation.navigate("Página Inicial");
+          } catch (error) {
+            console.log(`Erro: ${error.message}`);
+          }
+        }
+      } else {
         //criar online
         const subCollection = firebase
           .firestore()
@@ -87,8 +109,6 @@ export default function NovaColmeia({ route }) {
   };
 
   useEffect(() => {
-    SetNomeCol(route.params.NomeCol);
-    SetLocalizaçãoCol(route.params.LocalCol);
     getDadosNomes();
   });
 
@@ -99,13 +119,13 @@ export default function NovaColmeia({ route }) {
       <View style={styles.list}>
         <CustomInput
           placeholder="Nome"
-          value={nome || nomeCol}
+          value={nome}
           setValue={setNome}
           required={true}
         />
         <CustomInput
           placeholder="Localização"
-          value={localizaçao? localizaçao:route.params.LocalApi1 }
+          value={localizaçao ? localizaçao : route.params.LocalApi1}
           setValue={setLocalizaçao}
           required={true}
         />

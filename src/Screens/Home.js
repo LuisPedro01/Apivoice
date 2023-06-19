@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   RefreshControl,
+  Platform,
 } from "react-native";
 import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
@@ -160,6 +161,7 @@ export default function Home({ item, route }) {
                   nomeApi: route.params.nomeApi,
                   NomeCol: "",
                   LocalApi: "",
+                  LocalApi1: route.params.LocalApi
                 })
               }
             />
@@ -237,13 +239,26 @@ export default function Home({ item, route }) {
   }, []);
 
   const getDocumentList = async () => {
-    try {
-      const documentDirectory = FileSystem.documentDirectory + 'apiario exemplo'
-      const documentList = await FileSystem.readDirectoryAsync(documentDirectory);
-      console.log(documentList);
-    } catch (error) {
-      console.log('Erro ao obter a lista de documentos:', error);
-      return [];
+    if(Platform.OS=="android"){
+      try {
+        const documentDirectory = FileSystem.documentDirectory + route.params.nomeApi1
+        const documentList = await FileSystem.readDirectoryAsync(documentDirectory);
+        console.log(documentList);
+      } catch (error) {
+        console.log('Erro ao obter a lista de documentos:', error);
+        return [];
+      }
+    }
+    else{
+      const NomeA = route.params.nomeApi1.replace(/\s/g, '_')
+      try {
+        const documentDirectory = FileSystem.documentDirectory + NomeA
+        const documentList = await FileSystem.readDirectoryAsync(documentDirectory);
+        console.log(documentList);
+      } catch (error) {
+        console.log('Erro ao obter a lista de documentos:', error);
+        return [];
+      }
     }
   };
 
@@ -259,49 +274,58 @@ export default function Home({ item, route }) {
   };
 
   const downloadFiles = async (folderPath) => {
+    console.log('0')
+
     const apiarioRef = firebase.storage().ref(folderPath);
     const apiarioSnapshot = await apiarioRef.listAll();
     const colmeiasNomes = apiarioSnapshot.prefixes.map(colmeia => colmeia.name);
 
-
-    const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;
+    const diretorioLocal = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;
     for (const colmeiaNome of colmeiasNomes) {
-      const colmeiaDirectory = `${localDirectory}/${colmeiaNome}`;
-      await FileSystem.makeDirectoryAsync(colmeiaDirectory, { intermediates: true });
+      const colmeiaNome1 = colmeiaNome.replace(/\s/g, '_')
+      console.log(colmeiaNome1)
+      const diretorioColmeia = `${diretorioLocal}/${colmeiaNome1}`;
+      await FileSystem.makeDirectoryAsync(diretorioColmeia, { intermediates: true });
 
       const colmeiaRef = apiarioRef.child(colmeiaNome);
       const colmeiaSnapshot = await colmeiaRef.listAll();
-
       const gravaçõesNomes = colmeiaSnapshot.items.map(item => item.name);
-
+      console.log('gravaçoes->', gravaçõesNomes)
       for (const gravaçãoNome of gravaçõesNomes) {
+        const gravaçãoNome1=gravaçãoNome.replace(/\s/g, '_')
         const gravaçãoRef = colmeiaRef.child(gravaçãoNome);
         const downloadURL = await gravaçãoRef.getDownloadURL();
-
-        const fileUri = `${localDirectory}/${colmeiaNome}/${gravaçãoNome}`;
+        const fileUri = `${diretorioLocal}/${colmeiaNome1}/${gravaçãoNome1}`;
         const downloadedFile = await FileSystem.downloadAsync(downloadURL, fileUri);
 
         // Verifique a existência do arquivo baixado
         const fileInfo = await FileSystem.getInfoAsync(downloadedFile.uri);
         if (!fileInfo.exists) {
-          console.log('Erro ao baixar o arquivo:', downloadedFile.uri);
+          console.log('Erro ao guardar o ficheiro:', downloadedFile.uri);
           continue;
         }
-
-        console.log('Arquivo baixado:', downloadedFile.uri);
+        console.log('Ficheiro guardado:', downloadedFile.uri);
       }
       // Liste os arquivos dentro do diretório da colmeia
-      const files = await FileSystem.readDirectoryAsync(colmeiaDirectory);
+      const files = await FileSystem.readDirectoryAsync(diretorioColmeia);
       console.log('Arquivos na colmeia', colmeiaNome, ':', files);
     }
+    Alert.alert('Colmeia disponibilizada offline!', 'Arquivos da colmeia disponiveis agora offline')
 
   };
 
   //listagem colmeias locais
   async function listarColmeiasLocais() {
-    const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
-    const colmeias = await FileSystem.readDirectoryAsync(localDirectory);
-    setColmeiasLocais(colmeias)
+    if(Platform.OS=="android"){
+      const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;
+      const colmeias = await FileSystem.readDirectoryAsync(localDirectory);
+      setColmeiasLocais(colmeias)
+    }
+    else{
+      const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;
+      const colmeias = await FileSystem.readDirectoryAsync(localDirectory);
+      setColmeiasLocais(colmeias)
+    }
   }
 
   return (

@@ -95,9 +95,9 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     }
     console.log("Stopping recording..");
     //setRecording(undefined);
-    console.log(recordingInstance)
-    recordingInstance.stopAndUnloadAsync();
-    const uri = recordingInstance.getURI();
+    //console.log(recordingInstance)
+    await recording.stopAndUnloadAsync();
+    const uri = recording.getURI();
     console.log("Recording stopped and stored at", uri);
 
     const response = await fetch(uri)
@@ -284,7 +284,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         });
         comando = ""
       }
-      if (checkCommandSimilarity(comando, NomeAudioKeywords)) {
+      if (comando.startsWith('áudio')) {
         NomeAudio = comando.split("áudio ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
         //NomeAudio = comando.split("gravação ")[null || 1 || 2 || 3 || 4 || 5].split(" ")[0]
         console.log(NomeAudio)

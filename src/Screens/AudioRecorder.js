@@ -12,6 +12,7 @@ import { getStorage, ref, uploadBytes } from "firebase/storage";
 import CustomInput from "../components/CustomInput";
 import { useNavigation } from "@react-navigation/native";
 import * as FileSystem from "expo-file-system";
+import { Platform } from "react-native";
 
 
 const AudioRecorder = ({route}) => {
@@ -42,46 +43,92 @@ const AudioRecorder = ({route}) => {
     }
   }
 
-  const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
-  const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
   async function stopRecording1() {
-    console.log("Stopping recording..");
-    setRecording(undefined);
-    await recording.stopAndUnloadAsync();
-    const uri = recording.getURI();
-    const novoUri = `${colmeiaDirectory}/audio ${nome}`;
-    let updatedRecordings = [...recordings];
-    const { sound, status } = await recording.createNewLoadedSoundAsync();
-    updatedRecordings.push({
-      sound: sound,
-      duration: getDurationFormated(status.durationMillis),
-      file: recording.getURI(),
-    });
-    setRecordings(updatedRecordings);
-    await FileSystem.makeDirectoryAsync(colmeiaDirectory, { intermediates: true });
-    await FileSystem.moveAsync({ from: uri, to: novoUri });
-    const response = await fetch(novoUri)
-    const file = await response.blob([response.valueOf], {
-      type: "audio/mp3",
-    });
-    console.log("Recording stopped and stored at", novoUri);
-
-    try {
-      //Create the file reference
-      const storage = getStorage();
-      const storageRef = ref(storage, `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/audio ${nome}.mp3`);
-
-      // Upload Blob file to Firebase
-      const snapshot = await uploadBytes(storageRef, file, "blob")
-      .then((snapshot) => {
-        console.log("Uploaded a song to firebase storage!");
-        Alert.alert("Gravação criada!", "Gravação gravada com sucesso!")
-        // navigation.navigate('Apiario')
+    if(Platform.OS=="android"){
+      const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
+      const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
+      console.log("Stopping recording..");
+      setRecording(undefined);
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      const novoUri = `${colmeiaDirectory}/audio ${nome}`;
+      let updatedRecordings = [...recordings];
+      const { sound, status } = await recording.createNewLoadedSoundAsync();
+      updatedRecordings.push({
+        sound: sound,
+        duration: getDurationFormated(status.durationMillis),
+        file: recording.getURI(),
       });
-
-      setSong(sound);
-    } catch (error) {
-      console.log(error);
+      setRecordings(updatedRecordings);
+      await FileSystem.makeDirectoryAsync(colmeiaDirectory, { intermediates: true });
+      await FileSystem.moveAsync({ from: uri, to: novoUri });
+      const response = await fetch(novoUri)
+      const file = await response.blob([response.valueOf], {
+        type: "audio/mpeg",
+      });
+      console.log("Recording stopped and stored at", novoUri);
+  
+      try {
+        //Create the file reference
+        const storage = getStorage();
+        const storageRef = ref(storage, `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/audio ${nome}.mp3`);
+  
+        // Upload Blob file to Firebase
+        const snapshot = await uploadBytes(storageRef, file)
+        .then((snapshot) => {
+          console.log("Uploaded a song to firebase storage!");
+          Alert.alert("Gravação criada!", "Gravação gravada com sucesso!")
+          // navigation.navigate('Apiario')
+        });
+  
+        setSong(sound);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    else{
+      const NomeA= route.params.nomeCol.replace(/\s/g, '_')
+      const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;;
+      const colmeiaDirectory = `${localDirectory}/${NomeA}`;
+      console.log("Stopping recording..");
+      setRecording(undefined);
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      const novoUri = `${colmeiaDirectory}/audio_${nome}.mp3`;
+      console.warn ('NOVOURI->', novoUri)
+      let updatedRecordings = [...recordings];
+      const { sound, status } = await recording.createNewLoadedSoundAsync();
+      updatedRecordings.push({
+        sound: sound,
+        duration: getDurationFormated(status.durationMillis),
+        file: recording.getURI(),
+      });
+      setRecordings(updatedRecordings);
+      await FileSystem.makeDirectoryAsync(colmeiaDirectory, { intermediates: true });
+      await FileSystem.moveAsync({ from: uri, to: novoUri });
+      const response = await fetch(novoUri)
+      const file = await response.blob([response.valueOf], {
+        type: "audio/mp3",
+      });
+      console.log("Recording stopped and stored at", novoUri);
+  
+      try {
+        //Create the file reference
+        const storage = getStorage();
+        const storageRef = ref(storage, `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/audio ${nome}.mp3`);
+  
+        // Upload Blob file to Firebase
+        const snapshot = await uploadBytes(storageRef, file, "blob")
+        .then((snapshot) => {
+          console.log("Uploaded a song to firebase storage!");
+          Alert.alert("Gravação criada!", "Gravação gravada com sucesso!")
+          // navigation.navigate('Apiario')
+        });
+  
+        setSong(sound);
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
 

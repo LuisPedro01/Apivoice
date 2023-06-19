@@ -54,7 +54,7 @@ export default function NovaColmeia({ item, route }) {
     }
     listGrav();
     getDadosNomes();
-
+    console.log('NOMECOLMEIA->',route.params.nomeCol)
   }, []);
 
   const onRefresh = () => {
@@ -70,7 +70,7 @@ export default function NovaColmeia({ item, route }) {
   //apagar colmeia base de dados e localmente
   const deleteColmeia = async () => {
     if (name.length === 0) {
-      //offline
+      //eliminar offline
       try {
         excluirArquivo()
         navigation.navigate("Página Inicial");
@@ -80,7 +80,7 @@ export default function NovaColmeia({ item, route }) {
       }
     }
     else {
-      //online
+      //eliminar online
       const subCollection = firebase
         .firestore()
         .collection("apiarios")
@@ -158,18 +158,39 @@ export default function NovaColmeia({ item, route }) {
 
   //reproduzir audio localmente
   const onPlayPressOffline = async (item) => {
-    console.log("Loading Sound");
+    if(Platform.OS=="android"){
+      console.log("Loading Sound");  
+      const directory = FileSystem.documentDirectory;
+      const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}/${item}`;  
+      try {  
+        const { sound } = await Audio.Sound.createAsync({ uri: filePath });
+        await sound.replayAsync();
+        console.log('audio reproduzido com sucesso')
+      } catch (error) {
+        console.log("Erro ao reproduzir o audio: ", error);
+      }
+    }
+    else{
+      console.log("Loading Sound");  
+      const NomeA = route.params.nomeCol.replace(/\s/g, '_')
+      const directory = FileSystem.documentDirectory;
+      const filePath = `${directory}apiario_${route.params.nomeApi.nome}/${NomeA}/${item}`;
+      console.warn('FILEPATH->', filePath)
+      try {  
+        const fileInfo = await FileSystem.getInfoAsync(filePath);
+        if (!fileInfo.exists) {
+          console.log('Arquivo de áudio não encontrado:', filePath);
+          console.warn('Arquivo de áudio não encontrado:', filePath);
 
-    const directory = FileSystem.documentDirectory;
-    const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}/${item}`;
-
-    try {
-
-      const { sound } = await Audio.Sound.createAsync({ uri: filePath });
-      await sound.replayAsync();
-      console.log('audio reproduzido com sucesso')
-    } catch (error) {
-      console.log("Erro ao reproduzir o audio: ", error);
+          return;
+        }
+        const { sound } = await Audio.Sound.createAsync({ uri: filePath });
+        await sound.replayAsync();
+        console.log('audio reproduzido com sucesso')
+      } catch (error) {
+        console.log("Erro ao reproduzir o audio: ", error);
+        console.warn("Erro ao reproduzir o audio: ", error)
+      }
     }
   };
 
@@ -230,31 +251,62 @@ export default function NovaColmeia({ item, route }) {
 
   //listagem de gravaçoes locais
   async function listarGravacoesLocais() {
-    const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
-    const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
-
-    // Verifique a existência do diretório da colmeia
-    const directoryInfo = await FileSystem.getInfoAsync(colmeiaDirectory);
-    if (!directoryInfo.exists || !directoryInfo.isDirectory) {
-      console.log('Diretório da colmeia não encontrado:', route.params.nomeCol);
-      return;
+    if(Platform.OS=="android"){
+      const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
+      const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
+  
+      // Verifique a existência do diretório da colmeia
+      const directoryInfo = await FileSystem.getInfoAsync(colmeiaDirectory);
+      if (!directoryInfo.exists || !directoryInfo.isDirectory) {
+        console.log('Diretório da colmeia não encontrado:', route.params.nomeCol);
+        return;
+      }
+  
+      const gravacoes = await FileSystem.readDirectoryAsync(colmeiaDirectory);
+      console.log('Gravações locais da colmeia', route.params.nomeCol, ':', gravacoes);
+      setGravaçoesLocais(gravacoes)
     }
-
-    const gravacoes = await FileSystem.readDirectoryAsync(colmeiaDirectory);
-    console.log('Gravações locais da colmeia', route.params.nomeCol, ':', gravacoes);
-    setGravaçoesLocais(gravacoes)
+    else{
+      const NomeA = route.params.nomeCol.replace(/\s/g, '_')
+      const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;;
+      const colmeiaDirectory = `${localDirectory}/${NomeA}`;
+      
+      // Verifique a existência do diretório da colmeia
+      const directoryInfo = await FileSystem.getInfoAsync(colmeiaDirectory);
+      if (!directoryInfo.exists || !directoryInfo.isDirectory) {
+        console.log('Diretório da colmeia não encontrado:', route.params.nomeCol);
+        return;
+      }
+  
+      const gravacoes = await FileSystem.readDirectoryAsync(colmeiaDirectory);
+      console.log('Gravações locais da colmeia', route.params.nomeCol, ':', gravacoes);
+      setGravaçoesLocais(gravacoes)
+    }
   }
 
   //eliminar colmeia local
   async function excluirArquivo() {
-    const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
-    const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
-    try {
-      await FileSystem.deleteAsync(colmeiaDirectory);
-      console.log('Arquivo excluído:', colmeiaDirectory);
-    } catch (error) {
-      console.log('Erro ao excluir o arquivo:', colmeiaDirectory);
-      console.error(error);
+    if(Platform.OS=="android"){
+      const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
+      const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
+      try {
+        await FileSystem.deleteAsync(colmeiaDirectory);
+        console.log('Arquivo excluído:', colmeiaDirectory);
+      } catch (error) {
+        console.log('Erro ao excluir o arquivo:', colmeiaDirectory);
+        console.error(error);
+      }
+    }
+    else{
+      const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;;
+      const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
+      try {
+        await FileSystem.deleteAsync(colmeiaDirectory);
+        console.log('Arquivo excluído:', colmeiaDirectory);
+      } catch (error) {
+        console.log('Erro ao excluir o arquivo:', colmeiaDirectory);
+        console.error(error);
+      }
     }
   }
 
