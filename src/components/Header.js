@@ -1,40 +1,22 @@
 import React, { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  StatusBar,
-  TouchableOpacity,
-  Switch,
-  Platform,
-} from "react-native";
+import {StyleSheet,Text,View,StatusBar,TouchableOpacity,Switch,Platform} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { firebase } from "../services/firebase";
-import {
-  getDownloadURL,
-  getStorage,
-  listAll,
-  ref,
-  uploadBytes,
-} from "firebase/storage";
+import { getStorage, ref, uploadBytes,} from "firebase/storage";
 import { Audio } from "expo-av";
 import * as Speech from "expo-speech";
 import axios from "axios";
 import stringSimilarity from "string-similarity";
 
-const StatusBarHeight = StatusBar.currentHeight
-  ? StatusBar.currentHeight + 22
-  : 64;
+const StatusBarHeight = StatusBar.currentHeight ? StatusBar.currentHeight + 22 : 64;
 
 export default function Header({ name, type, onPress, route, item, showIcon }) {
   const navigation = useNavigation();
   const [isEnable, setIsEnable] = useState(false);
   const [recording, setRecording] = useState();
   const [recording1, setRecording1] = useState();
-  const [recordings, setRecordings] = useState([]);
-  const [song, setSong] = useState();
   const ApiRef = firebase.firestore().collection("apiarios");
   const storage1 = firebase.storage();
   let RouteApi;
@@ -47,6 +29,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   let comando = "";
   var isRecroding = false;
   let recordingInstance;
+  let recordingg = new Audio.Recording();
 
   const keyExtractor = (item) => item.id;
 
@@ -78,10 +61,11 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         });
 
         console.log("Starting recording..");
-        const { recording } = await Audio.Recording.createAsync(
+        await recordingg.prepareToRecordAsync(
           Audio.RecordingOptionsPresets.HIGH_QUALITY
         );
-        setRecording1(recording);
+        await recordingg.startAsync()
+        //setRecording1(recording);
         console.log("Recording started");
       } catch (err) {
         console.error("Failed to start recording", err);
@@ -97,28 +81,54 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   //Parar de gravar
   //+++++++++++++++
   async function stopRecording1() {
-    console.log("Stopping recording..");
-    setRecording1(undefined);
-    console.log('recording->', recording1)
-    await recording1.stopAndUnloadAsync();
-    const uri = recording1.getURI();
-    console.log("Recording stopped and stored at", uri);
-
-    const file = await response.blob();
-
-    try {
-      //Create the file reference
-      const storage = getStorage();
-      const storageRef = ref(
-        storage,
-        `apiario ${nomeApi}/colmeia ${NomeCol}/audio ${NomeAudio}`
-      );
-
-      // Upload Blob file to Firebase
-      const snapshot = await uploadBytes(storageRef, file);
-      console.log("Gravação criada com sucesso!");
-    } catch (error) {
-      console.log(error);
+    if(Platform.OS=="ios"){
+      console.log("Stopping recording..");
+      //setRecording1(undefined);
+      //console.log('recording->', recording1)
+      await recordingg.stopAndUnloadAsync();
+      const uri = recordingg.getURI();
+      console.log("Recording stopped and stored at", uri);
+      const response = await fetch(uri);
+      const file = await response.blob();
+  
+      try {
+        //Create the file reference
+        const storage = getStorage();
+        const storageRef = ref(
+          storage,
+          `apiario ${nomeApi}/colmeia ${NomeCol}/audio ${NomeAudio}.mp3`
+        );
+  
+        // Upload Blob file to Firebase
+        const snapshot = await uploadBytes(storageRef, file);
+        console.log("Gravação criada com sucesso!");
+      } catch (error) {
+        console.log(error);
+      }
+    }else{
+      console.log("Stopping recording..");
+      //setRecording1(undefined);
+      //console.log('recording->', recording1)
+      await recordingg.stopAndUnloadAsync();
+      const uri = recordingg.getURI();
+      console.log("Recording stopped and stored at", uri);
+      const response = await fetch(uri);
+      const file = await response.blob();
+  
+      try {
+        //Create the file reference
+        const storage = getStorage();
+        const storageRef = ref(
+          storage,
+          `apiario ${nomeApi}/colmeia ${NomeCol}/audio ${NomeAudio}.mp3`
+        );
+  
+        // Upload Blob file to Firebase
+        const snapshot = await uploadBytes(storageRef, file);
+        console.log("Gravação criada com sucesso!");
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
 
@@ -176,12 +186,6 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
     "no audio",
   ];
   const ComeçarGravarKeywords = ["começar gravação", "começar a gravar"];
-  const PararGravarKeywords = [
-    "parar gravação",
-    "parar de gravar",
-    "horário",
-    "arara",
-  ];
   const ReproduzirAudioKeywords = ["reproduzir áudio"];
   var timeout;
 
@@ -316,6 +320,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
       }
 
       //gravar
+      //navegação
       if (checkCommandSimilarity(comando, NovaGravaçãoKeywords)) {
         navigation.navigate("Audio Recorder", {
           nomeCol: NomeCol,
@@ -325,6 +330,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         });
         comando = "";
       }
+      //nome audio
       if (comando.startsWith("áudio")) {
         NomeAudio = comando
           .split("áudio ")
@@ -342,12 +348,12 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         setNomeC(NomeCol);
         comando = "";
       }
+      //começar a gravar
       if (checkCommandSimilarity(comando, ComeçarGravarKeywords)) {
         Speech.speak(`a preparar nova gravação`, {
           language: "pt-PT",
         });
         clearTimeout(timeout);
-        console.log("1");
         setIsEnable(false);
         // Aguardar 5 segundos
         await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -356,19 +362,14 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         });
         startRecording1();
         comando = "";
-
         // Aguardar 30 segundos
         await new Promise((resolve) => setTimeout(resolve, 30000));
-
         console.log("Stopping recording..");
         stopRecording1();
-
         Speech.speak(`áudio guardado na base de dados`, {
           language: "pt-PT",
         });
-
         await new Promise((resolve) => setTimeout(resolve, 10000));
-
         startRecording();
       }
 
