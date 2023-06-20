@@ -273,6 +273,7 @@ export default function Home({ item, route }) {
     )
   };
 
+  //download de colmeias
   const downloadFiles = async (folderPath) => {
     console.log('0')
 

@@ -95,6 +95,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#3B71F3',
         marginBottom: 500
     },
+    container_ALTERAR1:{
+        width: '50%',
+        padding: 15,
+        marginLeft: 10,        
+        borderRadius:10,
+        backgroundColor: 'white'
+    },
     container_APIARIO:{
         width: '50%',
         padding: 15,
@@ -103,6 +110,9 @@ const styles = StyleSheet.create({
         backgroundColor: 'white', 
     },
     text_APIARIO:{
+        color:'gray'
+    },
+    text_ALTERAR1:{
         color:'gray'
     },
     text: {

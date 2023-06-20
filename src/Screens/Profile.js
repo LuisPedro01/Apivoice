@@ -50,7 +50,6 @@ export default function Profile() {
       .doc(firebase.auth().currentUser.uid)
       .update({
         username: userData.username,
-        cidade: userData.cidade,
       })
       .then(() => {
         console.log("User Updated!");

@@ -4,8 +4,6 @@ import Header from "../components/Header";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import { firebase } from "../services/firebase";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 
 export default function AlterarApiario({ route }) {
   //const route = useRoute();
@@ -14,8 +12,8 @@ export default function AlterarApiario({ route }) {
   const ApiRef = firebase.firestore().collection("apiarios");
   const [userDoc, setUserDoc] = useState([]);
   const nomeApi = route.params.nomeApi
-  const idApi = route.params.idApi
-  const idCol = route.params.idCol
+  const idApi = route.params.IdApi
+  const idCol = route.params.IdCol
   const [newDocRef, setNewDocRef] = useState(route.params.nomeApi)
   const [arquivos, setArquivos] = useState([]);
 
@@ -25,11 +23,11 @@ export default function AlterarApiario({ route }) {
   const targetDocRef = firebase.firestore().collection('apiarios').doc(newDocRef)
   const targetSubCollectionRef = targetDocRef.collection('colmeia')
 
-  const combinedData = [...userDoc.map(item => ({ type: 'userDoc', item })), ...arquivos.map(item => ({ type: 'arquivos', item }))];
 
   useEffect(() => {
     getDadosApi();
-    getObjectsLocally()
+    console.log(idApi)
+    console.log(idCol)
   }, [])
 
   const getDadosApi = () => {
@@ -49,35 +47,9 @@ export default function AlterarApiario({ route }) {
     });
   }
 
-  const getObjectsLocally = async () => {
-    try {
-      const keys = await AsyncStorage.getAllKeys();
-      console.log(keys)
-      const objects = await AsyncStorage.multiGet(keys);
-      const filteredKeys = keys.filter(key => key.includes('email') || key.includes('password'));
-      await AsyncStorage.multiRemove(filteredKeys);
-
-      // Converter os objetos de string para JSON
-      const parsedObjects = objects.map(([key, value]) => {
-        try {
-          return key, JSON.parse(value);
-        } catch (error) {
-          console.log(`Erro ao fazer o parsing do objeto com chave ${key}:`, error);
-          return [key, null];
-        }
-      });
-      const apiarios = parsedObjects.filter(obj => obj.tipo === "Apiário");
-      setArquivos(apiarios)
-      return parsedObjects;
-    } catch (error) {
-      console.log('Erro ao recuperar a lista de objetos:', error);
-      return [];
-    }
-  };
-
   const novoApi = (item) => {
-    if (nomeApi != item.item.nome) {
-      setButtonValue(item.item.nome)
+    if (nomeApi != item.nome) {
+      setButtonValue(item.nome)
     }
     else {
       setButtonValue(nomeApi)
@@ -93,14 +65,14 @@ export default function AlterarApiario({ route }) {
 
   const alterarApi = () => {
     //criar nova colmeia em um novo apiario 
-
     originalSubCollectionRef.get()
       .then(subdoc => {
         if(subdoc.exists){
+          console.log(subdoc)
           targetSubCollectionRef.add(subdoc.data())
           .then(()=> {
             Alert.alert("Colmeia alterada!", "A sua colmeia foi alterada de apiário com sucesso!") 
-            navigation.navigate("Apiario");
+            navigation.navigate("Página Inicial");
             originalSubCollectionRef.delete()
             .then(()=>{
               console.log("Documento excluido com sucesso!")
@@ -116,14 +88,13 @@ export default function AlterarApiario({ route }) {
           console.log("Documento não encontrado!")
         }
       })
-
   };
 
   return (
     <View style={styles.container}>
       <Header name={"Lista de Apiários"} type="tool" showIcon={'true'}/>
       <View style={styles.buttons}>
-        <CustomButton text="Apiário Atual" type="ALTERAR" />
+        <CustomButton text="Apiário Atual" type="ALTERAR1" />
         <CustomButton text={buttonValue} type="APIARIO" />
       </View>
 
@@ -141,10 +112,10 @@ export default function AlterarApiario({ route }) {
         keyExtractor={item => item.id}
         style={styles.list}
         showsVerticalScrollIndicator={false}
-        data={combinedData}
+        data={userDoc}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.container}>
-            <CustomButton text={item.item.nome} type="COLMEIA" onPress={() => novoApi(item)} />
+            <CustomButton text={item.nome} type="COLMEIA" onPress={() => novoApi(item)} />
           </TouchableOpacity>
         )}
       />

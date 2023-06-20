@@ -28,7 +28,6 @@ export default function NovaColmeia({ item, route }) {
     `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}`
   );
   const [userDocOff, setUserDocOff] = useState([]);
-  const [arquivos, setArquivos] = useState([]);
   const [name, setName] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [GravaçoesLocais, setGravaçoesLocais] = useState([])
@@ -54,7 +53,9 @@ export default function NovaColmeia({ item, route }) {
     }
     listGrav();
     getDadosNomes();
-    console.log('NOMECOLMEIA->',route.params.nomeCol)
+    console.log('idapi>',route.params.IdApi)
+    console.log('idcol>',route.params.IdCol)
+
   }, []);
 
   const onRefresh = () => {
