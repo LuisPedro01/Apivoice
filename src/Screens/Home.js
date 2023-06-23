@@ -14,17 +14,15 @@ import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import { firebase } from "../services/firebase";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system";
-import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
 
 export default function Home({ item, route }) {
   const navigation = useNavigation();
   const [userDoc, setUserDoc] = useState([]);
-  const [arquivos, setArquivos] = useState([]);
   const [name, setName] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [ColmeiasLocais, setColmeiasLocais] = useState([])
+  const ColmeiaRef = firebase.firestore().collection("apiarios").doc(route.params.nomeApi.id).collection("colmeia")
 
   //receber lista de colmeias
   const getDados = () => {
@@ -70,7 +68,8 @@ export default function Home({ item, route }) {
     getDadosNomes();
     getDados();
     getDocumentList()
-    if (name===null) {
+    CriarColmeiasAuto()
+    if (name === null) {
       listarColmeiasLocais()
     }
     setRefreshing(false);
@@ -124,7 +123,7 @@ export default function Home({ item, route }) {
 
   //render flatlist(verificar se é necessário)
   const renderFlatList = () => {
-    if (name.length==0) {
+    if (name.length == 0) {
       return (
         <View style={styles.container}>
           <FlatList
@@ -190,9 +189,10 @@ export default function Home({ item, route }) {
                       nomeCol: item.nomeColmeia,
                       nomeCol1: item.nome,
                       localCol: item.localizacao,
-                      nomeApi: route.params.nomeApi1,
+                      nomeApi: route.params.nomeApi,
                       IdCol: item.id,
-                      IdApi: route.params.IdLocal
+                      IdApi: route.params.IdLocal,
+                      colmeia: item
                     })
                   }
                 />
@@ -233,13 +233,13 @@ export default function Home({ item, route }) {
   useEffect(() => {
     getDadosNomes();
     getDados();
-    if (name.length==0) {
+    if (name.length == 0) {
       listarColmeiasLocais()
     }
   }, []);
 
   const getDocumentList = async () => {
-    if(Platform.OS=="android"){
+    if (Platform.OS == "android") {
       try {
         const documentDirectory = FileSystem.documentDirectory + route.params.nomeApi1
         const documentList = await FileSystem.readDirectoryAsync(documentDirectory);
@@ -249,7 +249,7 @@ export default function Home({ item, route }) {
         return [];
       }
     }
-    else{
+    else {
       const NomeA = route.params.nomeApi1.replace(/\s/g, '_')
       try {
         const documentDirectory = FileSystem.documentDirectory + NomeA
@@ -275,7 +275,6 @@ export default function Home({ item, route }) {
 
   //download de colmeias
   const downloadFiles = async (folderPath) => {
-    console.log('0')
 
     const apiarioRef = firebase.storage().ref(folderPath);
     const apiarioSnapshot = await apiarioRef.listAll();
@@ -293,7 +292,7 @@ export default function Home({ item, route }) {
       const gravaçõesNomes = colmeiaSnapshot.items.map(item => item.name);
       console.log('gravaçoes->', gravaçõesNomes)
       for (const gravaçãoNome of gravaçõesNomes) {
-        const gravaçãoNome1=gravaçãoNome.replace(/\s/g, '_')
+        const gravaçãoNome1 = gravaçãoNome.replace(/\s/g, '_')
         const gravaçãoRef = colmeiaRef.child(gravaçãoNome);
         const downloadURL = await gravaçãoRef.getDownloadURL();
         const fileUri = `${diretorioLocal}/${colmeiaNome1}/${gravaçãoNome1}`;
@@ -317,15 +316,69 @@ export default function Home({ item, route }) {
 
   //listagem colmeias locais
   async function listarColmeiasLocais() {
-    if(Platform.OS=="android"){
+    if (Platform.OS == "android") {
       const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;
       const colmeias = await FileSystem.readDirectoryAsync(localDirectory);
       setColmeiasLocais(colmeias)
+      console.log(colmeias)
     }
-    else{
+    else {
       const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;
       const colmeias = await FileSystem.readDirectoryAsync(localDirectory);
       setColmeiasLocais(colmeias)
+    }
+  }
+
+  // Função para verificar se uma colmeia já existe em um apiário
+  async function verificarColmeiaExistente(IdApiario, nomeColmeia) {
+    const colmeiasRef = firebase.firestore().collection('apiarios').doc(IdApiario).collection("colmeia");
+    const apiariosRef = firebase.firestore().collection('apiarios')
+    const querySnapshot = await colmeiasRef
+      .where('nomeColmeia', '==', nomeColmeia)
+      .get();
+      
+    return !querySnapshot.empty;
+  }
+
+  //criar colmeias automaticamente quando houver conxao à Internet
+  async function CriarColmeiasAuto() {
+    if (Platform.OS == "ios") {
+      const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;
+      const colmeias = await FileSystem.readDirectoryAsync(localDirectory);
+
+      colmeias.forEach(async colmeia => {
+        const partes = colmeia.split('_');
+        const nomeColmeia = partes[1];
+        const ExisteColmeia = await verificarColmeiaExistente(route.params.nomeApi.id, nomeColmeia)
+
+        if (!ExisteColmeia) {
+          await firebase.firestore().collection("apiarios").doc(route.params.nomeApi.id).collection("colmeia").add({
+            nomeColmeia: nomeColmeia,
+            createdAt: Date()
+          })
+          Alert.alert('Colmeia criada com sucesso!', 'Colmeia local, criada na base de dados.')
+        } else {
+          Alert.alert('Erro ao criar colmeia', 'Colmeia local, já existe na base de dados.')
+        }
+      })
+    }
+    else {
+      const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;
+      const colmeias = await FileSystem.readDirectoryAsync(localDirectory);
+
+      colmeias.forEach(async colmeia => {
+        const ExisteColmeia = await verificarColmeiaExistente(route.params.nomeApi.id, colmeia)
+
+        if (!ExisteColmeia) {
+          await firebase.firestore().collection("apiarios").doc(route.params.nomeApi.id).collection("colmeia").add({
+            nomeColmeia: colmeia,
+            createdAt: Date()
+          })
+          Alert.alert('Colmeia criada com sucesso!', 'Colmeia local, criada na base de dados.')
+        } else {
+          Alert.alert('Erro ao criar colmeia', 'Colmeia local, já existe na base de dados.')
+        }
+      })
     }
   }
 
@@ -352,6 +405,7 @@ export default function Home({ item, route }) {
       <CustomButton
         text={"Lista de colmeias"}
         type="COLMEIAS"
+        onPress={listarColmeiasLocais}
       />
 
       <View

@@ -5,7 +5,8 @@ import {
   View,
   FlatList,
   TouchableOpacity,
-  RefreshControl
+  RefreshControl,
+  Alert
 } from "react-native";
 import Header from "../components/Header";
 import { useRoute } from "@react-navigation/native";
@@ -23,6 +24,7 @@ export default function Apiario(item) {
   const [name, setName] = useState("");
   const [arquivos, setArquivos] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [ApiariosLocais, setApiariosLocais] = useState([])
 
 
   const getDadosApi = () => {
@@ -61,15 +63,13 @@ export default function Apiario(item) {
     ...userDoc.map((item, index) => ({ key: `userDoc_${index}`, type: 'userDoc', item })),
     ...arquivos.map((item, index) => ({ key: `arquivos_${index}`, type: 'arquivos', item }))
   ];
-  
+  const nomes = userDoc.map(obj => obj.nome);
 
   useEffect(() => {
     getDadosApi();
     getDadosNomes();
-    //limparAsyncStorage()
-    getObjectsLocally();
-    console.log('userDoc->',userDoc)
     if (userDoc.length === 0) {
+      listarApiariosLocais()
     }
   }, []);
 
@@ -90,14 +90,14 @@ export default function Apiario(item) {
     getDadosApi();
     getDadosNomes();
     getObjectsLocally();
-    console.log('userDoc id->',userDoc.map(obj=>obj.id))
+    console.log('userDoc id->', userDoc.map(obj => obj.id))
     setRefreshing(false)
   };
 
   const getObjectsLocally = async () => {
     try {
       const keys = await AsyncStorage.getAllKeys();
-      console.log('keys->',keys)
+      console.log('keys->', keys)
       const objects = await AsyncStorage.multiGet(keys);
       const filteredKeys = keys.filter(key => key.includes('email') || key.includes('password'));
       await AsyncStorage.multiRemove(filteredKeys);
@@ -105,7 +105,7 @@ export default function Apiario(item) {
       // Converter os objetos de string para JSON                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
       const parsedObjects = objects.map(([key, value]) => {
         try {
-          return  { key, ...JSON.parse(value) };
+          return { key, ...JSON.parse(value) };
         } catch (error) {
           console.log(`Erro ao fazer o parsing do objeto com chave ${key}:`, error);
           return [key, null];
@@ -122,28 +122,62 @@ export default function Apiario(item) {
   };
 
   const eli = () => {
-    FileSystem.deleteAsync(`file:///data/user/0/com.luispedro.Apivoice/files/`)
+    FileSystem.deleteAsync(`${FileSystem.documentDirectory}apiario_undefined`)
   }
 
   const onUserPress = () => {
     navigation.navigate("Perfil");
   };
 
-  async function limparAsyncStorage() {
-    try {
-      const chaves = await AsyncStorage.getAllKeys();
-  
-      if (chaves.length > 0) {
-        await AsyncStorage.multiRemove(chaves);
-        console.log('Todas as chaves foram removidas com sucesso.');
-      } else {
-        console.log('Não há chaves armazenadas para remover.');
-      }
-    } catch (error) {
-      console.error('Ocorreu um erro ao remover as chaves:', error);
+  //listagem colmeias locais
+  async function listarApiariosLocais() {
+    if (Platform.OS == "android") {
+      const localDirectory = FileSystem.documentDirectory;
+      const apiarios = await FileSystem.readDirectoryAsync(localDirectory);
+      const apiariosComPrefixo = apiarios.filter(apiario => apiario.startsWith('apiario '));
+      setApiariosLocais(apiariosComPrefixo)
+    }
+    else {
+      const localDirectory = FileSystem.documentDirectory;
+      const apiarios = await FileSystem.readDirectoryAsync(localDirectory);
+      const apiariosComPrefixo = apiarios.filter(apiario => apiario.startsWith('apiario_'));
+
+      setApiariosLocais(apiariosComPrefixo)
     }
   }
+
+  //criar apiarios automaticamente quando houver conxao à Internet
+  async function CriarApiariosAuto () {
+    if(Platform.OS=="ios"){
+      const localDirectory = FileSystem.documentDirectory;
+      const apiarios = await FileSystem.readDirectoryAsync(localDirectory);
+      const apiariosComPrefixo = apiarios.filter(apiario => apiario.startsWith('apiario_'));
   
+      apiariosComPrefixo.forEach(async apiario =>{
+        await ApiRef.add({
+          nome: apiario,
+          createdAt: Date(),
+          userId: firebase.auth().currentUser.uid
+        })
+      })  
+      Alert.alert('Apiário criado com sucesso!', 'Apiário local, criado na base de dados.')
+    }
+    else{
+      const localDirectory = FileSystem.documentDirectory;
+      const apiarios = await FileSystem.readDirectoryAsync(localDirectory);
+      const apiariosComPrefixo = apiarios.filter(apiario => apiario.startsWith('apiario '));
+  
+      apiariosComPrefixo.forEach(async apiario =>{
+        await ApiRef.add({
+          nome: apiario,
+          createdAt: Date(),
+          userId: firebase.auth().currentUser.uid
+        })
+      })  
+      Alert.alert('Apiário criado com sucesso!', 'Apiário local, criado na base de dados.')
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Header name={"Olá, " + name.username + "!"} type="user" onPress={onUserPress} />
@@ -160,36 +194,36 @@ export default function Apiario(item) {
         }}
       />
 
-        <FlatList
-          keyExtractor={(item) => item.key}
-          style={styles.list}
-          showsVerticalScrollIndicator={false}
-          data={combinedData}
-          ListEmptyComponent={EmptyListMessage}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
+      <FlatList
+        keyExtractor={(item) => item.key}
+        style={styles.list}
+        showsVerticalScrollIndicator={false}
+        data={combinedData}
+        ListEmptyComponent={EmptyListMessage}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.container}>
+            <CustomButton
+              text={item.item.nome + " - " + item.item.localizacao}
+              type="COLMEIA"
+              onPress={() =>
+                navigation.navigate("Colmeia", {
+                  nomeApi: item.item,
+                  nomeApi1: item.item.nome,
+                  IdLocal: item.item.id,
+                  TipoDeApi: item.type,
+                  LocalApi: item.item.localizacao
+                })
+              }
             />
-          }
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.container}>
-              <CustomButton
-                text={item.item.nome + " - " + item.item.localizacao}
-                type="COLMEIA"
-                onPress={() =>
-                  navigation.navigate("Colmeia", {
-                    nomeApi: item.item,
-                    nomeApi1: item.item.nome,
-                    IdLocal: item.item.id,
-                    TipoDeApi: item.type,
-                    LocalApi: item.item.localizacao
-                  })
-                }
-              />
-            </TouchableOpacity>
-          )}
-        />
+          </TouchableOpacity>
+        )}
+      />
       <CustomButton
         text="Novo apiario"
         type="NOVACOLMEIA"

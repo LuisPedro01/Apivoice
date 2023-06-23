@@ -53,9 +53,6 @@ export default function NovaColmeia({ item, route }) {
     }
     listGrav();
     getDadosNomes();
-    console.log('idapi>',route.params.IdApi)
-    console.log('idcol>',route.params.IdCol)
-
   }, []);
 
   const onRefresh = () => {
@@ -88,7 +85,7 @@ export default function NovaColmeia({ item, route }) {
         .doc(route.params.nomeApi.id)
         .collection("colmeia");
       subCollection
-        .doc(route.params.nomeCol.id)
+        .doc(route.params.colmeia.id)
         .delete()
         .then(() => {
           Alert.alert("Colmeia apagada!", "Colmeia apagada com sucesso na base de dados!");
@@ -104,7 +101,7 @@ export default function NovaColmeia({ item, route }) {
   //alterar colmeia de apiário
   const alterarApi = () => {
     navigation.navigate("Alterar Apiario", {
-      nomeApi: route.params.nomeApi,
+      nomeApi: route.params.nomeApi.nome,
       nomeCol: route.params.nomeCol,
       IdApi: route.params.IdApi,
       IdCol: route.params.IdCol
