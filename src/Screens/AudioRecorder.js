@@ -7,7 +7,6 @@ import {
 } from "expo-av/build/Audio";
 import Header from "../components/Header";
 import CustomButton from "../components/CustomButton";
-import { firebase } from "../services/firebase";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 import CustomInput from "../components/CustomInput";
 import { useNavigation } from "@react-navigation/native";

@@ -332,7 +332,6 @@ export default function Home({ item, route }) {
   // Função para verificar se uma colmeia já existe em um apiário
   async function verificarColmeiaExistente(IdApiario, nomeColmeia) {
     const colmeiasRef = firebase.firestore().collection('apiarios').doc(IdApiario).collection("colmeia");
-    const apiariosRef = firebase.firestore().collection('apiarios')
     const querySnapshot = await colmeiasRef
       .where('nomeColmeia', '==', nomeColmeia)
       .get();
@@ -358,7 +357,7 @@ export default function Home({ item, route }) {
           })
           Alert.alert('Colmeia criada com sucesso!', 'Colmeia local, criada na base de dados.')
         } else {
-          Alert.alert('Erro ao criar colmeia', 'Colmeia local, já existe na base de dados.')
+          console.log('ja existe na base de dados')
         }
       })
     }

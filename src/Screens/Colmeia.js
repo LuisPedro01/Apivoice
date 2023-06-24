@@ -13,7 +13,7 @@ import Header from "../components/Header";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import { firebase, db } from "../services/firebase";
-import { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
+import { getDownloadURL, getStorage, listAll, ref, uploadBytes } from "firebase/storage";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 
@@ -25,7 +25,7 @@ export default function NovaColmeia({ item, route }) {
   const storage1 = firebase.storage();
   var listRef = ref(
     storage,
-    `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}`
+    `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`
   );
   const [userDocOff, setUserDocOff] = useState([]);
   const [name, setName] = useState("");
@@ -62,6 +62,7 @@ export default function NovaColmeia({ item, route }) {
     }
     listGrav();
     getDadosNomes();
+    CriarGravacoesAuto()
     setRefreshing(false)
   };
 
@@ -135,7 +136,7 @@ export default function NovaColmeia({ item, route }) {
   //reproduzir audio da base de dados
   const onPlayPress = (item) => {
     storage1
-      .ref(`apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/${item}`)
+      .ref(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/${item}`)
       .getDownloadURL()
       .then(async (url) => {
         console.log(`url de ${item}->`, url);
@@ -156,11 +157,11 @@ export default function NovaColmeia({ item, route }) {
 
   //reproduzir audio localmente
   const onPlayPressOffline = async (item) => {
-    if(Platform.OS=="android"){
-      console.log("Loading Sound");  
+    if (Platform.OS == "android") {
+      console.log("Loading Sound");
       const directory = FileSystem.documentDirectory;
-      const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}/${item}`;  
-      try {  
+      const filePath = `${directory}/apiario ${route.params.nomeApi.nome}/${route.params.nomeCol}/${item}`;
+      try {
         const { sound } = await Audio.Sound.createAsync({ uri: filePath });
         await sound.replayAsync();
         console.log('audio reproduzido com sucesso')
@@ -168,13 +169,13 @@ export default function NovaColmeia({ item, route }) {
         console.log("Erro ao reproduzir o audio: ", error);
       }
     }
-    else{
-      console.log("Loading Sound");  
+    else {
+      console.log("Loading Sound");
       const NomeA = route.params.nomeCol.replace(/\s/g, '_')
       const directory = FileSystem.documentDirectory;
       const filePath = `${directory}apiario_${route.params.nomeApi.nome}/${NomeA}/${item}`;
       console.warn('FILEPATH->', filePath)
-      try {  
+      try {
         const fileInfo = await FileSystem.getInfoAsync(filePath);
         if (!fileInfo.exists) {
           console.log('Arquivo de áudio não encontrado:', filePath);
@@ -249,33 +250,32 @@ export default function NovaColmeia({ item, route }) {
 
   //listagem de gravaçoes locais
   async function listarGravacoesLocais() {
-    if(Platform.OS=="android"){
+    if (Platform.OS == "android") {
       const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
       const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
-  
+
       // Verifique a existência do diretório da colmeia
       const directoryInfo = await FileSystem.getInfoAsync(colmeiaDirectory);
       if (!directoryInfo.exists || !directoryInfo.isDirectory) {
         console.log('Diretório da colmeia não encontrado:', route.params.nomeCol);
         return;
       }
-  
+
       const gravacoes = await FileSystem.readDirectoryAsync(colmeiaDirectory);
-      console.log('Gravações locais da colmeia', route.params.nomeCol, ':', gravacoes);
       setGravaçoesLocais(gravacoes)
     }
-    else{
+    else {
       const NomeA = route.params.nomeCol.replace(/\s/g, '_')
       const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;;
       const colmeiaDirectory = `${localDirectory}/${NomeA}`;
-      
+
       // Verifique a existência do diretório da colmeia
       const directoryInfo = await FileSystem.getInfoAsync(colmeiaDirectory);
       if (!directoryInfo.exists || !directoryInfo.isDirectory) {
         console.log('Diretório da colmeia não encontrado:', route.params.nomeCol);
         return;
       }
-  
+
       const gravacoes = await FileSystem.readDirectoryAsync(colmeiaDirectory);
       console.log('Gravações locais da colmeia', route.params.nomeCol, ':', gravacoes);
       setGravaçoesLocais(gravacoes)
@@ -284,7 +284,7 @@ export default function NovaColmeia({ item, route }) {
 
   //eliminar colmeia local
   async function excluirArquivo() {
-    if(Platform.OS=="android"){
+    if (Platform.OS == "android") {
       const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;;
       const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
       try {
@@ -295,7 +295,7 @@ export default function NovaColmeia({ item, route }) {
         console.error(error);
       }
     }
-    else{
+    else {
       const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;;
       const colmeiaDirectory = `${localDirectory}/${route.params.nomeCol}`;
       try {
@@ -306,6 +306,64 @@ export default function NovaColmeia({ item, route }) {
         console.error(error);
       }
     }
+  }
+
+  // Função para verificar se uma colmeia já existe em um apiário
+  async function verificarExistenciaAudioNoStorage(nomeAudio) {
+    const firebaseStorageRef = firebase.storage().ref();
+    const colmeiaFolderRef = firebaseStorageRef.child(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`);
+  
+    try {
+      const items = await colmeiaFolderRef.listAll();
+
+      const audioNames = items.items.map(item => item.name);
+
+      console.log('AUDIONAME->', audioNames)
+
+      // Verificar se existe algum áudio com o mesmo nome
+      if (audioNames.includes(nomeAudio)) {
+        console.log('Existe um áudio com o mesmo nome na Firebase Storage.');
+        return true
+      } else {
+        console.log('Não existe um áudio com o mesmo nome na Firebase Storage.');
+        return false
+      }
+    } catch (error) {
+      console.log('Erro ao verificar a existência do áudio no Firebase Storage:', error);
+    }
+  }
+
+  //criar audio automaticamente quando houver conexao à Internet
+  async function CriarGravacoesAuto() {
+    const firebaseStorageRef = firebase.storage().ref();
+    const colmeiaFolderRef = firebaseStorageRef.child(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`);
+  
+    const files = await FileSystem.readDirectoryAsync(`${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}/${route.params.nomeCol}`);
+    files.forEach(async file => {
+      const ExisteAudio = await verificarExistenciaAudioNoStorage(file);
+      if (ExisteAudio == false) {
+        const localFileUri = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}/${route.params.nomeCol}/${file}`;
+        const storage = getStorage();
+        console.log('FILE->',file)
+        const storageRef = ref(storage, `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/${file}`);
+        console.log('LOCALFILEURI->', localFileUri)
+        console.log( `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/${file}`)
+        const response = await fetch(localFileUri)
+        const file1 = await response.blob([response.valueOf], {
+          type: "audio/mp3",
+        });
+
+        // Upload Blob file to Firebase
+        const snapshot = await uploadBytes(storageRef, file1, "blob")
+        .then((snapshot) => {
+          console.log("Uploaded a song to firebase storage!");
+          Alert.alert("Gravação criada!", `Gravação ${file} gravada com sucesso!`)
+        });
+      }
+      else {
+        console.log(`O arquivo de áudio ${file} ja existe na base de dados.`);
+      }
+    })
   }
 
   return (

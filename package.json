@@ -64,6 +64,7 @@
     "react-native-vector-icons": "^9.2.0",
     "react-router-dom": "^6.4.2",
     "string-similarity": "^4.0.4",
+    "text-encoding-utf-8": "^1.0.2",
     "uid": "^2.0.1",
     "util": "^0.12.5",
     "uuid": "^9.0.0"
