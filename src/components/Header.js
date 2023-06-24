@@ -166,8 +166,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   const voltarKeywords = ["voltar", "página anterior"];
   const selecionarApiarioKeywords = [
     "selecionar apiário",
-    "apiário",
-    "selecionar diário",
+    "selecionar a diário",
     "selecionar Aviário",
   ];
   const selecionarColmeiaKeywords = ["selecionar"];
@@ -265,9 +264,15 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
           .then((querySnapshot) => {
             querySnapshot.forEach((doc) => {
               keyExtractor(doc);
+              const nomeApi1 ={
+                id:doc.id,
+                nome:doc.data().nome,
+                userId:doc.data().userId
+              }
               navigation.navigate("Colmeia", {
                 nomeApi1: doc.data().nome,
-                nomeApi: doc,
+                nomeApi: nomeApi1,
+                id:doc.id
               });
               Speech.speak(`A navegar para apiário ${nome}`, {
                 language: "pt-PT",
@@ -282,15 +287,14 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
 
       // Função para extrair o nome da colmeia do comando
       const extractColmeiaName = (command) => {
-        const regex = /selecionar (.+)/i;
+        const regex = /selecionar\s(.+)/i;
         const match = command.match(regex);
         return match ? match[1] : null;
       };
 
       //selecionar colmeia
       if (checkCommandSimilarity(comando, selecionarColmeiaKeywords)) {
-        console.log("chegou aqui");
-        const nome = extractColmeiaName(comando);
+        const nome = extractColmeiaName(comando)?.toLowerCase();
         console.log(nome);
         console.log("RouteApi2", RouteApi);
 

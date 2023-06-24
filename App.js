@@ -1,16 +1,10 @@
 import Navigation from "./src/navigation";
 import {
-  View,
-  Text,
   StyleSheet,
-  TouchableOpacity,
   SafeAreaView,
-  NativeModules,
-  Alert,
   LogBox,
 } from "react-native";
 import { useEffect, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
 import { db, firebase } from "./src/services/firebase";
 
 export default function App() {
@@ -19,6 +13,7 @@ export default function App() {
   const ApiRef = firebase.firestore().collection("apiarios");
   LogBox.ignoreLogs(["new NativeEventEmitter"]);
   LogBox.ignoreLogs(["Non-serializable values"]);
+  LogBox.ignoreAllLogs()
  
 
   const getDadosApi = () => {

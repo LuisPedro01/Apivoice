@@ -233,6 +233,7 @@ export default function Home({ item, route }) {
   useEffect(() => {
     getDadosNomes();
     getDados();
+    console.log('NOMEAPI->', route.params.nomeApi)
     if (name.length == 0) {
       listarColmeiasLocais()
     }
