@@ -343,14 +343,14 @@ export default function NovaColmeia({ item, route }) {
   // Função para verificar se uma colmeia já existe em um apiário
   async function verificarExistenciaAudioNoStorage(nomeAudio) {
     const firebaseStorageRef = firebase.storage().ref();
-    const colmeiaFolderRef = firebaseStorageRef.child(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`);
+    const colmeiaFolderRef = firebaseStorageRef.child(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/`);
 
     try {
       const items = await colmeiaFolderRef.listAll();
 
       //const audioNames = items.items.map(item => item);
 
-      const audioNames = items.items.map(item => item.name.replace(/_/g, ' '));
+      const audioNames = items.items.map(item => item.name.replace(/ /g, '_'));
 
       console.log('AUDIONAME->', audioNames)
 
@@ -370,13 +370,15 @@ export default function NovaColmeia({ item, route }) {
   //criar audio automaticamente quando houver conexao à Internet
   async function CriarGravacoesAuto() {
     if (Platform.OS == "ios") {
-      console.log(route.params.nomeCol)
+     // console.log(route.params.nomeCol)
       const firebaseStorageRef = firebase.storage().ref();
       const colmeiaFolderRef = firebaseStorageRef.child(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`);
+
 
       const files = await FileSystem.readDirectoryAsync(`${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}/${route.params.nomeCol}`);
       files.forEach(async file => {
         const ExisteAudio = await verificarExistenciaAudioNoStorage(file);
+        console.log(ExisteAudio)
         if (ExisteAudio == false) {
           const localFileUri = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}/${route.params.nomeCol}/${file}`;
           const storage = getStorage();
@@ -397,7 +399,7 @@ export default function NovaColmeia({ item, route }) {
             });
         }
         else {
-          Alert.alert('Áudio local já existe na base de dados', `O arquivo de áudio ${file} ja existe na base de dados.`);
+          console.log(`O arquivo de áudio ${file} ja existe na base de dados.`);
         }
       })
     }
@@ -464,7 +466,7 @@ export default function NovaColmeia({ item, route }) {
           type="SECONDARY"
           onPress={deleteColmeia}
         />
-
+ 
         <CustomButton
           text="Alterar apiário"
           type="SECONDARY"

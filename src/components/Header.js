@@ -187,7 +187,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   ];
   const ComeçarGravarKeywords = ["começar gravação", "começar a gravar"];
   const ReproduzirAudioKeywords = ["reproduzir áudio"];
-  var timeout;
+  let timeout;
 
   function convertNumberToWord(number) {
     const numberWords = [
@@ -380,8 +380,11 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         });
         clearTimeout(timeout);
         setIsEnable(false);
-        // Aguardar 5 segundos
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        // Aguardar 5,5 segundos
+        await new Promise((resolve) => setTimeout(resolve, 5500))
+        clearTimeout(timeout);
+        setIsEnable(false);
+        
         Speech.speak(`a gravar nova gravação`, {
           language: "pt-PT",
         });
@@ -394,9 +397,12 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         Speech.speak(`áudio guardado na base de dados`, {
           language: "pt-PT",
         });
-        navigation.navigate("Página Inicial")
         await new Promise((resolve) => setTimeout(resolve, 10000));
         startRecording();
+        navigation.navigate("Página Inicial")
+        Speech.speak(`A ouvir comandos`, {
+          language: "pt-PT",
+        });
       }
       //reproduzir audio
       if (checkCommandSimilarity(comando, ReproduzirAudioKeywords)) {
