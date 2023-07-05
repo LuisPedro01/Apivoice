@@ -23,10 +23,7 @@ export default function NovaColmeia({ item, route }) {
   const [URL, setURL] = useState("");
   const storage = getStorage();
   const storage1 = firebase.storage();
-  var listRef = ref(
-    storage,
-    `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`
-  );
+  var listRef = ref(storage,`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`);
   const [userDocOff, setUserDocOff] = useState([]);
   const [name, setName] = useState("");
   const [refreshing, setRefreshing] = useState(false);
@@ -80,6 +77,28 @@ export default function NovaColmeia({ item, route }) {
     }
     else {
       //eliminar online
+
+      //Firebase Storage
+      const storageRef = firebase.storage().ref();
+      const fileRef = storageRef.child(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/`);
+      fileRef
+      .listAll()
+      .then((result) => {
+        result.items.forEach((fileRef) => {
+          fileRef.delete()
+            .then(() => {
+              console.log('Arquivo excluído com sucesso:', fileRef.name);
+            })
+            .catch((error) => {
+              console.error('Ocorreu um erro ao excluir o arquivo:', fileRef.name, error);
+            });
+        });
+      })
+      .catch((error) => {
+        console.error('Ocorreu um erro ao listar os arquivos da pasta:', error);
+      });
+
+      //Firebase firestore
       const subCollection = firebase
         .firestore()
         .collection("apiarios")
@@ -111,12 +130,24 @@ export default function NovaColmeia({ item, route }) {
 
   //obter gravações da base de dados
   const listGrav = () => {
+    // Limpar as listas antes de atualizá-las
+    setGrav([]);
+    setURL([]);
+
     listAll(listRef)
       .then((res) => {
+        const gravArr = [];
+        const urlArr = [];
+
         res.items.forEach((item) => {
-          setGrav((arr) => [...arr, item.name]);
+          gravArr.push(item.name);
           getDownloadURL(item).then((url) => {
-            setURL((prev) => [...prev, url]);
+            urlArr.push(url);
+            // Verificar se todos os itens foram processados
+            if (urlArr.length === res.items.length) {
+              setGrav(gravArr);
+              setURL(urlArr);
+            }
           });
         });
       })
@@ -269,6 +300,7 @@ export default function NovaColmeia({ item, route }) {
       const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;;
       const colmeiaDirectory = `${localDirectory}/${NomeA}`;
 
+      console.log(NomeA)
       // Verifique a existência do diretório da colmeia
       const directoryInfo = await FileSystem.getInfoAsync(colmeiaDirectory);
       if (!directoryInfo.exists || !directoryInfo.isDirectory) {
@@ -312,11 +344,13 @@ export default function NovaColmeia({ item, route }) {
   async function verificarExistenciaAudioNoStorage(nomeAudio) {
     const firebaseStorageRef = firebase.storage().ref();
     const colmeiaFolderRef = firebaseStorageRef.child(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`);
-  
+
     try {
       const items = await colmeiaFolderRef.listAll();
 
-      const audioNames = items.items.map(item => item.name);
+      //const audioNames = items.items.map(item => item);
+
+      const audioNames = items.items.map(item => item.name.replace(/_/g, ' '));
 
       console.log('AUDIONAME->', audioNames)
 
@@ -335,34 +369,80 @@ export default function NovaColmeia({ item, route }) {
 
   //criar audio automaticamente quando houver conexao à Internet
   async function CriarGravacoesAuto() {
+    if (Platform.OS == "ios") {
+      console.log(route.params.nomeCol)
+      const firebaseStorageRef = firebase.storage().ref();
+      const colmeiaFolderRef = firebaseStorageRef.child(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`);
+
+      const files = await FileSystem.readDirectoryAsync(`${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}/${route.params.nomeCol}`);
+      files.forEach(async file => {
+        const ExisteAudio = await verificarExistenciaAudioNoStorage(file);
+        if (ExisteAudio == false) {
+          const localFileUri = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}/${route.params.nomeCol}/${file}`;
+          const storage = getStorage();
+          console.log('FILE->', file)
+          const storageRef = ref(storage, `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/${file}`);
+          console.log('LOCALFILEURI->', localFileUri)
+          console.log(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/${file}`)
+          const response = await fetch(localFileUri)
+          const file1 = await response.blob([response.valueOf], {
+            type: "audio/mp3",
+          });
+
+          // Upload Blob file to Firebase
+          const snapshot = await uploadBytes(storageRef, file1, "blob")
+            .then((snapshot) => {
+              console.log("Uploaded a song to firebase storage!");
+              Alert.alert("Gravação criada!", `Gravação ${file} gravada com sucesso!`)
+            });
+        }
+        else {
+          Alert.alert('Áudio local já existe na base de dados', `O arquivo de áudio ${file} ja existe na base de dados.`);
+        }
+      })
+    }
+    else {
+      const firebaseStorageRef = firebase.storage().ref();
+      const colmeiaFolderRef = firebaseStorageRef.child(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`);
+
+      const files = await FileSystem.readDirectoryAsync(`${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`);
+      files.forEach(async file => {
+        const ExisteAudio = await verificarExistenciaAudioNoStorage(file);
+        if (ExisteAudio == false) {
+          const localFileUri = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}/${route.params.nomeCol}/${file}`;
+          const storage = getStorage();
+          console.log('FILE->', file)
+          const storageRef = ref(storage, `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/${file}`);
+          console.log('LOCALFILEURI->', localFileUri)
+          console.log(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/${file}`)
+          const response = await fetch(localFileUri)
+          const file1 = await response.blob([response.valueOf], {
+            type: "audio/mp3",
+          });
+
+          // Upload Blob file to Firebase
+          const snapshot = await uploadBytes(storageRef, file1, "blob")
+            .then((snapshot) => {
+              console.log("Uploaded a song to firebase storage!");
+              Alert.alert("Gravação criada!", `Gravação ${file} gravada com sucesso!`)
+            });
+        }
+        else {
+          Alert.alert('Áudio local já existe na base de dados', `O arquivo de áudio ${file} ja existe na base de dados.`);
+        }
+      })
+    }
+  }
+
+  async function eliminarAudio() {
     const firebaseStorageRef = firebase.storage().ref();
     const colmeiaFolderRef = firebaseStorageRef.child(`apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}`);
-  
+
     const files = await FileSystem.readDirectoryAsync(`${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}/${route.params.nomeCol}`);
     files.forEach(async file => {
-      const ExisteAudio = await verificarExistenciaAudioNoStorage(file);
-      if (ExisteAudio == false) {
-        const localFileUri = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}/${route.params.nomeCol}/${file}`;
-        const storage = getStorage();
-        console.log('FILE->',file)
-        const storageRef = ref(storage, `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/${file}`);
-        console.log('LOCALFILEURI->', localFileUri)
-        console.log( `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/${file}`)
-        const response = await fetch(localFileUri)
-        const file1 = await response.blob([response.valueOf], {
-          type: "audio/mp3",
-        });
-
-        // Upload Blob file to Firebase
-        const snapshot = await uploadBytes(storageRef, file1, "blob")
-        .then((snapshot) => {
-          console.log("Uploaded a song to firebase storage!");
-          Alert.alert("Gravação criada!", `Gravação ${file} gravada com sucesso!`)
-        });
-      }
-      else {
-        console.log(`O arquivo de áudio ${file} ja existe na base de dados.`);
-      }
+      const localFileUri = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}/${route.params.nomeCol}/${file}`;
+      await FileSystem.deleteAsync(localFileUri)
+      console.log('eliminado')
     })
   }
 
@@ -376,6 +456,7 @@ export default function NovaColmeia({ item, route }) {
           route.params.localCol
         }
         type="COLMEIAS"
+      onPress={eliminarAudio}
       />
       <View style={styles.buttons}>
         <CustomButton

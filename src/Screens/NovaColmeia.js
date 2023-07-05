@@ -35,7 +35,7 @@ export default function NovaColmeia({ route }) {
         if (Platform.OS == "android") {
           try {
             const localDirectory = `${FileSystem.documentDirectory}apiario ${route.params.nomeApi.nome}`;
-            const NovaColDirectory = `${localDirectory}/colmeia ${nome}`
+            const NovaColDirectory = `${localDirectory}/${nome}`
             await FileSystem.makeDirectoryAsync(NovaColDirectory, { intermediates: true });
             Alert.alert(
               "Colmeia criada!",
@@ -49,7 +49,7 @@ export default function NovaColmeia({ route }) {
         else {
           try {
             const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;
-            const NovaColDirectory = `${localDirectory}/colmeia_${nome}`
+            const NovaColDirectory = `${localDirectory}/${nome}`
             await FileSystem.makeDirectoryAsync(NovaColDirectory, { intermediates: true });
             Alert.alert(
               "Colmeia criada!",

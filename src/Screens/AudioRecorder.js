@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Button, Alert, FlatList, TouchableOpacity } from "react-native";
 import { Audio } from "expo-av";
-import {
-  requestPermissionsAsync,
-  setAudioModeAsync,
-} from "expo-av/build/Audio";
 import Header from "../components/Header";
 import CustomButton from "../components/CustomButton";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
@@ -94,7 +90,7 @@ const AudioRecorder = ({route}) => {
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       const novoUri = `${colmeiaDirectory}/audio_${nome}.mp3`;
-      console.warn ('NOVOURI->', novoUri)
+      console.log ('NOVOURI->', novoUri)
       let updatedRecordings = [...recordings];
       const { sound, status } = await recording.createNewLoadedSoundAsync();
       updatedRecordings.push({
@@ -114,13 +110,13 @@ const AudioRecorder = ({route}) => {
       try {
         //Create the file reference
         const storage = getStorage();
-        const storageRef = ref(storage, `apiario ${route.params.nomeApi}/colmeia ${route.params.nomeCol}/audio ${nome}.mp3`);
+        const storageRef = ref(storage, `apiario ${route.params.nomeApi.nome}/colmeia ${route.params.nomeCol}/audio ${nome}.mp3`);
   
         // Upload Blob file to Firebase
         const snapshot = await uploadBytes(storageRef, file, "blob")
         .then((snapshot) => {
           console.log("Uploaded a song to firebase storage!");
-          Alert.alert("Gravação criada!", "Gravação gravada com sucesso!")
+          Alert.alert("Gravação criada!", "Gravação criada na base de dados!")
           // navigation.navigate('Apiario')
         });
   

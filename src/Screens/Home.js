@@ -67,7 +67,7 @@ export default function Home({ item, route }) {
     setRefreshing(true);
     getDadosNomes();
     getDados();
-    getDocumentList()
+    //getDocumentList()
     CriarColmeiasAuto()
     if (name === null) {
       listarColmeiasLocais()
@@ -80,10 +80,50 @@ export default function Home({ item, route }) {
     navigation.navigate("Perfil");
   };
 
+  function deleteFolderContents(folderRef) {
+    return folderRef.listAll()
+    .then((result) => {
+      const deletePromises = [];
+
+      result.items.forEach((fileRef) => {
+        deletePromises.push(fileRef.delete().then(() => {
+          console.log('Arquivo excluído com sucesso:', fileRef.name);
+        }).catch((error) => {
+          console.error('Ocorreu um erro ao excluir o arquivo:', fileRef.name, error);
+        }));
+      });
+
+      result.prefixes.forEach((subfolderRef) => {
+        deletePromises.push(deleteFolderContents(subfolderRef));
+      });
+
+      return Promise.all(deletePromises);
+    })
+    .catch((error) => {
+      console.error('Ocorreu um erro ao listar os arquivos da pasta:', error);
+      throw error;
+    });
+  }
+
   //eliminar apiário
   const deleteApi = async () => {
     if (name != null && route.params.TipoDeApi != "arquivos") {
       //Online
+
+      //Firebase Storage
+      const storageRef = firebase.storage().ref();
+      const apiarioRef = storageRef.child(`apiario ${route.params.nomeApi.nome}`);
+      deleteFolderContents(apiarioRef).then(() => {
+        apiarioRef.delete().then(() => {
+          console.log('Pasta apiario e seu conteúdo foram excluídos com sucesso.');
+        }).catch((error) => {
+          console.error('Ocorreu um erro ao excluir a pasta apiario:', error);
+        });
+      }).catch((error) => {
+        console.error('Ocorreu um erro ao excluir o conteúdo da pasta apiario:', error);
+      });
+
+      //Firebase Firestore  
       firebase
         .firestore()
         .collection("apiarios")
@@ -233,7 +273,6 @@ export default function Home({ item, route }) {
   useEffect(() => {
     getDadosNomes();
     getDados();
-    console.log('NOMEAPI->', route.params.nomeApi)
     if (name.length == 0) {
       listarColmeiasLocais()
     }
@@ -336,7 +375,7 @@ export default function Home({ item, route }) {
     const querySnapshot = await colmeiasRef
       .where('nomeColmeia', '==', nomeColmeia)
       .get();
-      
+
     return !querySnapshot.empty;
   }
 
@@ -346,14 +385,16 @@ export default function Home({ item, route }) {
       const localDirectory = `${FileSystem.documentDirectory}apiario_${route.params.nomeApi.nome}`;
       const colmeias = await FileSystem.readDirectoryAsync(localDirectory);
 
+      console.log('COLMEIAS->', colmeias)
       colmeias.forEach(async colmeia => {
         const partes = colmeia.split('_');
         const nomeColmeia = partes[1];
-        const ExisteColmeia = await verificarColmeiaExistente(route.params.nomeApi.id, nomeColmeia)
+        console.log('NOMECOLMEIA->', colmeia)
+        const ExisteColmeia = await verificarColmeiaExistente(route.params.nomeApi.id, colmeia)
 
         if (!ExisteColmeia) {
           await firebase.firestore().collection("apiarios").doc(route.params.nomeApi.id).collection("colmeia").add({
-            nomeColmeia: nomeColmeia,
+            nomeColmeia: colmeia,
             createdAt: Date()
           })
           Alert.alert('Colmeia criada com sucesso!', 'Colmeia local, criada na base de dados.')

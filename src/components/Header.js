@@ -30,6 +30,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   var isRecroding = false;
   let recordingInstance;
   let recordingg = new Audio.Recording();
+  let NomeApiario = ''
 
   const keyExtractor = (item) => item.id;
 
@@ -96,7 +97,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         const storage = getStorage();
         const storageRef = ref(
           storage,
-          `apiario ${nomeApi}/colmeia ${NomeCol}/audio ${NomeAudio}.mp3`
+          `apiario ${NomeApiario}/colmeia ${NomeCol}/audio ${NomeAudio}.mp3`
         );
   
         // Upload Blob file to Firebase
@@ -120,7 +121,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         const storage = getStorage();
         const storageRef = ref(
           storage,
-          `apiario ${nomeApi}/colmeia ${NomeCol}/audio ${NomeAudio}.mp3`
+          `apiario ${NomeApiario}/colmeia ${NomeCol}/audio ${NomeAudio}.mp3`
         );
   
         // Upload Blob file to Firebase
@@ -137,7 +138,7 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   //++++++++++++++++a
   const onPlayPress = (nomeAudio) => {
     storage1
-      .ref(`apiario ${nomeApi}/colmeia ${NomeCol}/audio ${nomeAudio}.mp3`)
+      .ref(`apiario ${NomeApiario}/colmeia ${NomeCol}/audio ${nomeAudio}.mp3`)
       .getDownloadURL()
       .then(async (url) => {
         console.log(`url de ${nomeAudio}->`, url);
@@ -188,6 +189,29 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
   const ReproduzirAudioKeywords = ["reproduzir áudio"];
   var timeout;
 
+  function convertNumberToWord(number) {
+    const numberWords = [
+      "zero",
+      "um",
+      "dois",
+      "três",
+      "quatro",
+      "cinco",
+      "seis",
+      "sete",
+      "oito",
+      "nove",
+      // Adicione mais palavras se necessário
+    ];
+  
+    if (typeof number === "number" && number >= 0 && number < numberWords.length) {
+      return numberWords[number];
+    }
+  
+    return number;
+  }
+
+
   const startRecording = async () => {
     try {
       const recordingOptions = {
@@ -232,19 +256,17 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         comando = "";
         setIsEnable(true);
       }
-
       //parar
       if (checkCommandSimilarity(comando, pararKeywords)) {
         Speech.speak("Comandos desligados", {
           language: "pt-PT",
         });
         clearTimeout(timeout);
-        stopRecording();
+        //stopRecording();
         setIsEnable(false);
         comando = "";
         return;
       }
-
       //voltar
       if (checkCommandSimilarity(comando, voltarKeywords)) {
         Speech.speak("A navegar para página anterior", {
@@ -253,7 +275,6 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         navigation.goBack();
         comando = "";
       }
-
       //selecionar apiário
       if (checkCommandSimilarity(comando, selecionarApiarioKeywords)) {
         const nome = comando
@@ -278,24 +299,25 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
                 language: "pt-PT",
               });
               RouteApi = doc.id;
-              nomeApi = doc.data().nome;
+              nomeApi = doc.data();
+              NomeApiario = doc.data().nome
             });
           });
         comando = "";
         setIsEnable(true);
       }
-
       // Função para extrair o nome da colmeia do comando
       const extractColmeiaName = (command) => {
         const regex = /selecionar\s(.+)/i;
         const match = command.match(regex);
         return match ? match[1] : null;
       };
-
       //selecionar colmeia
       if (checkCommandSimilarity(comando, selecionarColmeiaKeywords)) {
         const nome = extractColmeiaName(comando)?.toLowerCase();
-        console.log(nome);
+        const convertedNome = convertNumberToWord(nome);
+
+        console.log(convertedNome);
         console.log("RouteApi2", RouteApi);
 
         let ColRef = firebase
@@ -322,7 +344,6 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
           .catch((error) => console.log(error));
         comando = "";
       }
-
       //gravar
       //navegação
       if (checkCommandSimilarity(comando, NovaGravaçãoKeywords)) {
@@ -373,10 +394,10 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         Speech.speak(`áudio guardado na base de dados`, {
           language: "pt-PT",
         });
+        navigation.navigate("Página Inicial")
         await new Promise((resolve) => setTimeout(resolve, 10000));
         startRecording();
       }
-
       //reproduzir audio
       if (checkCommandSimilarity(comando, ReproduzirAudioKeywords)) {
         const nomeAudio = comando
