@@ -380,8 +380,10 @@ export default function Header({ name, type, onPress, route, item, showIcon }) {
         });
         clearTimeout(timeout);
         setIsEnable(false);
+        await stopRecording()
         // Aguardar 5,5 segundos
         await new Promise((resolve) => setTimeout(resolve, 5500))
+        
         clearTimeout(timeout);
         setIsEnable(false);
         
